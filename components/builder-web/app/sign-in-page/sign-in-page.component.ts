@@ -25,7 +25,7 @@ export class SignInPageComponent implements OnDestroy {
 
   constructor(private store: AppStore, private title: Title) {
     store.dispatch(signOut(false));
-    this.title.setTitle('Sign In | Habitat');
+    this.title.setTitle('Sign In | Biome');
     this.store.dispatch(setLayout('sign-in'));
   }
 
