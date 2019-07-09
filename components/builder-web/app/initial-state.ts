@@ -20,7 +20,7 @@ import { Project } from './records/Project';
 
 export default Record({
   app: Record({
-    name: 'Habitat',
+    name: 'Biome',
     currentYear: new Date().getFullYear(),
   })(),
   session: Record({

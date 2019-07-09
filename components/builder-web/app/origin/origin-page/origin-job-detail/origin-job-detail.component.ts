@@ -47,7 +47,7 @@ export class OriginJobDetailComponent implements OnInit, OnDestroy {
   ) {
     this.sub = this.route.params.subscribe((params) => {
       this.id = params['id'];
-      this.title.setTitle(`Packages › Build Job Groups > ${this.id} | Biome`);
+      this.title.setTitle(`Packages › Build Job Groups > ${this.id} | ${this.store.getState().app.name}`);
     });
     this.parentSub = this.route.parent.params.subscribe((params) => this.origin = params['origin']);
   }

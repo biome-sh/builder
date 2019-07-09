@@ -30,7 +30,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private store: AppStore,
     private title: Title
   ) {
-    this.title.setTitle(`My Profile | Biome`);
+    this.title.setTitle(`My Profile | ${this.store.getState().app.name}`);
   }
 
   ngOnInit() {

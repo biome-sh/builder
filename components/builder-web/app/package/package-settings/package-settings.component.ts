@@ -38,7 +38,7 @@ export class PackageSettingsComponent implements OnDestroy {
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
       this.name = params['name'];
-      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Settings | Biome`);
+      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Settings | ${this.store.getState().app.name}`);
     });
   }
 

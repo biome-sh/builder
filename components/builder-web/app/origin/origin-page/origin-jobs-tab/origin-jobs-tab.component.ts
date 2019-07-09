@@ -41,7 +41,7 @@ export class OriginJobsTabComponent implements OnInit, OnDestroy {
       this.origin = params['origin'];
       this.name = params['name'];
 
-      this.title.setTitle(`Packages › ${this.origin} › Build Jobs | Biome`);
+      this.title.setTitle(`Packages › ${this.origin} › Build Jobs | ${this.store.getState().app.name}`);
     });
   }
 

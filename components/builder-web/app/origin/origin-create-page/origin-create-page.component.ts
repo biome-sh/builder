@@ -39,7 +39,7 @@ export class OriginCreatePageComponent implements AfterViewInit {
   ) {
     this.api = new BuilderApiClient(this.token);
     this.form = formBuilder.group({});
-    this.title.setTitle('My Origins › Create a New Origin | Biome');
+    this.title.setTitle('My Origins › Create a New Origin | ' + store.getState().app.name);
 
     this.isOriginAvailable = origin => {
       return this.api.isOriginAvailable(origin);
