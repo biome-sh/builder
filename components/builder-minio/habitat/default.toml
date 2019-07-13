@@ -11,10 +11,10 @@ standalone = true
 # Best for temporary installation, integration test,
 # and when you sure hostname or ipaddress will not change.
 #
-# Just set ~expected~ number of nodes and habitat will do the rest
+# Just set ~expected~ number of nodes and biome will do the rest
 # Note: If cluster view changes:
-# * Habitat will validate new view and use if valid
-# * Otherwise, habitat will use last known good configuration
+# * Biome will validate new view and use if valid
+# * Otherwise, biome will use last known good configuration
 # Options is ignored when ~standalone~
 # Ignored when ~members~ is defined
 # Ignored when ~standalone~
@@ -40,7 +40,7 @@ key_id = "depot"
 secret_key = "password"
 
 # Enable SSL in your Minio
-# This expects certificates files loaded via ~hab file upload~ or
+# This expects certificates files loaded via ~bio file upload~ or
 # in $pkg_svc_config_path/certs: ~private.key~ and ~public.crt~
 use_ssl = false
 
@@ -48,4 +48,4 @@ use_ssl = false
 ssl_cert_pw = ""
 
 # Default bucket name to create
-bucket_name = "habitat-builder-artifact-store.default"
+bucket_name = "biome-builder-artifact-store.default"

@@ -1,7 +1,7 @@
 # Builder-Graph
 
 `bldr-graph` is a tool for building and querying the reverse dependency graph of
-Habitat packages. It is intended to be used primarily by Habitat developers.
+Biome packages. It is intended to be used primarily by Biome developers.
 
 The tool connects to the builder-scheduler Postgres DB in order to construct the
 graph. The database can be optionally specified and passed in a config file.

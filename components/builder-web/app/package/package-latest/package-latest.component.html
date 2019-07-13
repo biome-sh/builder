@@ -1,10 +1,10 @@
 <div class="package-latest-component">
-  <hab-icon symbol="loading" class="spinning" *ngIf="ui.loading"></hab-icon>
+  <bio-icon symbol="loading" class="spinning" *ngIf="ui.loading"></bio-icon>
   <ng-container *ngIf="!ui.loading">
-    <hab-package-detail [package]="latest" *ngIf="hasLatest"></hab-package-detail>
+    <bio-package-detail [package]="latest" *ngIf="hasLatest"></bio-package-detail>
     <div class="none" *ngIf="!hasLatest">
       <p>
-        <strong>There are no available Habitat artifacts (.hart files) for this origin/package.</strong>
+        <strong>There are no available Biome artifacts (.hart files) for this origin/package.</strong>
       </p>
       <p>
         There are two ways to add .hart files:
@@ -17,7 +17,7 @@
         </li>
         <li>
           Set up automated builds under
-          <a [routerLink]="['../settings']">Build Settings</a> by connecting a plan file to Habitat Builder.
+          <a [routerLink]="['../settings']">Build Settings</a> by connecting a plan file to Biome Builder.
         </li>
       </ol>
       <p>

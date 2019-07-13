@@ -29,10 +29,9 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use builder_core as bldr_core;
-use habitat_builder_db as db;
-use habitat_builder_protocol as protocol;
-use habitat_core as hab_core;
-use habitat_http_client as http_client;
+use biome_builder_db as db;
+use biome_builder_protocol as protocol;
+use biome_core as bio_core;
 use rusoto_core as rusoto;
 
 pub mod config;

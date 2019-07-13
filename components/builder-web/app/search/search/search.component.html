@@ -15,11 +15,11 @@
           placeholder="Search Packages&hellip;">
       </section>
       <section>
-        <hab-search-results
+        <bio-search-results
           [noPackages]="(!ui.exists || packages.size === 0) && !ui.loading"
           [packages]="packages"
           [errorMessage]="ui.errorMessage">
-        </hab-search-results>
+        </bio-search-results>
       </section>
       <section class="more" *ngIf="packages.size < totalCount">
         Showing {{packages.size}} of {{totalCount}} packages.

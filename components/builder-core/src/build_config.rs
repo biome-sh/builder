@@ -32,7 +32,7 @@ use toml;
 
 use crate::{error::{Error,
                     Result},
-            hab_core::{config::ConfigFile,
+            bio_core::{config::ConfigFile,
                        package::target::{self,
                                          PackageTarget}}};
 
@@ -154,7 +154,7 @@ pub struct ProjectCfg {
     /// Package targets to build when changes detected
     #[serde(default = "ProjectCfg::default_build_targets")]
     pub build_targets: HashSet<PackageTarget>,
-    /// Relative filepath to the project's Habitat Plan (default: "habitat").
+    /// Relative filepath to the project's Biome Plan (default: "biome").
     #[serde(default = "ProjectCfg::default_plan_path")]
     plan_path: PathBuf,
 }
@@ -164,9 +164,9 @@ impl ProjectCfg {
 
     fn default_path() -> Pattern { Pattern::from_str("*").unwrap() }
 
-    fn default_plan_path() -> PathBuf { PathBuf::from("habitat") }
+    fn default_plan_path() -> PathBuf { PathBuf::from("biome") }
 
-    fn default_plan_pattern() -> Pattern { Pattern::from_str("habitat/*").unwrap() }
+    fn default_plan_pattern() -> Pattern { Pattern::from_str("biome/*").unwrap() }
 
     fn default_build_targets() -> HashSet<PackageTarget> {
         HashSet::from_iter(vec![target::X86_64_WINDOWS, target::X86_64_LINUX])
@@ -206,8 +206,8 @@ mod test {
     use super::*;
 
     const CONFIG: &str = r#"
-    [hab-sup]
-    plan_path = "components/hab-sup"
+    [bio-sup]
+    plan_path = "components/bio-sup"
     branches = [
       "master",
       "dev",
@@ -232,14 +232,14 @@ mod test {
     #[test]
     fn triggered_by() {
         let cfg = BuildCfg::from_slice(CONFIG.as_bytes()).unwrap();
-        let hab_sup = cfg.get("hab-sup").unwrap();
+        let bio_sup = cfg.get("bio-sup").unwrap();
         let bldr_api = cfg.get("builder-api").unwrap();
         let default = cfg.get("default").unwrap();
 
-        assert!(hab_sup.triggered_by("master", &["components/hab-sup/Cargo.toml"],));
-        assert!(hab_sup.triggered_by("master", &["components/hAb-Sup/Cargo.toml"],));
-        assert!(hab_sup.triggered_by("dev", &["components/hab-sup/Cargo.toml"],));
-        assert_eq!(hab_sup.triggered_by("master", &["components"]), false);
+        assert!(bio_sup.triggered_by("master", &["components/bio-sup/Cargo.toml"],));
+        assert!(bio_sup.triggered_by("master", &["components/hAb-Sup/Cargo.toml"],));
+        assert!(bio_sup.triggered_by("dev", &["components/bio-sup/Cargo.toml"],));
+        assert_eq!(bio_sup.triggered_by("master", &["components"]), false);
 
         assert!(bldr_api.triggered_by("master", &["components/builder-api/habitat/plan.sh"],));
         assert!(bldr_api.triggered_by("master", &["components/net/Cargo.toml"],));
@@ -247,7 +247,7 @@ mod test {
         assert!(bldr_api.build_targets.contains(&target::X86_64_WINDOWS));
 
         assert!(default.triggered_by("master", &["habitat/plan.sh"]));
-        assert!(default.triggered_by("master", &["habitat/hooks/init"]));
+        assert!(default.triggered_by("master", &["biome/hooks/init"]));
         assert_eq!(default.triggered_by("dev", &["habitat/plan.sh"]), false);
         assert_eq!(default.triggered_by("master", &["components"]), false);
     }

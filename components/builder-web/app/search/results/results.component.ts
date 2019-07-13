@@ -17,7 +17,7 @@ import { List } from 'immutable';
 import { packageString } from '../../util';
 
 @Component({
-  selector: 'hab-search-results',
+  selector: 'bio-search-results',
   template: require('./results.component.html')
 })
 export class SearchResultsComponent {

@@ -25,7 +25,7 @@ use super::metrics::Histogram;
 
 use crate::{bldr_core::metrics::HistogramMetric,
             config::MemcacheCfg,
-            hab_core::{package::PackageIdent,
+            bio_core::{package::PackageIdent,
                        ChannelIdent},
             protocol::originsrv::Session};
 

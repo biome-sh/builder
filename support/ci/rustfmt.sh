@@ -8,7 +8,7 @@ set -euo pipefail
 source ./support/ci/shared.sh
 
 echo "--- :rust: install rust"
-sudo hab pkg install core/rust --binlink
+sudo bio pkg install core/rust --binlink
 
 echo "--- :rust: install rustup"
 install_rustup

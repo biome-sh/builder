@@ -23,7 +23,7 @@ import { fetchJobGroup, cancelJobGroup } from '../../../actions/index';
 import { parseDate, iconForJobState } from '../../../util';
 
 @Component({
-  selector: 'hab-origin-job-detail',
+  selector: 'bio-origin-job-detail',
   template: require('./origin-job-detail.component.html')
 })
 export class OriginJobDetailComponent implements OnInit, OnDestroy {
@@ -47,7 +47,7 @@ export class OriginJobDetailComponent implements OnInit, OnDestroy {
   ) {
     this.sub = this.route.params.subscribe((params) => {
       this.id = params['id'];
-      this.title.setTitle(`Packages › Build Job Groups > ${this.id} | Habitat`);
+      this.title.setTitle(`Packages › Build Job Groups > ${this.id} | ${store.getState().app.name}`);
     });
     this.parentSub = this.route.parent.params.subscribe((params) => this.origin = params['origin']);
   }

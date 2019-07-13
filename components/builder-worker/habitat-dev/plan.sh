@@ -9,18 +9,18 @@ do_prepare() {
   DEP_Z_ROOT="$(pkg_path_for zlib)"
   DEP_Z_INCLUDE="$(pkg_path_for zlib)/include"
 
-  # Compile the fully-qualified hab cli package identifier into the binary
-  PLAN_HAB_PKG_IDENT=$(pkg_path_for hab | sed "s,^$HAB_PKG_PATH/,,")
+  # Compile the fully-qualified bio cli package identifier into the binary
+  PLAN_HAB_PKG_IDENT=$(pkg_path_for bio | sed "s,^$HAB_PKG_PATH/,,")
   export PLAN_HAB_PKG_IDENT
   build_line "Setting PLAN_HAB_PKG_IDENT=$PLAN_HAB_PKG_IDENT"
 
   # Compile the fully-qualified Studio package identifier into the binary
-  PLAN_STUDIO_PKG_IDENT=$(pkg_path_for hab-studio | sed "s,^$HAB_PKG_PATH/,,")
+  PLAN_STUDIO_PKG_IDENT=$(pkg_path_for bio-studio | sed "s,^$HAB_PKG_PATH/,,")
   export PLAN_STUDIO_PKG_IDENT
   build_line "Setting PLAN_STUDIO_PKG_IDENT=$PLAN_STUDIO_PKG_IDENT"
 
   # Compile the fully-qualified Docker exporter package identifier into the binary
-  PLAN_DOCKER_EXPORTER_PKG_IDENT=$(pkg_path_for hab-pkg-export-docker | sed "s,^$HAB_PKG_PATH/,,")
+  PLAN_DOCKER_EXPORTER_PKG_IDENT=$(pkg_path_for bio-pkg-export-docker | sed "s,^$HAB_PKG_PATH/,,")
   export PLAN_DOCKER_EXPORTER_PKG_IDENT
   build_line "Setting PLAN_DOCKER_EXPORTER_PKG_IDENT=$PLAN_DOCKER_EXPORTER_PKG_IDENT"
 

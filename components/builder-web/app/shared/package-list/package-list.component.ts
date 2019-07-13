@@ -16,7 +16,7 @@ import { Component, Input } from '@angular/core';
 import { isPackage, packageString } from '../../util';
 
 @Component({
-  selector: 'hab-package-list',
+  selector: 'bio-package-list',
   template: require('./package-list.component.html')
 })
 

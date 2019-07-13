@@ -1,30 +1,30 @@
 <div class="notifications">
-  <hab-notifications
+  <bio-notifications
     [notifications]="state.notifications.all"
     [removeNotification]="removeNotification">
-  </hab-notifications>
+  </bio-notifications>
 </div>
 <div class="app {{ layout }}">
-  <hab-banner></hab-banner>
+  <bio-banner></bio-banner>
   <div class="wrapper">
     <nav class="menu" [class.open]="menuOpen">
-      <hab-side-nav [isSignedIn]="isSignedIn"></hab-side-nav>
+      <bio-side-nav [isSignedIn]="isSignedIn"></bio-side-nav>
     </nav>
     <main>
       <div class="menu-toggle" (click)="toggleMenu()"></div>
-      <hab-user-nav
+      <bio-user-nav
         [isOpen]="isUserNavOpen"
         [isSignedIn]="isSignedIn"
         [username]="username"
         [avatarUrl]="avatarUrl"
         [signOut]="signOut"
         [toggleUserNavMenu]="toggleUserNavMenu">
-      </hab-user-nav>
+      </bio-user-nav>
       <ng-container *ngIf="isSigningIn">
         <header></header>
         <div class="body">
           <h5>
-            <hab-icon symbol="loading" class="spinning"></hab-icon>
+            <bio-icon symbol="loading" class="spinning"></bio-icon>
             Loading...
           </h5>
         </div>

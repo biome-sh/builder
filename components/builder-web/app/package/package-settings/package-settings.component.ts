@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
 import { AppStore } from '../../app.store';
 
 @Component({
-  selector: 'hab-package-settings',
+  selector: 'bio-package-settings',
   template: require('./package-settings.component.html')
 })
 export class PackageSettingsComponent implements OnDestroy {
@@ -38,7 +38,7 @@ export class PackageSettingsComponent implements OnDestroy {
     this.sub = this.route.parent.params.subscribe((params) => {
       this.origin = params['origin'];
       this.name = params['name'];
-      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Settings | Habitat`);
+      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Settings | ${store.getState().app.name}`);
     });
   }
 

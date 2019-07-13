@@ -13,19 +13,19 @@ $tabs-typography: mat-typography-config(
   $font-family: "#{$tabs-font-family}"
 );
 
-$hab-theme-primary: mat-palette($md-mcgpalette0);
-$hab-theme-accent: mat-palette($md-mcgpalette0);
-$hab-theme-warn: mat-palette($md-mcgpalette5);
+$bio-theme-primary: mat-palette($md-mcgpalette0);
+$bio-theme-accent: mat-palette($md-mcgpalette0);
+$bio-theme-warn: mat-palette($md-mcgpalette5);
 
-$hab-theme: mat-light-theme(
-  $hab-theme-primary,
-  $hab-theme-accent,
-  $hab-theme-warn
+$bio-theme: mat-light-theme(
+  $bio-theme-primary,
+  $bio-theme-accent,
+  $bio-theme-warn
 );
 
 @include mat-core($custom-typography);
 @include mat-tabs-typography($tabs-typography);
-@include angular-material-theme($hab-theme);
+@include angular-material-theme($bio-theme);
 
 // Angular Material overrides
 

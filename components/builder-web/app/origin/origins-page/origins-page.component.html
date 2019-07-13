@@ -5,7 +5,7 @@
   <div class="body">
     <div class="content">
       <section *ngIf="ui.loading">
-        <hab-icon symbol="loading" class="spinning"></hab-icon>
+        <bio-icon symbol="loading" class="spinning"></bio-icon>
       </section>
       <section>
         <a mat-raised-button color="primary" [routerLink]="['/origins', 'create']">Create origin</a>
@@ -16,11 +16,11 @@
             <strong>You are not currently an owner or member of any origins.</strong>
           </p>
           <p>
-            Note: If you've already created an origin with the Habitat CLI tool, then you'll need to create it here, too, using the same
+            Note: If you've already created an origin with the Biome CLI tool, then you'll need to create it here, too, using the same
             name.
           </p>
           <p>
-            <em>New to Habitat?
+            <em>New to Biome?
               <a href="{{ config['demo_app_url'] }}">Try the demo app</a>.</em>
           </p>
         </section>
@@ -37,21 +37,21 @@
                 <span class="column name">{{ name(item) }}</span>
                 <span class="column package-count">{{ packageCount(item) }}</span>
                 <span class="column visibility">
-                  <hab-icon [symbol]="visibilityIcon(item)" [title]="visibilityLabel(item)"></hab-icon>
+                  <bio-icon [symbol]="visibilityIcon(item)" [title]="visibilityLabel(item)"></bio-icon>
                 </span>
                 <span class="column actions">
                   <span *ngIf="isInvitation(item)">
                     <span class="action" (click)="accept(item)">
-                      <hab-icon symbol="check"></hab-icon>
+                      <bio-icon symbol="check"></bio-icon>
                       Accept Invitation
                     </span>
                     <span class="action" (click)="ignore(item)">
-                      <hab-icon symbol="no"></hab-icon>
+                      <bio-icon symbol="no"></bio-icon>
                       Ignore Invitation
                     </span>
                   </span>
                 </span>
-                <hab-icon symbol="chevron-right"></hab-icon>
+                <bio-icon symbol="chevron-right"></bio-icon>
               </a>
             </li>
           </ul>

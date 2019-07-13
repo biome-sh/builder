@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage: eval $(./hab-token [live|acceptance|dev])
+# Usage: eval $(./bio-token [live|acceptance|dev])
 
 set -euo pipefail
 
@@ -24,6 +24,6 @@ case "$ENVIRON" in
   dev)
     echo "export HAB_AUTH_TOKEN=$TOKEN_DEV"
     ;;
-  *) echo $"Usage: eval \$(hab-token [live|acceptance|dev])"
+  *) echo $"Usage: eval \$(bio-token [live|acceptance|dev])"
     ;;
 esac

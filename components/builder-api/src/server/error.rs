@@ -28,12 +28,14 @@ use diesel;
 use github_api_client::HubError;
 use oauth_client::error::Error as OAuthError;
 use protobuf;
+use reqwest;
+use rusoto_core::RusotoError;
 use rusoto_s3;
 use serde_json;
 
 use crate::{bldr_core,
             db,
-            hab_core};
+            bio_core};
 
 #[derive(Debug)]
 pub enum Error {
@@ -43,22 +45,23 @@ pub enum Error {
     BadRequest,
     BuilderCore(bldr_core::Error),
     Conflict,
-    CreateBucketError(rusoto_s3::CreateBucketError),
+    CreateBucketError(RusotoError<rusoto_s3::CreateBucketError>),
     DbError(db::error::Error),
     DieselError(diesel::result::Error),
     Github(HubError),
-    HabitatCore(hab_core::Error),
-    HeadObject(rusoto_s3::HeadObjectError),
+    BiomeCore(bio_core::Error),
+    HeadObject(RusotoError<rusoto_s3::HeadObjectError>),
+    HttpClient(reqwest::Error),
     InnerError(io::IntoInnerError<io::BufWriter<fs::File>>),
     IO(io::Error),
-    ListBuckets(rusoto_s3::ListBucketsError),
-    MultipartCompletion(rusoto_s3::CompleteMultipartUploadError),
-    MultipartUploadReq(rusoto_s3::CreateMultipartUploadError),
+    ListBuckets(RusotoError<rusoto_s3::ListBucketsError>),
+    MultipartCompletion(RusotoError<rusoto_s3::CompleteMultipartUploadError>),
+    MultipartUploadReq(RusotoError<rusoto_s3::CreateMultipartUploadError>),
     NotFound,
     OAuth(OAuthError),
-    PackageDownload(rusoto_s3::GetObjectError),
-    PackageUpload(rusoto_s3::PutObjectError),
-    PartialUpload(rusoto_s3::UploadPartError),
+    PackageDownload(RusotoError<rusoto_s3::GetObjectError>),
+    PackageUpload(RusotoError<rusoto_s3::PutObjectError>),
+    PartialUpload(RusotoError<rusoto_s3::UploadPartError>),
     PayloadError(actix_web::error::PayloadError),
     Protobuf(protobuf::ProtobufError),
     SerdeJson(serde_json::Error),
@@ -82,8 +85,9 @@ impl fmt::Display for Error {
             Error::DbError(ref e) => format!("{}", e),
             Error::DieselError(ref e) => format!("{}", e),
             Error::Github(ref e) => format!("{}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::HeadObject(ref e) => format!("{}", e),
+            Error::HttpClient(ref e) => format!("{}", e),
             Error::InnerError(ref e) => format!("{}", e.error()),
             Error::IO(ref e) => format!("{}", e),
             Error::ListBuckets(ref e) => format!("{}", e),
@@ -118,8 +122,9 @@ impl error::Error for Error {
             Error::DbError(ref err) => err.description(),
             Error::DieselError(ref err) => err.description(),
             Error::Github(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
+            Error::BiomeCore(ref err) => err.description(),
             Error::HeadObject(ref err) => err.description(),
+            Error::HttpClient(ref err) => err.description(),
             Error::InnerError(ref err) => err.error().description(),
             Error::IO(ref err) => err.description(),
             Error::ListBuckets(ref err) => err.description(),
@@ -210,8 +215,8 @@ fn bldr_core_err_to_http(err: &bldr_core::Error) -> StatusCode {
 
 // From handlers - these make application level error handling cleaner
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
+impl From<bio_core::Error> for Error {
+    fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
 }
 
 impl From<bldr_core::Error> for Error {

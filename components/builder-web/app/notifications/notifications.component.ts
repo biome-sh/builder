@@ -15,7 +15,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'hab-notifications',
+  selector: 'bio-notifications',
   template: require('./notifications.component.html')
 })
 export class NotificationsComponent {

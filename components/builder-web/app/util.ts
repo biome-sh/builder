@@ -69,7 +69,7 @@ export function packageString(o = {}) {
     .filter(part => part).join('/');
 }
 
-// Take a habitat encryption key and return an object containing data about it
+// Take a biome encryption key and return an object containing data about it
 export function parseKey(key) {
   const text = key;
   const lines = key.trim().split('\n');

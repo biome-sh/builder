@@ -9,17 +9,17 @@
 
     li {
       display: inline-block;
-      @include tag($color: $hab-blue, $background-color: $light-blue, $border-color: $light-blue);
+      @include tag($color: $bio-blue, $background-color: $light-blue, $border-color: $light-blue);
 
       &.unstable {
         background-color: $white;
         border-color: $very-light-gray;
-        color: $hab-blue;
+        color: $bio-blue;
       }
 
       &.stable {
-        background-color: $hab-blue;
-        border-color: $hab-blue;
+        background-color: $bio-blue;
+        border-color: $bio-blue;
         color: $white;
       }
 
@@ -27,7 +27,7 @@
         margin-right: $default-margin / 4;
       }
 
-      hab-icon[symbol="cancel"] {
+      bio-icon[symbol="cancel"] {
         cursor: pointer;
         margin: 0 -4px 0 4px;
         @include icon-size(16);

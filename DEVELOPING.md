@@ -12,7 +12,7 @@ There are potentially multiple ways of creating a Builder dev environment - but 
 
 * *Ubuntu Desktop 18.04 LTS*. Other distributions should work, but this is the one we will support.
 
-* *Decision on where you want to run the Web UI*. If you are doing active Web UI development, then you will likely want to run the UI on your Host (Mac OS). If so, there are some extra steps and configuration changes that will be needed, and those are called out below. See the [Web UI README](https://github.com/habitat-sh/builder/blob/master/components/builder-web/README.md) for more info.
+* *Decision on where you want to run the Web UI*. If you are doing active Web UI development, then you will likely want to run the UI on your Host (Mac OS). If so, there are some extra steps and configuration changes that will be needed, and those are called out below. See the [Web UI README](https://github.com/biome-sh/builder/blob/master/components/builder-web/README.md) for more info.
 
 ## Host OS Provisioning
 
@@ -62,7 +62,7 @@ Select a location to clone the Builder repo on your Linux VM, eg, `~/Workspace` 
 
 ```
 cd ${BUILDER_SRC_ROOT}
-git clone https://github.com/habitat-sh/builder.git
+git clone https://github.com/biome-sh/builder.git
 ```
 
 This will clone the Builder repo into your Workspace directory.
@@ -87,26 +87,26 @@ However, if you are going to be doing Web UI development, and running the Web UI
 ### Builder configuration
 
 1. Copy the GitHub application private key (from section above) to the following location (_Important: name it exactly as shown_) `${BUILDER_SRC_ROOT}/.secrets/builder-github-app.pem`
-1. Make a copy of the sample env file: `cp ${BUILDER_SRC_ROOT}/.secrets/habitat-env.sample ${BUILDER_SRC_ROOT}/.secrets/habitat-env`
-1. Edit the env file with your favorite editor `${BUILDER_SRC_ROOT}/.secrets/habitat-env` and populate the variables appropriately
+1. Make a copy of the sample env file: `cp ${BUILDER_SRC_ROOT}/.secrets/biome-env.sample ${BUILDER_SRC_ROOT}/.secrets/biome-env`
+1. Edit the env file with your favorite editor `${BUILDER_SRC_ROOT}/.secrets/biome-env` and populate the variables appropriately
 1. Save and close the env file
 
 ## Builder Services Setup
 
 ### Starting Builder services
-Once the Builder Repo is configured, Builder services can be started inside the Habitat Studio.
+Once the Builder Repo is configured, Builder services can be started inside the Biome Studio.
 
 * `cd ${BUILDER_SRC_ROOT}`
 * `direnv allow`
-* `hab studio enter`
+* `bio studio enter`
 
-Once inside the Habitat Studio, you should see a welcome message along with a list of useful commands (Use the `dev_docs` command if you need to print out the commands list again).
+Once inside the Biome Studio, you should see a welcome message along with a list of useful commands (Use the `dev_docs` command if you need to print out the commands list again).
 
 You may now start the builder services by issuing the following command: `start-builder`
 
 This will download and run the latest `stable` Builder packages (you will re-build everything locally in a later step).
 
-Run `hab svc status` to ensure all the services are up.
+Run `bio svc status` to ensure all the services are up.
 
 You can also run `sl` to output the running Supervisor log as needed.
 
@@ -114,7 +114,7 @@ You can also run `sl` to output the running Supervisor log as needed.
 
 If you are *NOT* doing UI development and standing up the Web UI on your Host OS, then you don't need to do anything extra. You can just navigate to `${APP_HOSTNAME}/#/sign-in`
 
-However, if you *ARE* developing the UI then you will need to follow the instructions in the [Web UI README](https://github.com/habitat-sh/builder/blob/master/components/builder-web/README.md) to get the Web UI running on your Host OS.
+However, if you *ARE* developing the UI then you will need to follow the instructions in the [Web UI README](https://github.com/biome-sh/builder/blob/master/components/builder-web/README.md) to get the Web UI running on your Host OS.
 
 ### Personal Access Token generation
 
@@ -131,7 +131,7 @@ Note: If you need to perform commands where you auth with both the prod site, as
 
 You should now be able to create a `core` origin, as well as an origin for yourself.
 
-From within the Habitat Studio, issue the following commands:
+From within the Biome Studio, issue the following commands:
 
 * `export HAB_AUTH_TOKEN=<your token>`
 * `origin`
@@ -141,12 +141,12 @@ This should create the origins appropriately.  Note that the auth token is the P
 
 ### Seeding base packages
 
-In order to do package builds locally, at a minimum you will need to seed the your dev repo with the latest version of `core/hab-backline`.
+In order to do package builds locally, at a minimum you will need to seed the your dev repo with the latest version of `biome/bio-backline`.
 
-From within your Studio, do the following (for example, using the 0.64.1 version of hab-backline):
+From within your Studio, do the following (for example, using the 0.64.1 version of bio-backline):
 
 ```
-load_package /hab/cache/artifacts/core-hab-backline-0.64.1-20180928012546-x86_64-linux.hart
+load_package /hab/cache/artifacts/biome-bio-backline-0.64.1-20180928012546-x86_64-linux.hart
 ```
 
 Alternatively, you can use the `on-prem-archive.sh` script from the on-prem repo to do the initial hydration (and sync) of base packages - see the [Synchronizing Packages](#Synchronizing_Packages) section below.
@@ -165,7 +165,7 @@ Note: your GitHub app must have access to the repo containing the plan file you 
 
 ### Package build
 
-You can test that the plan file you just connected actually builds by issuing a build command. You can do that either via the Builder Web UI, or via the `hab` cli.
+You can test that the plan file you just connected actually builds by issuing a build command. You can do that either via the Builder Web UI, or via the `bio` cli.
 
 ### Option A: From the Web UI
 * Navigate to http://${APP_HOSTNAME}/#/pkgs
@@ -183,7 +183,7 @@ You can test that the plan file you just connected actually builds by issuing a 
 Issue the following command (replace `origin/package` with your origin and package names):
 
 ```
-hab bldr job start origin/package
+bio bldr job start origin/package
 ```
 
 This should create a build job, and then dispatch it to the build worker.
@@ -202,12 +202,12 @@ If the `HAB_AUTH_TOKEN` is not set correctly, you will likely see an error simil
 
 ```
 Unloading builder-api
-Unloading habitat/builder-api
+Unloading biome/builder-api
    : Loading /src/components/builder-api/habitat-dev/plan.sh
    builder-api: Plan loaded
    builder-api: Validating plan metadata
-   builder-api: Using HAB_BIN=/hab/pkgs/core/hab/0.79.1/20190410220617/bin/hab for installs, signing, and hashing
-   builder-api: hab-plan-build setup
+   builder-api: Using HAB_BIN=/hab/pkgs/biome/bio/0.79.1/20190410220617/bin/bio for installs, signing, and hashing
+   builder-api: bio-plan-build setup
    builder-api: Writing pre_build file
    builder-api: Resolving build dependencies
 » Installing core/protobuf-cpp
@@ -249,6 +249,6 @@ Once statsd-logger is running, it should receive and display any metrics sent by
 
 ### Synchronizing Packages
 
-You may want to take advantage of the package synchronization capability that is now available via the `on-prem-archive.sh` script that is located in the [on-prem builder repo](https://github.com/habitat-sh/on-prem-builder/blob/master/scripts/on-prem-archive.sh)
+You may want to take advantage of the package synchronization capability that is now available via the `on-prem-archive.sh` script that is located in the [on-prem builder repo](https://github.com/biome-sh/on-prem-builder/blob/master/scripts/on-prem-archive.sh)
 
-Prior to using the script, you will need to ensure that a few tools are in your path - including curl, git, and b2sum. For details, please see the instructions in the [README](https://github.com/habitat-sh/on-prem-builder/blob/master/README.md).
+Prior to using the script, you will need to ensure that a few tools are in your path - including curl, git, and b2sum. For details, please see the instructions in the [README](https://github.com/biome-sh/on-prem-builder/blob/master/README.md).

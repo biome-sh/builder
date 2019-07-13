@@ -44,7 +44,7 @@ body {
         color: $light-gray;
         line-height: $default-margin * 2;
 
-        hab-icon {
+        bio-icon {
           margin-right: $default-margin / 2;
         }
 
@@ -164,7 +164,7 @@ main {
     }
   }
 
-  hab-user-nav {
+  bio-user-nav {
     display: block;
     position: absolute;
     margin: $default-margin $default-margin 0 0;

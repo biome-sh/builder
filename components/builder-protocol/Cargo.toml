@@ -1,8 +1,8 @@
 [package]
-name = "habitat-builder-protocol"
+name = "biome-builder-protocol"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-description = "Habitat Builder Network Server Protocol"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+description = "Biome Builder Network Server Protocol"
 build = "build.rs"
 workspace = "../../"
 edition = "2018"
@@ -17,8 +17,8 @@ time = "*"
 regex = "*"
 lazy_static = "*"
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"
 
 [build-dependencies]
 pkg-config = "0.3"

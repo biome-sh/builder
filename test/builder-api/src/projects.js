@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const request = supertest('http://localhost:9636/v1');
 
-// These magic values correspond to the testpp repo in the habitat-sh org
+// These magic values correspond to the testpp repo in the biome-sh org
 const installationId = 56940;
 const repoId = 114932712;
 const projectCreatePayload = {
@@ -21,7 +21,7 @@ let projectExpectations = function (res) {
   expect(res.body.plan_path).to.equal('plan.sh');
   expect(res.body.owner_id).to.equal(global.sessionBobo.id);
   expect(res.body.vcs_type).to.equal('git');
-  expect(res.body.vcs_data).to.equal('https://github.com/habitat-sh/testapp.git');
+  expect(res.body.vcs_data).to.equal('https://github.com/biome-sh/testapp.git');
   expect(res.body.vcs_installation_id).to.equal(installationId.toString());
   expect(res.body.visibility).to.equal('public');
   expect(res.body.auto_build).to.equal(true);
@@ -230,7 +230,7 @@ describe('Projects API', function () {
           expect(res.body.plan_path).to.equal('awesome/plan.sh');
           expect(res.body.owner_id).to.equal(global.sessionBobo.id);
           expect(res.body.vcs_type).to.equal('git');
-          expect(res.body.vcs_data).to.equal('https://github.com/habitat-sh/testapp.git')
+          expect(res.body.vcs_data).to.equal('https://github.com/biome-sh/testapp.git')
           expect(res.body.vcs_installation_id).to.equal(installationId.toString());
           expect(res.body.visibility).to.equal('public');
           done(err);

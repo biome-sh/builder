@@ -24,7 +24,7 @@ pub struct OriginSecret {
     pub origin: String,
 }
 
-// This is the struct the hab client expects
+// This is the struct the bio client expects
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OriginSecretWithOriginId {
     pub id:        String,

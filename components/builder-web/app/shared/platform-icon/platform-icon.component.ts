@@ -2,8 +2,8 @@ import { Component, Input } from '@angular/core';
 import { targetToPlatform } from '../../util';
 
 @Component({
-  selector: 'hab-platform-icon',
-  template: `<hab-icon [symbol]="os" class="icon-os" [title]="title"></hab-icon>`
+  selector: 'bio-platform-icon',
+  template: `<bio-icon [symbol]="os" class="icon-os" [title]="title"></bio-icon>`
 })
 export class PlatformIconComponent {
 

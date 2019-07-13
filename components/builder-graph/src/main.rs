@@ -25,9 +25,9 @@ extern crate log;
 extern crate serde_derive;
 
 use builder_core as bldr_core;
-use habitat_builder_db as db;
-use habitat_builder_protocol as protocol;
-use habitat_core as hab_core;
+use biome_builder_db as db;
+use biome_builder_protocol as protocol;
+use biome_core as bio_core;
 
 pub mod config;
 pub mod data_store;
@@ -46,7 +46,7 @@ use time::PreciseTime;
 use crate::{bldr_core::package_graph::PackageGraph,
             config::Config,
             data_store::DataStore,
-            hab_core::config::ConfigFile};
+            bio_core::config::ConfigFile};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -55,7 +55,7 @@ fn main() {
 
     let matches =
         App::new("bldr-graph").version(VERSION)
-                              .about("Habitat Graph Dev Tool")
+                              .about("Biome Graph Dev Tool")
                               .arg(Arg::with_name("config").help("Filepath to configuration file")
                                                            .required(false)
                                                            .index(1))

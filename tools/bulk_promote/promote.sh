@@ -23,5 +23,5 @@ done
 
 list=$(cat "$1")
 for ident in $list; do
-  hab pkg promote "$ident" "$2"
+  bio pkg promote "$ident" "$2"
 done

@@ -1,4 +1,4 @@
-hab-job-status-label {
+bio-job-status-label {
 
   @each $key, $color in $status-colors {
     &.#{$key} {

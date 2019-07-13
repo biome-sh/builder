@@ -1,8 +1,8 @@
 [package]
-name = "habitat_builder_jobsrv"
+name = "biome_builder_jobsrv"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-description = "Habitat-Builder Job Server"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+description = "Biome-Builder Job Server"
 build = "../build-builder.rs"
 workspace = "../../"
 edition = "2018"
@@ -23,11 +23,11 @@ diesel-derive-enum = { version = "*", features = ["postgres"] }
 diesel_migrations = "*"
 features = "*"
 futures = "*"
-rusoto_core = "0.32.0"
-rusoto_s3 = "0.32.0"
+rusoto_core = "0.39"
+rusoto_s3 = "0.39"
 env_logger = "*"
-habitat_builder_db = { path = "../builder-db" }
-habitat-builder-protocol = { path = "../builder-protocol" }
+biome_builder_db = { path = "../builder-db" }
+biome-builder-protocol = { path = "../builder-protocol" }
 linked-hash-map = "*"
 log = "*"
 num_cpus = "*"
@@ -54,5 +54,5 @@ features = [ "suggestions", "color", "unstable" ]
 git = "https://github.com/habitat-sh/rust-zmq"
 branch = "release/v0.8"
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"

@@ -22,10 +22,10 @@ extern crate log;
 
 use std::process;
 
-use habitat_builder_worker as worker;
-use habitat_core as hab_core;
+use biome_builder_worker as worker;
+use biome_core as bio_core;
 
-use crate::{hab_core::config::ConfigFile,
+use crate::{bio_core::config::ConfigFile,
             worker::{server,
                      Config,
                      Error,
@@ -51,11 +51,11 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderWorker =>
         (version: VERSION)
-        (about: "Habitat builder-worker")
+        (about: "Biome builder-worker")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand start =>
-            (about: "Run a Habitat-Builder worker")
+            (about: "Run a Biome-Builder worker")
             (@arg config: -c --config +takes_value +global
                 "Filepath to configuration file. \
                 [default: /hab/svc/builder-worker/config/config.toml]")

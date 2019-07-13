@@ -15,9 +15,9 @@
         <span class="column">{{ version.release_count }}</span>
         <span class="column">{{ releaseToDate(version.latest) }}</span>
         <span class="column">
-          <hab-platform-icon [platform]="platform" *ngFor="let platform of platformsFor(version)"></hab-platform-icon>
+          <bio-platform-icon [platform]="platform" *ngFor="let platform of platformsFor(version)"></bio-platform-icon>
         </span>
-        <hab-icon class="toggle" [symbol]="toggleFor(version)"></hab-icon>
+        <bio-icon class="toggle" [symbol]="toggleFor(version)"></bio-icon>
       </li>
       <div *ngIf="selected === version">
         <ul class="nav-list">
@@ -25,14 +25,14 @@
             <a>
               <div class="column name release">
                 <span class="release-name">
-                  <hab-copyable [text]="packageString(pkg)"></hab-copyable>
+                  <bio-copyable [text]="packageString(pkg)"></bio-copyable>
                 </span>
               </div>
               <div class="column build-date">
                 {{ releaseToDate(pkg.release) }}
               </div>
               <div class="column os">
-                <hab-platform-icon [platform]="pkg.platforms[0]"></hab-platform-icon>
+                <bio-platform-icon [platform]="pkg.platforms[0]"></bio-platform-icon>
               </div>
               <div class="column visibility">
                 <!-- TBD -->
@@ -40,15 +40,15 @@
               <div class="column build-source">
                 <!-- TBD -->
               </div>
-              <hab-icon symbol="chevron-right"></hab-icon>
+              <bio-icon symbol="chevron-right"></bio-icon>
             </a>
             <div class="channels">
-              <hab-channels
+              <bio-channels
                 [channels]="pkg.channels"
                 (onDemote)="handleDemote(pkg, $event)"
                 [canDemote]="memberOfOrigin">
-              </hab-channels>
-              <hab-package-promote
+              </bio-channels>
+              <bio-package-promote
                 [origin]="pkg.origin"
                 [name]="pkg.name"
                 [version]="pkg.version"
@@ -56,7 +56,7 @@
                 [target]="pkg.platforms[0]"
                 channel="stable"
                 *ngIf="promotable(pkg)">
-              </hab-package-promote>
+              </bio-package-promote>
             </div>
           </li>
         </ul>

@@ -18,7 +18,7 @@ use std::{error,
           result};
 
 use crate::{db,
-            hab_core};
+            bio_core};
 
 use postgres;
 use protobuf;
@@ -29,7 +29,7 @@ pub enum Error {
     Db(db::error::Error),
     DbPoolTimeout(r2d2::Error),
     DbTransaction(postgres::error::Error),
-    HabitatCore(hab_core::Error),
+    BiomeCore(bio_core::Error),
     IO(io::Error),
     JobGraphPackagesGet(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
@@ -46,7 +46,7 @@ impl fmt::Display for Error {
                 format!("Timeout getting connection from the database pool, {}", e)
             }
             Error::DbTransaction(ref e) => format!("Database transaction error, {}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JobGraphPackagesGet(ref e) => {
                 format!("Database error retrieving packages, {}", e)
@@ -64,7 +64,7 @@ impl error::Error for Error {
             Error::Db(ref err) => err.description(),
             Error::DbPoolTimeout(ref err) => err.description(),
             Error::DbTransaction(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
+            Error::BiomeCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::JobGraphPackagesGet(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
@@ -73,8 +73,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
+impl From<bio_core::Error> for Error {
+    fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
 }
 
 impl From<db::error::Error> for Error {

@@ -1,4 +1,4 @@
-hab-icon {
+bio-icon {
   display: inline-block;
   margin-right: 5px;
   vertical-align: middle;
@@ -44,7 +44,7 @@ hab-icon {
   }
 
   &.button {
-    color: $hab-blue;
+    color: $bio-blue;
     cursor: pointer;
     transition: color $default-transition-duration;
 
@@ -59,7 +59,7 @@ hab-icon {
       color: $white;
 
       svg {
-        background-color: $hab-blue;
+        background-color: $bio-blue;
       }
     }
   }

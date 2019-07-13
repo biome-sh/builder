@@ -9,6 +9,6 @@
         delaycompress
         compress
         postrotate
-                /bin/systemctl restart hab-sup 2>/dev/null || true
+                /bin/systemctl restart bio-sup 2>/dev/null || true
         endscript
 }

@@ -16,7 +16,7 @@ import { Component, Input, ViewChild } from '@angular/core';
 import { MatTooltip } from '@angular/material';
 
 @Component({
-  selector: 'hab-copyable',
+  selector: 'bio-copyable',
   template: require('./copyable.component.html')
 })
 export class CopyableComponent {

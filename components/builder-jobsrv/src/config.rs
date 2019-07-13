@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Configuration for a Habitat JobSrv service
+//! Configuration for a Biome JobSrv service
 
 use std::{collections::HashSet,
           env,
@@ -28,7 +28,7 @@ use std::{collections::HashSet,
 use num_cpus;
 
 use crate::{db::config::DataStoreCfg,
-            hab_core::{config::ConfigFile,
+            bio_core::{config::ConfigFile,
                        package::target::{self,
                                          PackageTarget}},
             server::log_archiver::ArchiveBackend};
@@ -68,7 +68,7 @@ impl Default for Config {
                  datastore,
                  log_dir: env::temp_dir(),
                  archive: ArchiveCfg::default(),
-                 key_dir: PathBuf::from("/hab/svc/hab-depot/files"),
+                 key_dir: PathBuf::from("/hab/svc/bio-depot/files"),
                  log_path: PathBuf::from("/tmp"),
                  job_timeout: 60,
                  build_targets: HashSet::from_iter(vec![target::X86_64_LINUX,

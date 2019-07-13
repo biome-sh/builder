@@ -24,7 +24,7 @@ import { identifyUser, loadFeatures, removeNotification, exchangeOAuthCode,
 const md5 = require('blueimp-md5');
 
 @Component({
-  selector: 'hab-app',
+  selector: 'bio-app',
   template: require('./app.component.html')
 })
 export class AppComponent implements OnInit, OnDestroy {

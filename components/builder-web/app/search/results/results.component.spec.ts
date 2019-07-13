@@ -33,10 +33,10 @@ describe('SearchResultsComponent', () => {
       ],
       declarations: [
         SearchResultsComponent,
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] }),
-        MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol'] }),
+        MockComponent({ selector: 'bio-channels', inputs: ['channels'] }),
         MockComponent({
-          selector: 'hab-build-status',
+          selector: 'bio-build-status',
           inputs: ['origin', 'name', 'version']
         })
       ]

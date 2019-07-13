@@ -22,7 +22,7 @@ testing.TestBed.initTestEnvironment(
 );
 
 // Ensure config global exists
-window['Habitat'] = { config: {} };
+window['Biome'] = { config: {} };
 
 // Load all tests
 let testContext = (<{ context?: Function }>require).context('./', true, /\.(test|spec)\.ts$/);

@@ -13,7 +13,7 @@ resource "aws_iam_user" "jobs" {
 // Job log storage; the server retrieves logs on behalf of requestors,
 // so this can be pretty locked down.
 resource "aws_s3_bucket" "jobs" {
-  bucket = "habitat-jobs-${var.env}"
+  bucket = "biome-jobs-${var.env}"
   acl    = "private"
   region = "${var.aws_region}"
 
@@ -22,7 +22,7 @@ resource "aws_s3_bucket" "jobs" {
   }
 
   tags {
-    Name          = "habitat-jobs-${var.env}"
+    Name          = "biome-jobs-${var.env}"
     X-Environment = "${var.env}"
     X-ManagedBy   = "Terraform"
   }

@@ -30,7 +30,7 @@ use crate::{models::{package::{BuilderPackageIdent,
 
 use crate::{bldr_core::metrics::{CounterMetric,
                                  HistogramMetric},
-            hab_core::{package::PackageTarget,
+            bio_core::{package::PackageTarget,
                        ChannelIdent},
             metrics::{Counter,
                       Histogram}};

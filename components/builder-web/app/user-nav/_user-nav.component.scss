@@ -32,7 +32,7 @@
 
   .dropdown {
     @include shadow-panel;
-    color: $hab-text;
+    color: $bio-text;
     position: absolute;
     right: 0;
     top: $default-margin * 2;
@@ -46,7 +46,7 @@
       text-align: left;
 
       &.username {
-        color: $hab-text;
+        color: $bio-text;
         padding: 0;
       }
 
@@ -59,14 +59,14 @@
 
       a {
         font-size: $base-font-size;
-        color: $hab-links;
+        color: $bio-links;
         margin-left: 0;
       }
     }
   }
 
   .cta {
-    background-color: $hab-orange;
+    background-color: $bio-orange;
     color: $white;
   }
 }

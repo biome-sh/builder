@@ -25,7 +25,7 @@ use crate::schema::{channel::origin_channels,
                              origins_with_stats}};
 
 use crate::{bldr_core::metrics::CounterMetric,
-            hab_core::ChannelIdent,
+            bio_core::ChannelIdent,
             metrics::Counter};
 
 #[derive(Debug, Serialize, Deserialize, QueryableByName, Queryable)]

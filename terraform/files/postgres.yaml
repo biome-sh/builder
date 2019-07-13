@@ -3,7 +3,7 @@ init_config:
 instances:
   - host: localhost
     port: 5432
-    username: hab
+    username: bio
     password: REPLACETHIS
     dbname: builder
     ssl: False

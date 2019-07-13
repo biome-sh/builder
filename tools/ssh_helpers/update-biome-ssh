@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck disable=2129
 
-# Query AWS for habitat servers in a specified environment and inserts
+# Query AWS for biome servers in a specified environment and inserts
 # entries into ~/.ssh/config for them. Any previous entries for the
 # environment are removed (but are available in
-# ~/.ssh/config.habitat_backup until the next time this script is run)
+# ~/.ssh/config.biome_backup until the next time this script is run)
 #
 # Use this to quickly add or refresh all your infrastructure records.
 
@@ -16,13 +16,13 @@ stop_pattern="###HABITAT-${environment}-STOP###"
 script_dir=$(dirname "$0")
 
 # Remove the entries from the config file
-sed -i'.habitat_backup' '/'"${start_pattern}"'/,/'"${stop_pattern}"'/d' ~/.ssh/config
+sed -i'.biome_backup' '/'"${start_pattern}"'/,/'"${stop_pattern}"'/d' ~/.ssh/config
 
 echo "" >> ~/.ssh/config
 echo "${start_pattern}" >> ~/.ssh/config
 echo "" >> ~/.ssh/config
 
-for l in $("$script_dir/hab-instances" "$environment" | jq -r '.Reservations[] | .Instances[0] | .PublicDnsName + ";" + (.Tags | from_entries | ."X-Environment" + "-" + .Name)')
+for l in $("$script_dir/bio-instances" "$environment" | jq -r '.Reservations[] | .Instances[0] | .PublicDnsName + ";" + (.Tags | from_entries | ."X-Environment" + "-" + .Name)')
 do
     dns=${l%;*}
     name=${l#*;}
@@ -31,7 +31,7 @@ do
     echo "  StrictHostKeyChecking no" >> ~/.ssh/config
     echo "  User ubuntu" >> ~/.ssh/config
     echo "  IdentitiesOnly yes" >> ~/.ssh/config
-    echo "  IdentityFile ~/.ssh/habitat-srv-admin" >> ~/.ssh/config
+    echo "  IdentityFile ~/.ssh/biome-srv-admin" >> ~/.ssh/config
     echo "" >> ~/.ssh/config
 done
 

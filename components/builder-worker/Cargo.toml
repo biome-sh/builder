@@ -1,8 +1,8 @@
 [package]
-name = "habitat_builder_worker"
+name = "biome_builder_worker"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-description = "Habitat-Builder Worker"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+description = "Biome-Builder Worker"
 build = "build.rs"
 workspace = "../../"
 edition = "2018"
@@ -20,7 +20,7 @@ chrono = { version = "*", features = ["serde"] }
 env_logger = "*"
 features = "*"
 git2 = "*"
-habitat-builder-protocol = { path = "../builder-protocol" }
+biome-builder-protocol = { path = "../builder-protocol" }
 lazy_static = "*"
 log = "*"
 protobuf = "*"
@@ -42,8 +42,8 @@ branch = "release/v0.8"
 [dependencies.github-api-client]
 path = "../github-api-client"
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"
 
 [dependencies.builder_core]
 path = "../builder-core"

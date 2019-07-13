@@ -25,11 +25,11 @@ use std::{path::PathBuf,
                     Stdio}};
 
 #[cfg(not(windows))]
-use crate::hab_core::{env,
+use crate::bio_core::{env,
                       fs as hfs};
 
 #[cfg(windows)]
-use crate::hab_core::{env,
+use crate::bio_core::{env,
                       fs as hfs};
 
 use crate::error::{Error,
@@ -44,7 +44,7 @@ use crate::runner::{job_streamer::JobStreamer,
 lazy_static! {
     /// Absolute path to the Docker exporter program
     static ref DOCKER_EXPORTER_PROGRAM: PathBuf = hfs::resolve_cmd_in_pkg(
-        "hab-pkg-export-docker",
+        "bio-pkg-export-docker",
         include_str!(concat!(env!("OUT_DIR"), "/DOCKER_EXPORTER_PKG_IDENT")),
     );
 

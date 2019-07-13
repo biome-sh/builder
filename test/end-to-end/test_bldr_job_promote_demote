@@ -6,13 +6,13 @@ print_help() {
     program=$(basename "$0")
     echo "$program
 
-Test hab bldr job promote/demote
+Test bio bldr job promote/demote
 
 USAGE:
         $program [OPTIONS] <PKG_IDENT|-g <GROUP_ID>>
 
 OPTIONS:
-    -g <GROUP_ID>  The job id that was returned from \"hab bldr start\" (ex: 771100000000000000)
+    -g <GROUP_ID>  The job id that was returned from \"bio bldr start\" (ex: 771100000000000000)
 
 ARGS:
     <PKG_IDENT>  The origin and name of the package to schedule a job for (eg: core/redis) or
@@ -58,21 +58,21 @@ if [ -z "${group_id:-}" ]; then
         pkg_ident="$1"
     fi
 
-    /src/target/debug/hab bldr job start -g "$pkg_ident" > "$out_dir"/bldr_job_start.out
+    /src/target/debug/bio bldr job start -g "$pkg_ident" > "$out_dir"/bldr_job_start.out
 
     read -r _ _ group_id < <(grep -E -o "id is [[:digit:]]+" "$out_dir"/bldr_job_start.out)
 
     echo "Started build with group_id $group_id"
 fi
 
-while /src/target/debug/hab bldr job status "$group_id" | grep "$group_id" | grep -q Dispatching; do
+while /src/target/debug/bio bldr job status "$group_id" | grep "$group_id" | grep -q Dispatching; do
     echo -n "."
     sleep 5
 done
 echo
 echo "Build Complete"
 
-/src/target/debug/hab bldr job status "$group_id" > "$out_dir"/bldr_job_status.out
+/src/target/debug/bio bldr job status "$group_id" > "$out_dir"/bldr_job_status.out
 
 grep "$group_id" "$out_dir"/bldr_job_status.out | grep -q Complete
 
@@ -82,7 +82,7 @@ echo "$fq_pkg_idents"
 echo
 
 for package in $fq_pkg_idents; do
-    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+    /src/target/debug/bio pkg channels "$package" > "$out_dir"/pkg_channels.out
 
     if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
         echo "Error: $package already on $channel channel"
@@ -90,10 +90,10 @@ for package in $fq_pkg_idents; do
     fi
 done
 
-echo "Yes" | /src/target/debug/hab bldr job promote -v "$group_id" "$channel"
+echo "Yes" | /src/target/debug/bio bldr job promote -v "$group_id" "$channel"
 
 for package in $fq_pkg_idents; do
-    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+    /src/target/debug/bio pkg channels "$package" > "$out_dir"/pkg_channels.out
     if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
         echo "$package now in $channel"
     else
@@ -103,10 +103,10 @@ for package in $fq_pkg_idents; do
 done
 echo
 
-echo "Yes" | /src/target/debug/hab bldr job demote -v "$group_id" "$channel"
+echo "Yes" | /src/target/debug/bio bldr job demote -v "$group_id" "$channel"
 
 for package in $fq_pkg_idents; do
-    /src/target/debug/hab pkg channels "$package" > "$out_dir"/pkg_channels.out
+    /src/target/debug/bio pkg channels "$package" > "$out_dir"/pkg_channels.out
 
     if grep -F -wq "$channel" "$out_dir"/pkg_channels.out; then
         echo "Error: $package still in $channel"

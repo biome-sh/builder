@@ -1,7 +1,7 @@
 <header>
   <h1>
-    <hab-package-breadcrumbs [ident]="ident"></hab-package-breadcrumbs>
-    <hab-visibility-icon [visibility]="visibility" *ngIf="isOriginMember" prefix="Default Package Visibility:"></hab-visibility-icon>
+    <bio-package-breadcrumbs [ident]="ident"></bio-package-breadcrumbs>
+    <bio-visibility-icon [visibility]="visibility" *ngIf="isOriginMember" prefix="Default Package Visibility:"></bio-visibility-icon>
   </h1>
   <h2>package</h2>
 </header>
@@ -43,10 +43,10 @@
 </nav>
 <div class="body">
   <div class="content" [class.full]="useFullWidth">
-    <hab-job-notice [job]="activeJob" *ngIf="showActiveJob"></hab-job-notice>
+    <bio-job-notice [job]="activeJob" *ngIf="showActiveJob"></bio-job-notice>
     <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
   </div>
   <aside *ngIf="showSidebar">
-    <hab-package-sidebar [origin]="origin" [name]="name" [building]="building" [buildable]="buildable"></hab-package-sidebar>
+    <bio-package-sidebar [origin]="origin" [name]="name" [building]="building" [buildable]="buildable"></bio-package-sidebar>
   </aside>
 </div>

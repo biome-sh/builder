@@ -9,7 +9,7 @@
         <h3>{{ providerName }} Username</h3>
         <p>The {{ providerName }} account under which you are currently signed in.</p>
         <p>
-          <hab-icon [symbol]="providerType"></hab-icon>
+          <bio-icon [symbol]="providerType"></bio-icon>
           {{ profile.name }}
         </p>
       </section>
@@ -17,7 +17,7 @@
       <form #f="ngForm" (submit)="save(f.value)">
         <section>
           <h3>Email Address</h3>
-          <p>Receive periodic updates about new Habitat features, tips and tutorials.</p>
+          <p>Receive periodic updates about new Biome features, tips and tutorials.</p>
           <input type="email" name="email" autocomplete="off" [ngModel]="profile.email" email autocomplete="off">
         </section>
         <hr>
@@ -31,7 +31,7 @@
       <section>
         <h3>Personal Access Token</h3>
         <p>
-          Personal access tokens are used for secure communication between the Habitat CLI
+          Personal access tokens are used for secure communication between the Biome CLI
           and the Builder service. If you've forgotten your token, you'll need to generate
           a new one.
         </p>
@@ -39,7 +39,7 @@
           <div class="controls processing">
             <div class="loading">
               <input type="text" value="{{ processingLabel }}..." disabled="disabled">
-              <hab-icon symbol="loading" class="spinning"></hab-icon>
+              <bio-icon symbol="loading" class="spinning"></bio-icon>
             </div>
           </div>
         </ng-container>
@@ -55,13 +55,13 @@
             </ng-container>
             <ng-container *ngIf="loadingAccessTokens">
               <div class="controls processing">
-                <hab-icon symbol="loading" class="spinning"></hab-icon>
+                <bio-icon symbol="loading" class="spinning"></bio-icon>
               </div>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="newAccessToken">
             <div class="controls">
-              <hab-copyable style="input" [text]="newAccessToken.token"></hab-copyable>
+              <bio-copyable style="input" [text]="newAccessToken.token"></bio-copyable>
               <div class="actions">
                 <a class="generate" (click)="generateToken(true)">{{ buttonLabel }}</a>
                 <a class="delete" (click)="deleteToken(newAccessToken.id)" *ngIf="!deletingAccessToken">Delete</a>
@@ -69,10 +69,10 @@
             </div>
             <p class="footnote">
               Set your token in the CLI by running <strong>export HAB_AUTH_TOKEN=&lt;your-token&gt;</strong>.
-              <a href="{{config['docs_url']}}/habitat-cli/">See the Habitat docs</a> for more information.
+              <a href="{{config['docs_url']}}/biome-cli/">See the Biome docs</a> for more information.
             </p>
             <p class="notice">
-              <hab-icon symbol="warning"></hab-icon>
+              <bio-icon symbol="warning"></bio-icon>
               Make sure to copy your personal access token now. You won't be able to see it again!
             </p>
           </ng-container>

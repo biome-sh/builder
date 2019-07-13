@@ -1,9 +1,9 @@
-pkg_origin=habitat
+pkg_origin=biome
 pkg_name=builder-datastore
 pkg_internal_version=9.6.9
 pkg_internal_name=postgresql
-pkg_description="Datastore service for a Habitat Builder service"
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_description="Datastore service for a Biome Builder service"
+pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=("PostgreSQL")
 pkg_source="https://ftp.postgresql.org/pub/source/v${pkg_internal_version}/${pkg_internal_name}-${pkg_internal_version}.tar.bz2"
 pkg_shasum="b97952e3af02dc1e446f9c4188ff53021cc0eed7ed96f254ae6daf968c443e2e"

@@ -25,7 +25,7 @@ use std::{borrow::{Borrow,
                  ONCE_INIT},
           thread};
 
-use crate::hab_core::env;
+use crate::bio_core::env;
 
 // Statsd Application name
 pub const APP_NAME: &str = "bldr";

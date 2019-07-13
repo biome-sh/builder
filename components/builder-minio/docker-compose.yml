@@ -3,7 +3,7 @@ version: '3'
 services:
   srv1:
     &server-configuration
-    image: habitat/builder-minio:latest
+    image: biome/builder-minio:latest
     command: --peer srv1
     environment:
       HAB_BUILDER_MINIO: |

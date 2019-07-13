@@ -16,7 +16,7 @@ members = [
   "components/segment-api-client"
 ]
 
-#[patch."https://github.com/habitat-sh/core.git"]
-#habitat_core = {path = "../core/components/core/"}
-#habitat_http_client = {path = "../core/components/http-client"}
-#habitat_win_users = {path = "../core/components/win-users"}
+#[patch."https://github.com/biome-sh/core.git"]
+#biome_core = {path = "../core/components/core/"}
+#biome_http_client = {path = "../core/components/http-client"}
+#biome_win_users = {path = "../core/components/win-users"}

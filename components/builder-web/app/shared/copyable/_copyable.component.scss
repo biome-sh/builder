@@ -1,4 +1,4 @@
-hab-copyable {
+bio-copyable {
   display: block;
 }
 
@@ -46,7 +46,7 @@ hab-copyable {
         background-color: $very-light-gray;
       }
 
-      hab-icon {
+      bio-icon {
         @include icon-size(20);
       }
     }
@@ -65,11 +65,11 @@ hab-copyable {
     }
 
     &.copied {
-      color: $hab-green;
+      color: $bio-green;
     }
   }
 
-  hab-icon {
+  bio-icon {
     svg {
       animation: fade 200ms linear;
     }

@@ -3,7 +3,7 @@
   font-size: $smaller-font-size;
   font-weight: 600;
   border-radius: 11px;
-  color: $hab-blue;
+  color: $bio-blue;
   padding: 2px 8px 4px 8px;
   border: 1px solid transparent;
   cursor: pointer;
@@ -11,7 +11,7 @@
   > span {
     white-space: nowrap;
 
-    > hab-icon {
+    > bio-icon {
       @include icon-size(14);
       margin: 0;
     }

@@ -4,12 +4,12 @@
       Connect a plan file
     </button>
     <span class="no-keys" *ngIf="!hasPrivateKey">
-      <hab-icon symbol="add-circle"></hab-icon>
+      <bio-icon symbol="add-circle"></bio-icon>
       <a [routerLink]="['/origins', origin, 'keys']">Add required origin keys</a>
     </span>
     <div *ngIf="name">
       <p>
-        <strong>There are currently no Habitat plan files connected.</strong>
+        <strong>There are currently no Biome plan files connected.</strong>
       </p>
       <p>If you have a plan file in a GitHub repo, connect it here for automated build jobs.</p>
       <p>
@@ -30,16 +30,16 @@
       </li>
       <li class="item">
         <span class="column name">
-          <hab-icon [symbol]="iconFor(project.plan_path)"></hab-icon>
+          <bio-icon [symbol]="iconFor(project.plan_path)"></bio-icon>
           <span>{{ project.plan_path }}</span>
         </span>
         <span class="column plan-status">
-          <hab-icon symbol="check" class="success"></hab-icon>
+          <bio-icon symbol="check" class="success"></bio-icon>
           <span>connected</span>
         </span>
         <span class="column actions">
-          <hab-icon symbol="settings" (click)="editConnection()" title="Edit this connection"></hab-icon>
-          <hab-icon symbol="cancel" (click)="disconnect()" title="Remove this connection"></hab-icon>
+          <bio-icon symbol="settings" (click)="editConnection()" title="Edit this connection"></bio-icon>
+          <bio-icon symbol="cancel" (click)="disconnect()" title="Remove this connection"></bio-icon>
         </span>
       </li>
     </ul>
@@ -48,7 +48,7 @@
     <form [formGroup]="form" #formValues="ngForm">
       <div class="note" *ngIf="!loadingInstallations">
         <div class="icon">
-          <hab-icon symbol="github"></hab-icon>
+          <bio-icon symbol="github"></bio-icon>
         </div>
         <div class="info">
           {{ gitHubAppNote }}
@@ -61,23 +61,23 @@
       </div>
       <ol>
         <li [class.active]="!selectedInstallation" (click)="clearConnection()">Select a GitHub repo</li>
-        <li [class.active]="selectedInstallation">Set path to Habitat plan file</li>
+        <li [class.active]="selectedInstallation">Set path to Biome plan file</li>
       </ol>
       <div class="installation" *ngIf="!selectedInstallation">
         <div *ngIf="loadingInstallations">
-          <hab-icon symbol="loading" class="spinning"></hab-icon>
+          <bio-icon symbol="loading" class="spinning"></bio-icon>
         </div>
         <div *ngIf="!loadingInstallations">
           <p *ngIf="installations.size === 0">
-            It looks like you haven't yet installed the Habitat Builder app.
+            It looks like you haven't yet installed the Biome Builder app.
             <a href="{{ config['github_app_url'] }}" target="_blank">Install it on GitHub</a>, then come back here and
             <a class="try-again" (click)="connect()">
-              <hab-icon symbol="loading"></hab-icon>try again</a>. (It may take a few minutes for the changes to be recognized.)
+              <bio-icon symbol="loading"></bio-icon>try again</a>. (It may take a few minutes for the changes to be recognized.)
           </p>
           <div *ngIf="installations.size > 0">
             <p>
               Choose the GitHub organization and repository that
-              <strong>contain your Habitat plan file</strong>.
+              <strong>contain your Biome plan file</strong>.
             </p>
             <div class="installation-selector">
               <div>
@@ -96,7 +96,7 @@
                   Choose an organization.
                 </div>
                 <div *ngIf="loadingRepositories">
-                  <hab-icon symbol="loading" class="spinning"></hab-icon>
+                  <bio-icon symbol="loading" class="spinning"></bio-icon>
                 </div>
                 <ul class="select-list repositories" *ngIf="activeInstallation && !loadingRepositories">
                   <li class="item" *ngFor="let repo of repositories"
@@ -112,7 +112,7 @@
       </div>
       <div *ngIf="selectedInstallation">
         <a class="repo-link" href="{{ repoUrl }}" target="_blank">
-          <hab-icon symbol="open-in-new"></hab-icon>
+          <bio-icon symbol="open-in-new"></bio-icon>
           Go to your repo
         </a>
         <h3>Path to Plan File</h3>
@@ -121,19 +121,19 @@
           <code>habitat/plan.sh</code>.
         </p>
         <div class="files">
-          <hab-checking-input id="plan_path" name="plan_path" availableMessage="found." notAvailableMessage="does not exist in the repository."
+          <bio-checking-input id="plan_path" name="plan_path" availableMessage="found." notAvailableMessage="does not exist in the repository."
             unmatchedMessage="must be named either plan.sh or plan.ps1." displayName="Plan file" [form]="form" [pattern]="false"
             [maxLength]="false" [isAvailable]="doesFileExist" [value]="selectedPath">
-          </hab-checking-input>
+          </bio-checking-input>
         </div>
         <hr>
-        <hab-visibility-selector [setting]="visibility" (changed)="settingChanged($event)"></hab-visibility-selector>
+        <bio-visibility-selector [setting]="visibility" (changed)="settingChanged($event)"></bio-visibility-selector>
         <hr>
-        <hab-docker-export-settings #docker *ngIf="selectedInstallation" [origin]="origin" [package]="name" [integrations]="integrations"
+        <bio-docker-export-settings #docker *ngIf="selectedInstallation" [origin]="origin" [package]="name" [integrations]="integrations"
           [current]="dockerSettings" [enabled]="dockerEnabled">
-        </hab-docker-export-settings>
+        </bio-docker-export-settings>
         <hr>
-        <hab-auto-build-settings [enabled]="autoBuild" (toggled)="autoBuildToggled($event)"></hab-auto-build-settings>
+        <bio-auto-build-settings [enabled]="autoBuild" (toggled)="autoBuildToggled($event)"></bio-auto-build-settings>
         <hr>
       </div>
       <div class="controls">

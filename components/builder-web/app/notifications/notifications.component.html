@@ -1,4 +1,4 @@
-<ul class="hab-notifications">
+<ul class="bio-notifications">
   <li *ngFor="let n of notifications; let i = index" class="{{ n.type }}">
     <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
     <small>{{ n.type }}</small>

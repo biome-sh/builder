@@ -1,20 +1,20 @@
 <nav>
   <div class="logo">
     <a [routerLink]="['/']">
-      <img src="/assets/images/chef-habitat-inverse.svg" alt="Habitat Home" title="Habitat">
+      <img src="/assets/images/chef-biome-inverse.svg" alt="Biome Home" title="Biome">
     </a>
   </div>
   <h3>Builder</h3>
   <ul>
     <li *ngIf="isSignedIn">
       <a [routerLink]="['/origins']">
-        <hab-icon symbol="group"></hab-icon>
+        <bio-icon symbol="group"></bio-icon>
         My Origins
       </a>
     </li>
     <li>
       <a [routerLink]="['/pkgs']">
-        <hab-icon symbol="search"></hab-icon>
+        <bio-icon symbol="search"></bio-icon>
         Search Packages
       </a>
     </li>
@@ -22,38 +22,38 @@
   <h3>Quick Links</h3>
   <ul>
     <li>
-      <a href="{{ config['docs_url'] }}/install-habitat/">
-        <hab-icon symbol="file-download"></hab-icon>
-        Download Habitat
+      <a href="{{ config['docs_url'] }}/install-biome/">
+        <bio-icon symbol="file-download"></bio-icon>
+        Download Biome
       </a>
     </li>
     <li>
       <a href="{{ config['docs_url'] }}">
-        <hab-icon symbol="description"></hab-icon>
+        <bio-icon symbol="description"></bio-icon>
         Docs
       </a>
     </li>
     <li>
       <a href="{{ config['tutorials_url'] }}">
-        <hab-icon symbol="compass"></hab-icon>
+        <bio-icon symbol="compass"></bio-icon>
         Tutorials
       </a>
     </li>
     <li>
       <a href="{{ config['www_url'] }}/blog">
-        <hab-icon symbol="reader"></hab-icon>
+        <bio-icon symbol="reader"></bio-icon>
         Blog
       </a>
     </li>
     <li>
       <a href="{{ config['www_url'] }}">
-        <hab-icon symbol="globe"></hab-icon>
+        <bio-icon symbol="globe"></bio-icon>
         Website
       </a>
     </li>
     <li>
       <a href="{{ config['source_code_url'] }}" target="_blank">
-        <hab-icon symbol="github"></hab-icon>
+        <bio-icon symbol="github"></bio-icon>
         GitHub
       </a>
     </li>
@@ -61,7 +61,7 @@
   <ng-container *ngIf="config.enable_statuspage">
     <h3>Service Status</h3>
     <ul>
-      <li><hab-statuspage></hab-statuspage></li>
+      <li><bio-statuspage></bio-statuspage></li>
     </ul>
   </ng-container>
   <span class="version" [title]="config['version']">{{ config['version'] }}</span>

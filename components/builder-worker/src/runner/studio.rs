@@ -1,6 +1,6 @@
 use crate::{error::{Error,
                     Result},
-            hab_core::{env::{self,
+            bio_core::{env::{self,
                              Config},
                        fs,
                        package::target::{self,
@@ -28,13 +28,13 @@ pub const WINDOWS_ENVVARS: &[&str] = &["SYSTEMDRIVE", "USERNAME", "COMPUTERNAME"
 lazy_static! {
     /// Absolute path to the Studio program
     static ref STUDIO_PROGRAM: PathBuf = fs::resolve_cmd_in_pkg(
-        "hab-studio",
+        "bio-studio",
         include_str!(concat!(env!("OUT_DIR"), "/STUDIO_PKG_IDENT")),
     );
 
-    /// Absolute path to the hab cli
+    /// Absolute path to the bio cli
     static ref HAB_CLI: PathBuf = fs::resolve_cmd_in_pkg(
-        "hab",
+        "bio",
         include_str!(concat!(env!("OUT_DIR"), "/HAB_PKG_IDENT")),
     );
 
@@ -153,7 +153,7 @@ impl<'a> Studio<'a> {
 
         if self.target == target::X86_64_WINDOWS {
             cmd.arg("-R"); // Work around a bug so studio does not get removed
-                           // Remove when we fix this (hab 0.75.0 or later)
+                           // Remove when we fix this (bio 0.75.0 or later)
             cmd.arg("-k"); // Origin key
             cmd.arg(self.workspace.job.origin());
         }
@@ -202,7 +202,7 @@ pub fn build_path(plan_path: &str) -> String {
     if parts.last().map_or("", |p| *p) == "plan.ps1" {
         parts.pop();
     }
-    if parts.last().map_or("", |p| *p) == "habitat" {
+    if parts.last().map_or("", |p| *p) == "biome" {
         parts.pop();
     }
 
@@ -230,12 +230,12 @@ mod tests {
     }
 
     #[test]
-    fn build_path_with_habitat_plan_sh() {
+    fn build_path_with_biome_plan_sh() {
         assert_eq!(".", build_path("habitat/plan.sh"));
     }
 
     #[test]
-    fn build_path_with_habitat_plan_ps1() {
+    fn build_path_with_biome_plan_ps1() {
         assert_eq!(".", build_path("habitat/plan.ps1"));
     }
 
@@ -250,13 +250,13 @@ mod tests {
     }
 
     #[test]
-    fn build_path_with_subdir_habitat_plan_sh() {
+    fn build_path_with_subdir_biome_plan_sh() {
         assert_eq!("components/yep",
                    build_path("components/yep/habitat/plan.sh"));
     }
 
     #[test]
-    fn build_path_with_subdir_habitat_plan_ps1() {
+    fn build_path_with_subdir_biome_plan_ps1() {
         assert_eq!("components/yep",
                    build_path("components/yep/habitat/plan.ps1"));
     }

@@ -52,11 +52,11 @@ describe('PackageDetailComponent', () => {
     TestBed.configureTestingModule({
       declarations: [
         PackageDetailComponent,
-        MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
-        MockComponent({ selector: 'hab-channels', inputs: ['channels', 'canDemote'], outputs: ['demote'] }),
-        MockComponent({ selector: 'hab-package-list', inputs: ['currentPackage', 'packages'] }),
-        MockComponent({ selector: 'hab-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),
-        MockComponent({ selector: 'hab-copyable', inputs: ['text', 'style'] })
+        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
+        MockComponent({ selector: 'bio-channels', inputs: ['channels', 'canDemote'], outputs: ['demote'] }),
+        MockComponent({ selector: 'bio-package-list', inputs: ['currentPackage', 'packages'] }),
+        MockComponent({ selector: 'bio-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),
+        MockComponent({ selector: 'bio-copyable', inputs: ['text', 'style'] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }]

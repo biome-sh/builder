@@ -15,7 +15,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'hab-icon',
+  selector: 'bio-icon',
   template: `<mat-icon [svgIcon]="id" [matTooltip]="tooltip" matTooltipPosition="above"></mat-icon>`
 })
 export class IconComponent {

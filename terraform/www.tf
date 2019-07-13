@@ -30,7 +30,7 @@ EOF
 }
 
 resource "aws_s3_bucket" "www" {
-  bucket = "habitat-www-${var.env}"
+  bucket = "biome-www-${var.env}"
   acl    = "public-read"
 
   lifecycle {
@@ -38,7 +38,7 @@ resource "aws_s3_bucket" "www" {
   }
 
   tags {
-    Name          = "habitat-www-${var.env}"
+    Name          = "biome-www-${var.env}"
     X-Environment = "${var.env}"
     X-ManagedBy   = "Terraform"
   }
@@ -58,7 +58,7 @@ resource "aws_s3_bucket" "www" {
           "*"
         ]
       },
-      "Resource": "arn:aws:s3:::habitat-www-${var.env}/*",
+      "Resource": "arn:aws:s3:::biome-www-${var.env}/*",
       "Action": "s3:GetObject"
     },
     {
@@ -66,7 +66,7 @@ resource "aws_s3_bucket" "www" {
       "Principal": {
         "AWS": "arn:aws:iam::${var.aws_account_id}:user/${aws_iam_user.www.name}"
       },
-      "Resource": "arn:aws:s3:::habitat-www-${var.env}",
+      "Resource": "arn:aws:s3:::biome-www-${var.env}",
       "Action": "s3:*"
     },
     {
@@ -74,7 +74,7 @@ resource "aws_s3_bucket" "www" {
       "Principal": {
         "AWS": "arn:aws:iam::${var.aws_account_id}:user/${aws_iam_user.www.name}"
       },
-      "Resource": "arn:aws:s3:::habitat-www-${var.env}/*",
+      "Resource": "arn:aws:s3:::biome-www-${var.env}/*",
       "Action": "s3:*"
     }
   ]

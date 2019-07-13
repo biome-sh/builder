@@ -2,11 +2,11 @@
   <ul>
     <li [class]="channel" *ngFor="let channel of channels">
       <span>{{ channel }}</span>
-      <hab-icon symbol="cancel"
+      <bio-icon symbol="cancel"
         (click)="demote(channel)"
         title="Demote from channel"
         *ngIf="demotable(channel)">
-      </hab-icon>
+      </bio-icon>
     </li>
   </ul>
 </div>

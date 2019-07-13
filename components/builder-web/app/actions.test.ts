@@ -54,8 +54,8 @@ describe('actions', () => {
 
         spyOnProperty(Browser, 'currentHostname', 'get').and.returnValues(
           'localhost',
-          'builder.habitat.sh',
-          'builder.acceptance.habitat.foo',
+          'builder.biome.sh',
+          'builder.acceptance.biome.foo',
           '1.2.3.4'
         );
 
@@ -67,8 +67,8 @@ describe('actions', () => {
         expect(cookies.set.calls.allArgs()).toEqual(
           [
             ['oauthToken', 'some-token', { domain: 'localhost', secure: false }],
-            ['oauthToken', 'some-token', { domain: 'builder.habitat.sh', secure: false }],
-            ['oauthToken', 'some-token', { domain: 'builder.acceptance.habitat.foo', secure: false }],
+            ['oauthToken', 'some-token', { domain: 'builder.biome.sh', secure: false }],
+            ['oauthToken', 'some-token', { domain: 'builder.acceptance.biome.foo', secure: false }],
             ['oauthToken', 'some-token', { domain: '1.2.3.4', secure: false }]
           ]
         );

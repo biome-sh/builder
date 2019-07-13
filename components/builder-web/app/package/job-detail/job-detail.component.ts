@@ -21,7 +21,7 @@ import { iconForJobState, labelForJobState } from '../../util';
 import { AppStore } from '../../app.store';
 
 @Component({
-  selector: 'hab-job-detail',
+  selector: 'bio-job-detail',
   template: require('./job-detail.component.html')
 })
 export class JobDetailComponent implements OnChanges, OnDestroy {
@@ -190,7 +190,7 @@ export class JobDetailComponent implements OnChanges, OnDestroy {
 
   public scrollToEnd() {
     let appHeight = this.elementHeight(this.container);
-    let bannerHeight = this.elementHeight(this.element('hab-banner'));
+    let bannerHeight = this.elementHeight(this.element('bio-banner'));
     this.scrollTo(appHeight + bannerHeight - window.innerHeight);
   }
 

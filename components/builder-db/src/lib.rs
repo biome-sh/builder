@@ -31,8 +31,8 @@ extern crate postgres_derive;
 extern crate serde_derive;
 
 use builder_core as bldr_core;
-use habitat_builder_protocol as protocol;
-use habitat_core as hab_core;
+use biome_builder_protocol as protocol;
+use biome_core as bio_core;
 
 pub mod config;
 pub mod diesel_pool;

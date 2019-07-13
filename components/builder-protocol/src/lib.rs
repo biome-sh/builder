@@ -18,7 +18,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-use habitat_core as hab_core;
+use biome_core as bio_core;
 
 pub mod error;
 pub mod jobsrv;

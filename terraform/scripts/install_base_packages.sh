@@ -17,7 +17,7 @@ set -euo pipefail
 # play, additional packages should also be installed.
 #
 # To set up a machine as a worker, for example, you would call the
-# script with the argument "habitat/builder-worker" (You could even just
+# script with the argument "biome/builder-worker" (You could even just
 # pass "builder-worker"; both are recognized.)
 #
 # Multiple packages can be specified.
@@ -52,13 +52,13 @@ tar=$(find_if_exists tar)
 
 # This is where we ultimately put all the things. All contents of the
 # bucket will be publicly readable, so we can just use curl to grab them.
-s3_root_url="https://s3-us-west-2.amazonaws.com/habitat-builder-bootstrap"
+s3_root_url="https://s3-us-west-2.amazonaws.com/biome-builder-bootstrap"
 
 # We're always going to need all the packages for running the
 # Supervisor.
-sup_packages=(hab-launcher
-              hab
-              hab-sup)
+sup_packages=(bio-launcher
+              bio
+              bio-sup)
 
 # Helper for syslog logging
 helper_packages=(nmap)
@@ -87,7 +87,7 @@ ${shasum} --algorithm 256 --check <<< "${checksum}  ${latest_archive}" >&2
 ########################################################################
 # Unpack the archive
 
-tmpdir=hab_bootstrap_$(date +%s)
+tmpdir=bio_bootstrap_$(date +%s)
 mkdir -p "${tmpdir}"
 
 ${tar} --extract \
@@ -95,20 +95,20 @@ ${tar} --extract \
        --file="${latest_archive}" \
        --directory="${tmpdir}"
 
-# This is the hab binary from the bootstrap bundle. We'll use this to
+# This is the bio binary from the bootstrap bundle. We'll use this to
 # install everything.
-hab_bootstrap_bin=${tmpdir}/bin/hab
+bio_bootstrap_bin=${tmpdir}/bin/bio
 
 ########################################################################
 # Install the desired packages
 #
 # Note that this only puts the packages into /hab/cache/artifacts; it
-# does not run `hab svc load`. We'll want to do that later, to ensure
+# does not run `bio svc load`. We'll want to do that later, to ensure
 # that the Supervisor running in the proper environment (e.g., under
 # systemd, and not this script).
 
 # Install the key(s) first. These need to be in place before
-# installing any packages; otherwise, hab will try to contact a depot
+# installing any packages; otherwise, bio will try to contact a depot
 # to retrieve them to verify the packages.
 log "Installing public origin keys"
 mkdir -p /hab/cache/keys
@@ -129,28 +129,28 @@ do
     # Using a fake depot URL keeps us honest; this will fail loudly if
     # we need to go off the box to get *anything*
     HAB_LICENSE="accept" \
-    HAB_BLDR_URL=http://not-a-real-depot.habitat.sh \
-                 ${hab_bootstrap_bin} pkg install "${tmpdir}"/artifacts/core-"${pkg_name}"-*.hart
+    HAB_BLDR_URL=http://not-a-real-depot.biome.sh \
+                 ${bio_bootstrap_bin} pkg install "${tmpdir}"/artifacts/core-"${pkg_name}"-*.hart
 done
 
 for pkg in "${services_to_install[@]:-}"
 do
-    pkg_name=${pkg##habitat/} # strip "core/" if it's there
+    pkg_name=${pkg##biome/} # strip "core/" if it's there
     # Using a fake depot URL keeps us honest; this will fail loudly if
     # we need to go off the box to get *anything*
-    HAB_BLDR_URL=http://not-a-real-depot.habitat.sh \
-                 ${hab_bootstrap_bin} pkg install "${tmpdir}"/artifacts/habitat-"${pkg_name}"-*.hart
+    HAB_BLDR_URL=http://not-a-real-depot.biome.sh \
+                 ${bio_bootstrap_bin} pkg install "${tmpdir}"/artifacts/biome-"${pkg_name}"-*.hart
 done
 
-# Now we ensure that the hab binary being used on the system is the
+# Now we ensure that the bio binary being used on the system is the
 # one that we just installed.
 #
 # TODO fn: The updated binlink behavior is to skip targets that already exist
-# so we want to use the `--force` flag. Unfortunetly, old versions of `hab`
+# so we want to use the `--force` flag. Unfortunetly, old versions of `bio`
 # don't have this flag. For now, we'll run with the new flag and fall back to
 # running the older behavior. This can be removed at a future date when we no
-# lnger are worrying about Habitat versions 0.33.2 and older. (2017-09-29)
-${hab_bootstrap_bin} pkg binlink core/hab hab --force \
-  || ${hab_bootstrap_bin} pkg binlink core/hab hab
-${hab_bootstrap_bin} pkg binlink core/nmap ncat --force \
-  || ${hab_bootstrap_bin} pkg binlink core/nmap ncat
+# lnger are worrying about Biome versions 0.33.2 and older. (2017-09-29)
+${bio_bootstrap_bin} pkg binlink biome/bio bio --force \
+  || ${bio_bootstrap_bin} pkg binlink biome/bio bio
+${bio_bootstrap_bin} pkg binlink core/nmap ncat --force \
+  || ${bio_bootstrap_bin} pkg binlink core/nmap ncat

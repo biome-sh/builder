@@ -15,7 +15,7 @@ If you're already in a studio with a Supervisor running
 Otherwise, enter a studio with no supervisor
 
 ```
-$ HAB_STUDIO_SUP=false hab studio enter
+$ HAB_STUDIO_SUP=false bio studio enter
 ```
 
 ### Start a supervisor in test mode
@@ -27,22 +27,22 @@ $ HAB_STUDIO_SUP=false hab studio enter
 ## Now that the Supervisor is running
 
 ```
-[2][default:/src:0]# hab sup status
+[2][default:/src:0]# bio sup status
 ```
 
 If not already running, launch services and wait for them to come up:
 ```
 [3][default:/src:0]# start-builder
 ```
-When everything is ready, `hab sup status` will look like:
+When everything is ready, `bio sup status` will look like:
 ```
 package                                         type        state  uptime (s)  pid    group                       style
 core/sccache/0.2.4/20180118212549               standalone  up     24          45298  sccache.default             persistent
-habitat/builder-worker/7054/20180208233206      standalone  up     24          45321  builder-worker.default      persistent
-habitat/builder-api/7052/20180208233114         standalone  up     24          45329  builder-api.default         persistent
-habitat/builder-api-proxy/7052/20180208233113   standalone  up     24          45402  builder-api-proxy.default   persistent
-habitat/builder-jobsrv/7049/20180208225208      standalone  up     21          45664  builder-jobsrv.default      persistent
-habitat/builder-datastore/7043/20180208190943   standalone  up     24          45431  builder-datastore.default   persistent
+biome/builder-worker/7054/20180208233206      standalone  up     24          45321  builder-worker.default      persistent
+biome/builder-api/7052/20180208233114         standalone  up     24          45329  builder-api.default         persistent
+biome/builder-api-proxy/7052/20180208233113   standalone  up     24          45402  builder-api-proxy.default   persistent
+biome/builder-jobsrv/7049/20180208225208      standalone  up     21          45664  builder-jobsrv.default      persistent
+biome/builder-datastore/7043/20180208190943   standalone  up     24          45431  builder-datastore.default   persistent
 ```
 If we do not build, we'd be testing against the stable package versions of the
 builder components:

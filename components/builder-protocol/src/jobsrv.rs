@@ -479,8 +479,8 @@ mod tests {
 
         let lines = vec!["[1;33m» Importing origin key from standard log[0m",
                          "[1;34m★ Imported secret origin key core-20160810182414.[0m",
-                         "[1;33m» Installing core/hab-backline[0m",
-                         "[1;32m↓ Downloading[0m core/hab-backline/0.23.0/20170511220008",];
+                         "[1;33m» Installing biome/bio-backline[0m",
+                         "[1;32m↓ Downloading[0m biome/bio-backline/0.23.0/20170511220008",];
 
         // https://github.com/rust-lang/rust-clippy/issues/3071U
         #[allow(clippy::redundant_closure)]
@@ -494,8 +494,8 @@ mod tests {
 
         let expected = vec!["» Importing origin key from standard log",
                             "★ Imported secret origin key core-20160810182414.",
-                            "» Installing core/hab-backline",
-                            "↓ Downloading core/hab-backline/0.23.0/20170511220008",];
+                            "» Installing biome/bio-backline",
+                            "↓ Downloading biome/bio-backline/0.23.0/20170511220008",];
         assert_eq!(stripped_lines, expected);
     }
 

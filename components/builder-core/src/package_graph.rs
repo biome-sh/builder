@@ -22,7 +22,7 @@ use std::{cmp::Ordering,
                         HashMap},
           str::FromStr};
 
-use crate::{hab_core::package::PackageIdent,
+use crate::{bio_core::package::PackageIdent,
             protocol::originsrv,
             rdeps::rdeps};
 

@@ -32,7 +32,7 @@ export class Credentials implements Credentials {
 }
 
 @Component({
-  selector: 'hab-integration-credentials-dialog',
+  selector: 'bio-integration-credentials-dialog',
   template: require('./integration-credentials-form.dialog.html')
 })
 export class IntegrationCredentialsFormDialog implements OnDestroy {

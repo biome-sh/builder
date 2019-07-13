@@ -43,7 +43,7 @@ use crate::{bldr_core::{rpc::RpcMessage,
                         target_graph::TargetGraph},
             db::{models::package::*,
                  DbPool},
-            hab_core::package::PackageTarget,
+            bio_core::package::PackageTarget,
             protocol::originsrv::OriginPackage,
             Error};
 
@@ -150,7 +150,7 @@ fn enable_features_from_config(cfg: &Config) {
 pub fn run(config: Config) -> Result<()> {
     // Set custom panic hook - a panic on the scheduler thread will
     // cause the builder-jobsrv process to exit (and be re-started
-    // by the supervisor when running under hab)
+    // by the supervisor when running under bio)
     panic::set_hook(Box::new(|panic_info| {
                         let backtrace = backtrace::Backtrace::new();
                         println!("panic info: {:?}", panic_info);

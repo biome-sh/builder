@@ -62,10 +62,10 @@ describe('JobDetailComponent', () => {
       ],
       declarations: [
         JobDetailComponent,
-        MockComponent({ selector: 'hab-package-breadcrumbs', inputs: ['ident'] }),
-        MockComponent({ selector: 'hab-job-status', inputs: ['job'] }),
-        MockComponent({ selector: 'hab-channels', inputs: ['channels'] }),
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] })
+        MockComponent({ selector: 'bio-package-breadcrumbs', inputs: ['ident'] }),
+        MockComponent({ selector: 'bio-job-status', inputs: ['job'] }),
+        MockComponent({ selector: 'bio-channels', inputs: ['channels'] }),
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol'] })
       ],
       providers: [
         { provide: AppStore, useClass: MockAppStore }

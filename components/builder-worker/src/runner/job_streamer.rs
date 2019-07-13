@@ -43,8 +43,8 @@ use crate::error::{Error,
                    Result};
 
 /// Streams the contents of a Builder job to a remote target. The contents of the stream consist of
-/// consuming the output streams of child processes (such as `hab-studio`,
-/// `hab-pkg-export-docker`, etc.), section start/end delimiters, and any user-facing error
+/// consuming the output streams of child processes (such as `bio-studio`,
+/// `bio-pkg-export-docker`, etc.), section start/end delimiters, and any user-facing error
 /// messaging (usually written to a stderr output stream).
 ///
 /// A `JobStreamer` is associated with a Builder job identifer and should be used for the duration

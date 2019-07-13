@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Configuration for a Habitat JobSrv Worker
+//! Configuration for a Biome JobSrv Worker
 
 use std::{net::{IpAddr,
                 Ipv4Addr},
           path::PathBuf,
           str::FromStr};
 
-use crate::hab_core::{config::ConfigFile,
+use crate::bio_core::{config::ConfigFile,
                       package::PackageTarget,
                       url,
                       ChannelIdent};

@@ -24,7 +24,7 @@ use protobuf;
 use reqwest;
 use serde_json;
 
-use crate::{hab_core,
+use crate::{bio_core,
             protocol};
 
 #[derive(Debug)]
@@ -38,7 +38,7 @@ pub enum Error {
     DecryptError(String),
     EncryptError(String),
     FromUtf8Error(string::FromUtf8Error),
-    HabitatCore(hab_core::Error),
+    BiomeCore(bio_core::Error),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Serialization(serde_json::Error),
@@ -64,7 +64,7 @@ impl fmt::Display for Error {
             Error::DecryptError(ref e) => e.to_string(),
             Error::EncryptError(ref e) => e.to_string(),
             Error::FromUtf8Error(ref e) => format!("{}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Serialization(ref e) => format!("{}", e),
@@ -88,7 +88,7 @@ impl error::Error for Error {
             Error::DecryptError(_) => "Error decrypting integration",
             Error::EncryptError(_) => "Error encrypting integration",
             Error::FromUtf8Error(ref e) => e.description(),
-            Error::HabitatCore(ref err) => err.description(),
+            Error::BiomeCore(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::Serialization(ref err) => err.description(),
@@ -99,8 +99,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
+impl From<bio_core::Error> for Error {
+    fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
 }
 
 impl From<protobuf::ProtobufError> for Error {

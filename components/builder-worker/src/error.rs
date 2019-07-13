@@ -27,7 +27,7 @@ use url;
 use zmq;
 
 use crate::{bldr_core,
-            hab_core,
+            bio_core,
             protocol};
 
 pub type Result<T> = result::Result<T, Error>;
@@ -46,7 +46,7 @@ pub enum Error {
     ExportFailure(i32),
     Git(git2::Error),
     GithubAppAuthErr(github_api_client::HubError),
-    HabitatCore(hab_core::Error),
+    BiomeCore(bio_core::Error),
     InvalidIntegrations(String),
     NotHTTPSCloneUrl(url::Url),
     Protobuf(protobuf::ProtobufError),
@@ -97,7 +97,7 @@ impl fmt::Display for Error {
             }
             Error::Git(ref e) => format!("{}", e),
             Error::GithubAppAuthErr(ref e) => format!("{}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::InvalidIntegrations(ref s) => format!("Invalid integration: {}", s),
             Error::NotHTTPSCloneUrl(ref e) => {
                 format!("Attempted to clone {}. Only HTTPS clone urls are supported",
@@ -152,7 +152,7 @@ impl error::Error for Error {
             Error::ExportFailure(_) => "Docker export exited with a non-zero exit code",
             Error::Git(ref err) => err.description(),
             Error::GithubAppAuthErr(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
+            Error::BiomeCore(ref err) => err.description(),
             Error::InvalidIntegrations(_) => "Invalid integrations detected",
             Error::NotHTTPSCloneUrl(_) => "Only HTTPS clone urls are supported",
             Error::Protobuf(ref err) => err.description(),
@@ -176,8 +176,8 @@ impl From<bldr_core::Error> for Error {
     fn from(err: bldr_core::Error) -> Error { Error::BuilderCore(err) }
 }
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
+impl From<bio_core::Error> for Error {
+    fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
 }
 
 impl From<protobuf::ProtobufError> for Error {

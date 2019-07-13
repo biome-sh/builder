@@ -15,9 +15,9 @@
 import { AfterViewInit, Component } from '@angular/core';
 
 @Component({
-  selector: 'hab-statuspage',
+  selector: 'bio-statuspage',
   template: `
-    <a href="//status.habitat.sh/" target="_blank" class="statuspage-component">
+    <a href="//status.biome.sh/" target="_blank" class="statuspage-component">
       <span class="color-dot {{indicator}}"></span>
       <span class="color-description">{{description}}</span>
     </a>

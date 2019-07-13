@@ -5,7 +5,7 @@ import { promotePackage } from '../../actions/index';
 import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
 
 @Component({
-  selector: 'hab-package-promote',
+  selector: 'bio-package-promote',
   template: require('./package-promote.component.html')
 })
 export class PackagePromoteComponent {

@@ -21,7 +21,7 @@ import { AppStore } from '../../../../app.store';
 import config from '../../../../config';
 
 @Component({
-  selector: 'hab-key-add-form',
+  selector: 'bio-key-add-form',
   template: require('./key-add-form.dialog.html')
 })
 export class KeyAddFormDialog implements OnInit {

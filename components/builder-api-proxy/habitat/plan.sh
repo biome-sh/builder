@@ -1,8 +1,8 @@
 # shellcheck disable=SC2034
-pkg_origin=habitat
+pkg_origin=biome
 pkg_name=builder-api-proxy
-pkg_description="HTTP Proxy service fronting the Habitat Builder API service"
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_description="HTTP Proxy service fronting the Biome Builder API service"
+pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=("Apache-2.0")
 pkg_deps=(core/nginx core/curl core/coreutils)
 

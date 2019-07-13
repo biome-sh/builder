@@ -26,16 +26,15 @@ extern crate serde_derive;
 #[allow(unused_imports)]
 #[macro_use]
 extern crate serde_json;
-#[macro_use]
-extern crate hyper;
 
-use habitat_builder_protocol as protocol;
-use habitat_core as hab_core;
+use biome_builder_protocol as protocol;
+use biome_core as bio_core;
 
 pub mod access_token;
 pub mod api_client;
 pub mod build_config;
 pub mod error;
+pub mod http_client;
 pub mod integrations;
 pub mod job;
 pub mod keys;

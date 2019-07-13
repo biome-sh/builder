@@ -27,12 +27,13 @@ use diesel;
 use postgres;
 use protobuf;
 use r2d2;
+use rusoto_core;
 use rusoto_s3;
 use zmq;
 
 use crate::{bldr_core,
             db,
-            hab_core,
+            bio_core,
             protocol};
 
 #[derive(Debug)]
@@ -50,7 +51,7 @@ pub enum Error {
     DbTransactionCommit(postgres::error::Error),
     DieselError(diesel::result::Error),
     FromUtf8(std::string::FromUtf8Error),
-    HabitatCore(hab_core::Error),
+    BiomeCore(bio_core::Error),
     InvalidUrl,
     IO(io::Error),
     JobGroupAudit(postgres::error::Error),
@@ -66,8 +67,8 @@ pub enum Error {
     JobGroupProjectSetState(postgres::error::Error),
     JobCreate(postgres::error::Error),
     JobGet(postgres::error::Error),
-    JobLogArchive(u64, rusoto_s3::PutObjectError),
-    JobLogRetrieval(u64, rusoto_s3::GetObjectError),
+    JobLogArchive(u64, rusoto_core::RusotoError<rusoto_s3::PutObjectError>),
+    JobLogRetrieval(u64, rusoto_core::RusotoError<rusoto_s3::GetObjectError>),
     JobMarkArchived(postgres::error::Error),
     JobPending(postgres::error::Error),
     JobReset(postgres::error::Error),
@@ -125,7 +126,7 @@ impl fmt::Display for Error {
             }
             Error::DieselError(ref e) => format!("{}", e),
             Error::FromUtf8(ref e) => format!("{}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::InvalidUrl => "Bad URL!".to_string(),
             Error::IO(ref e) => format!("{}", e),
             Error::JobGroupAudit(ref e) => format!("Database error creating audit entry, {}", e),
@@ -211,7 +212,7 @@ impl error::Error for Error {
             Error::DbTransactionStart(ref err) => err.description(),
             Error::DieselError(ref err) => err.description(),
             Error::FromUtf8(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
+            Error::BiomeCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::InvalidUrl => "Bad Url!",
             Error::JobGroupAudit(ref err) => err.description(),
@@ -297,8 +298,8 @@ impl From<chrono::format::ParseError> for Error {
     fn from(err: chrono::format::ParseError) -> Error { Error::ParseError(err) }
 }
 
-impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
+impl From<bio_core::Error> for Error {
+    fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
 }
 
 impl From<db::error::Error> for Error {

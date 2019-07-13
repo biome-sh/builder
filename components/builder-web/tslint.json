@@ -67,14 +67,14 @@
     "component-selector": [
       true,
       "element",
-      "hab",
+      "bio",
       "kebab-case"
     ],
     "directive-class-suffix": true,
     "directive-selector": [
       true,
       "attribute",
-      "hab",
+      "bio",
       "camelCase"
     ],
     "no-attribute-parameter-decorator": true,

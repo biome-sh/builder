@@ -18,7 +18,7 @@ import * as moment from 'moment';
 import { iconForJobState } from '../../util';
 
 @Component({
-  selector: 'hab-job-list',
+  selector: 'bio-job-list',
   template: require('./job-list.component.html')
 })
 export class JobListComponent {

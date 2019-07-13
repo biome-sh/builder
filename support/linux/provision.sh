@@ -1,9 +1,9 @@
 #!/bin/bash
 set -eux
 
-curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
-sudo hab install core/busybox-static core/hab-studio
-sudo hab install \
+curl https://raw.githubusercontent.com/biome-sh/biome/master/components/bio/install.sh | sudo bash
+sudo bio install core/busybox-static biome/bio-studio
+sudo bio install \
   core/direnv \
   core/wget \
   core/docker \

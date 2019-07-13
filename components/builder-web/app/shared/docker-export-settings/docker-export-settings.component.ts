@@ -19,7 +19,7 @@ import { fetchProjectIntegration } from '../../actions/projects';
 import { AppStore } from '../../app.store';
 
 @Component({
-  selector: 'hab-docker-export-settings',
+  selector: 'bio-docker-export-settings',
   template: require('./docker-export-settings.component.html')
 })
 export class DockerExportSettingsComponent implements OnChanges, OnDestroy {

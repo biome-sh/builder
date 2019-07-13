@@ -21,7 +21,7 @@ import { getUniquePackages } from '../../../actions/index';
 import config from '../../../config';
 
 @Component({
-  selector: 'hab-origin-packages-tab',
+  selector: 'bio-origin-packages-tab',
   template: require('./origin-packages-tab.component.html')
 })
 export class OriginPackagesTabComponent implements OnInit, OnDestroy {
@@ -38,7 +38,7 @@ export class OriginPackagesTabComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.sub = this.route.parent.params.subscribe((params) => {
-      this.title.setTitle(`Origins › ${params.origin} › Packages | Habitat`);
+      this.title.setTitle(`Origins › ${params.origin} › Packages | ${this.store.getState().app.name}`);
     });
   }
 

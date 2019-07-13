@@ -17,7 +17,7 @@ import { AppStore } from '../../app.store';
 import { fetchLatestInChannel, fetchPackageVersions, submitJob } from '../../actions/index';
 
 @Component({
-  selector: 'hab-package-sidebar',
+  selector: 'bio-package-sidebar',
   template: require('./package-sidebar.component.html')
 })
 export class PackageSidebarComponent implements OnChanges {
@@ -59,7 +59,7 @@ export class PackageSidebarComponent implements OnChanges {
   }
 
   get exportCommand() {
-    return `hab pkg export docker ${this.origin}/${this.name}`;
+    return `bio pkg export docker ${this.origin}/${this.name}`;
   }
 
   get isAService() {
@@ -79,7 +79,7 @@ export class PackageSidebarComponent implements OnChanges {
   }
 
   get runCommand() {
-    return `hab start ${this.origin}/${this.name}`;
+    return `bio start ${this.origin}/${this.name}`;
   }
 
   get autoBuildSetting() {

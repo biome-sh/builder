@@ -19,7 +19,7 @@ use crate::{models::pagination::Paginate,
                            jobs}};
 
 use crate::{bldr_core::metrics::CounterMetric,
-            hab_core::package::PackageTarget,
+            bio_core::package::PackageTarget,
             metrics::Counter};
 
 #[derive(Debug, Serialize, Deserialize, QueryableByName, Queryable)]

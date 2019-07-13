@@ -4,7 +4,7 @@
       <h3>Invite Member</h3>
       <form #formValues="ngForm" [formGroup]="form" (ngSubmit)="submit(formValues.value.username)">
         <p>
-          Add existing Habitat users by {{ providerName }} username.
+          Add existing Biome users by {{ providerName }} username.
         </p>
         <input type="search" name="username" [formControl]="form.controls['username']" placeholder="{{ providerName }} username" autocomplete="off">
         <p class="error" *ngIf="errorMessage">
@@ -29,7 +29,7 @@
         <li *ngFor="let invitation of invitations" class="item pending-invite">
           <span class="column name">{{ invitation.account_name }}</span>
           <span class="column actions">
-            <hab-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></hab-icon>
+            <bio-icon symbol="cancel" (click)="rescind(invitation)" title="Rescind this invitation"></bio-icon>
           </span>
         </li>
       </ul>
@@ -46,7 +46,7 @@
         <li *ngFor="let member of members" class="item">
           <span class="column name">{{ member }}</span>
           <span class="column actions">
-            <hab-icon symbol="cancel" (click)="delete(member)" *ngIf="canDelete(member)" title="Remove this member from this origin"></hab-icon>
+            <bio-icon symbol="cancel" (click)="delete(member)" *ngIf="canDelete(member)" title="Remove this member from this origin"></bio-icon>
           </span>
         </li>
       </ul>

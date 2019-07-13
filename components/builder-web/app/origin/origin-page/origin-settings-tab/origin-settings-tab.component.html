@@ -3,16 +3,16 @@
     <section>
       <h3>Default Package Settings</h3>
       <p>
-        Build artifacts (.hart files) can be made available to all Habitat users or restricted to members of this origin.
+        Build artifacts (.hart files) can be made available to all Biome users or restricted to members of this origin.
       </p>
-      <hab-visibility-selector [setting]="visibility" (changed)="update($event)"></hab-visibility-selector>
+      <bio-visibility-selector [setting]="visibility" (changed)="update($event)"></bio-visibility-selector>
     </section>
 
     <section *ngIf="memberOfOrigin">
       <h3>Origin Secrets</h3>
       <p>
-        With the Habitat CLI, you can encrypt and store secrets to expose as environment variables in your Builder builds.
-        <a href="{{ config.docs_url }}/habitat-cli/#hab-origin-secret">See the CLI docs</a> for more information.
+        With the Biome CLI, you can encrypt and store secrets to expose as environment variables in your Builder builds.
+        <a href="{{ config.docs_url }}/biome-cli/#bio-origin-secret">See the CLI docs</a> for more information.
       </p>
       <ul class="action-list">
         <li class="heading">
@@ -24,7 +24,7 @@
         <li *ngFor="let secret of secrets" class="item pending-invite">
           <span class="column">{{ secret.key }}</span>
           <span class="column actions">
-            <hab-icon symbol="cancel" (click)="deleteSecret(secret)" title="Delete this secret"></hab-icon>
+            <bio-icon symbol="cancel" (click)="deleteSecret(secret)" title="Delete this secret"></bio-icon>
           </span>
         </li>
       </ul>

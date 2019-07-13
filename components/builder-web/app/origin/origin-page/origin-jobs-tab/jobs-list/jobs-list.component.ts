@@ -17,7 +17,7 @@ import { List } from 'immutable';
 import { parseDate, iconForJobState } from '../../../../util';
 
 @Component({
-  selector: 'hab-origin-jobs-list',
+  selector: 'bio-origin-jobs-list',
   template: require('./jobs-list.component.html')
 })
 export class OriginJobsListComponent {

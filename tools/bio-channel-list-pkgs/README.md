@@ -12,7 +12,7 @@ The following command line tools are required and will be checked before running
 To run:
 
 ```sh
-hab-channel-list-pkgs.sh core unstable
+bio-channel-list-pkgs.sh core unstable
 ```
 
 A list of all fully qualified package identifiers that exist in the channel will be returned, printed to standard out, one entry per line.

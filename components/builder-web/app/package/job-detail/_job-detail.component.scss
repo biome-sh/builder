@@ -3,11 +3,11 @@
 
   .back {
 
-    hab-icon, span {
+    bio-icon, span {
       vertical-align: middle;
     }
 
-    hab-icon {
+    bio-icon {
       @include icon-size(20);
       margin-right: 0;
     }
@@ -31,7 +31,7 @@
       @include desktop-up {
         padding-left: $default-padding;
 
-        hab-job-status-icon {
+        bio-job-status-icon {
           margin-left: -22px;
         }
       }
@@ -41,7 +41,7 @@
         font-size: $base-font-size;
       }
 
-      hab-job-status {
+      bio-job-status {
         display: block;
         margin-bottom: $default-margin / 2;
       }
@@ -52,16 +52,16 @@
 
         a {
           display: block;
-          color: $hab-text;
+          color: $bio-text;
           margin-bottom: $default-margin / 2;
 
           &:hover {
-            color: $hab-links;
+            color: $bio-links;
           }
         }
 
         @include desktop-up {
-          hab-channels {
+          bio-channels {
             ul {
               margin-bottom: 0;
             }
@@ -121,14 +121,14 @@
       }
 
       &:hover {
-        background-color: $hab-green;
+        background-color: $bio-green;
       }
 
       &.active {
-        background-color: $hab-green;
+        background-color: $bio-green;
       }
 
-      hab-icon {
+      bio-icon {
         margin-right: 4px;
       }
     }

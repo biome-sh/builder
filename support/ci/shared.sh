@@ -60,12 +60,12 @@ install_rustfmt() {
   rustup component add --toolchain "$toolchain" rustfmt
 }
 
-install_hab_pkg() {
+install_bio_pkg() {
   for ident; do
-    installed_pkgs=$(hab pkg list "$ident")
+    installed_pkgs=$(bio pkg list "$ident")
 
     if [[ -z $installed_pkgs ]]; then
-      sudo hab pkg install "$ident"
+      sudo bio pkg install "$ident"
     else
       echo "$ident already installed"
     fi

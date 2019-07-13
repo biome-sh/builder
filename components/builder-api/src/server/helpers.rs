@@ -21,7 +21,7 @@ use regex::Regex;
 use serde::Serialize;
 use serde_json;
 
-use crate::{hab_core::package::PackageTarget,
+use crate::{bio_core::package::PackageTarget,
             protocol::jobsrv};
 
 use crate::{db::models::{channel::PackageChannelTrigger as PCT,
@@ -143,7 +143,7 @@ pub fn trigger_from_request(req: &HttpRequest) -> jobsrv::JobGroupTrigger {
     // TODO: the search strings should be configurable.
     if let Some(ref agent) = req.headers().get(header::USER_AGENT) {
         if let Ok(s) = agent.to_str() {
-            if s.starts_with("hab/") {
+            if s.starts_with("bio/") {
                 return jobsrv::JobGroupTrigger::HabClient;
             }
         }
@@ -167,7 +167,7 @@ pub fn trigger_from_request_model(req: &HttpRequest) -> PCT {
     // TODO: the search strings should be configurable.
     if let Some(ref agent) = req.headers().get(header::USER_AGENT) {
         if let Ok(s) = agent.to_str() {
-            if s.starts_with("hab/") {
+            if s.starts_with("bio/") {
                 return PCT::HabClient;
             }
         }

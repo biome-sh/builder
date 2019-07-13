@@ -50,26 +50,26 @@ function Install-Rustfmt($Toolchain) {
   rustup component add --toolchain $Toolchain rustfmt
 }
 
-function Install-Habitat {
+function Install-Biome {
     if (-not (get-command choco -ErrorAction SilentlyContinue)) {
         Write-Host "Installing Chocolatey"
         Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
     }
 
-    if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
-        choco install habitat -y
+    if (!((choco list biome --local-only) -match '^1 packages installed\.$')) {
+        choco install biome -y
     }
 }
 
 function Install-HabPkg([string[]]$idents) {
   $idents | % {
       $id = $_
-      $installedPkgs=hab pkg list $id | ? { $_.StartsWith($id)}
+      $installedPkgs=bio pkg list $id | ? { $_.StartsWith($id)}
 
       if($installedPkgs){
           Write-host "$id already installed"
       } else {
-          hab pkg install $id
+          bio pkg install $id
       }
   }
 }
@@ -93,7 +93,7 @@ function New-PathString([string]$StartingPath, [string]$Path) {
 
 function Setup-Environment {
     $env:HAB_LICENSE = "accept-no-persist"
-    Install-Habitat
+    Install-Biome
 
     Install-HabPkg @(
         "core/cacerts",
@@ -107,17 +107,17 @@ function Setup-Environment {
         "core/zlib"
     )
     # we always want the latest rust
-    hab pkg install core/rust
+    bio pkg install core/rust
 
     # Set up some path variables for ease of use later
-    $cacertsDir     = & hab pkg path core/cacerts
-    $libarchiveDir  = & hab pkg path core/libarchive
-    $libsodiumDir   = & hab pkg path core/libsodium
-    $opensslDir     = & hab pkg path core/openssl
-    $protobufDir    = & hab pkg path core/protobuf
-    $xzDir          = & hab pkg path core/xz
-    $zeromqDir      = & hab pkg path core/zeromq
-    $zlibDir        = & hab pkg path core/zlib
+    $cacertsDir     = & bio pkg path core/cacerts
+    $libarchiveDir  = & bio pkg path core/libarchive
+    $libsodiumDir   = & bio pkg path core/libsodium
+    $opensslDir     = & bio pkg path core/openssl
+    $protobufDir    = & bio pkg path core/protobuf
+    $xzDir          = & bio pkg path core/xz
+    $zeromqDir      = & bio pkg path core/zeromq
+    $zlibDir        = & bio pkg path core/zlib
 
     # Set some required variables
     $env:SODIUM_LIB_DIR             = "$libsodiumDir\lib"
@@ -133,7 +133,7 @@ function Setup-Environment {
     $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
     $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
 
-    $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
+    $vsDir = & bio pkg path core/visual-cpp-build-tools-2015
     $env:LIB = (Get-Content "$vsDir\LIB_DIRS")
     $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")

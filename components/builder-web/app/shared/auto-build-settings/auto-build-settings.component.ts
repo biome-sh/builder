@@ -15,7 +15,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'hab-auto-build-settings',
+  selector: 'bio-auto-build-settings',
   template: require('./auto-build-settings.component.html')
 })
 export class AutoBuildSettingsComponent {

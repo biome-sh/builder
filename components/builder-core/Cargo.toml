@@ -1,7 +1,7 @@
 [package]
 name = "builder_core"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 edition = "2018"
 
@@ -11,8 +11,9 @@ bitflags = "*"
 chrono = { version = "*", features = ["serde"] }
 clippy = { version = "*", optional = true }
 dogstatsd = "*"
+env_proxy = "*"
 glob = "*"
-habitat-builder-protocol = { path = "../builder-protocol" }
+biome-builder-protocol = { path = "../builder-protocol" }
 lazy_static = "*"
 libarchive = "*"
 log = "*"
@@ -25,9 +26,9 @@ serde_json = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 walkdir = "*"
-reqwest = "0.8.1"
-hyper = "^0.11.9"
+reqwest = "=0.9.17"
+url = "*"
 zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "release/v0.8" }
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"

@@ -30,6 +30,9 @@ class MockAppStore {
     return {
       packages: {
         current: Package()
+      },
+      app: {
+        name: 'Biome'
       }
     };
   }
@@ -64,8 +67,8 @@ describe('PackageLatestComponent', () => {
       ],
       declarations: [
         PackageLatestComponent,
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] }),
-        MockComponent({ selector: 'hab-package-detail', inputs: ['package'] })
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol'] }),
+        MockComponent({ selector: 'bio-package-detail', inputs: ['package'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },

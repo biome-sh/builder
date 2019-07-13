@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'hab-visibility-icon',
-  template: `<hab-icon [symbol]="symbol" class="icon-visibility" [title]="title"></hab-icon>`
+  selector: 'bio-visibility-icon',
+  template: `<bio-icon [symbol]="symbol" class="icon-visibility" [title]="title"></bio-icon>`
 })
 export class VisibilityIconComponent {
 

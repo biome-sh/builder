@@ -15,7 +15,7 @@
 use crate::{bldr_core::logger::Logger,
             config::Config,
             error::Result,
-            hab_core::{package::archive::PackageArchive,
+            bio_core::{package::archive::PackageArchive,
                        ChannelIdent}};
 
 use super::{publisher::Publisher,

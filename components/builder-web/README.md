@@ -24,7 +24,7 @@ Select a location to clone the Builder repo on your Host OS, eg, `~/Workspace` (
 
 ```
 cd ${BUILDER_SRC_ROOT}
-git clone https://github.com/habitat-sh/builder.git
+git clone https://github.com/biome-sh/builder.git
 ```
 
 ### Host OS Provisioning
@@ -49,7 +49,7 @@ node --version
 
 ### Configuration
 
-In the `builder-web` directory, copy the `habitat.conf.sample.js` to `habitat.conf.js` to set up your development runtime configuration.
+In the `builder-web` directory, copy the `biome.conf.sample.js` to `biome.conf.js` to set up your development runtime configuration.
 
 Update the *github_app_id* and *oauth_client_id* fields with the values from your Github app.
 
@@ -64,7 +64,7 @@ npm start
 
 You should now be able to browse to the UI at `http://localhost:3000/#/pkgs`.
 
-Note that browsing to `http://localhost:3000/` (i.e., at the root level) will activate the application's default route, which is configured to redirect signed-out users to the Habitat home page (http://habitat.sh), and various navigation links will operate similarly. If you plan on developing for both the Builder UI and the [Web site](../../www), consider changing some of your configuration entries to allow for easier navigation between the two:
+Note that browsing to `http://localhost:3000/` (i.e., at the root level) will activate the application's default route, which is configured to redirect signed-out users to the Biome home page (http://biome.sh), and various navigation links will operate similarly. If you plan on developing for both the Builder UI and the [Web site](../../www), consider changing some of your configuration entries to allow for easier navigation between the two:
 
 ```
 ...
@@ -156,5 +156,5 @@ The JavaScript and CSS files are built by `npm run build`.
 other needed files into the dist/ directory.
 
 The app is deployed to production with the Builder API Proxy service, with the configuration
-in [/terraform](/terraform) and the Habitat plan in
+in [/terraform](/terraform) and the Biome plan in
 [/components/builder-api-proxy/habitat](/components/builder-api-proxy/habitat).

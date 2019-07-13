@@ -30,7 +30,7 @@ use crate::protocol::{jobsrv,
                       net::NetOk,
                       originsrv::OriginPackageIdent};
 
-use crate::hab_core::{package::{Identifiable,
+use crate::bio_core::{package::{Identifiable,
                                 PackageIdent,
                                 PackageTarget},
                       ChannelIdent};
@@ -106,7 +106,7 @@ fn get_rdeps(req: HttpRequest,
             debug!("Query requested target = {}", t);
             match PackageTarget::from_str(t) {
                 Ok(t) => t,
-                Err(err) => return Error::HabitatCore(err).into(),
+                Err(err) => return Error::BiomeCore(err).into(),
             }
         }
         None => helpers::target_from_headers(&req),
@@ -141,7 +141,7 @@ fn get_rdeps_group(req: HttpRequest,
             debug!("Query requested target = {}", t);
             match PackageTarget::from_str(t) {
                 Ok(t) => t,
-                Err(err) => return Error::HabitatCore(err).into(),
+                Err(err) => return Error::BiomeCore(err).into(),
             }
         }
         None => helpers::target_from_headers(&req),

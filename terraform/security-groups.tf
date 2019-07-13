@@ -21,7 +21,7 @@ resource "aws_security_group" "datastore" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -34,7 +34,7 @@ resource "aws_security_group" "datastore_client" {
   vpc_id      = "${var.aws_vpc_id}"
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -43,7 +43,7 @@ resource "aws_security_group" "datastore_client" {
 
 resource "aws_security_group" "gateway" {
   name        = "builder-gateway-${var.env}"
-  description = "Habitat Builder Gateway"
+  description = "Biome Builder Gateway"
   vpc_id = "${var.aws_vpc_id}"
 
   ingress {
@@ -81,7 +81,7 @@ resource "aws_security_group" "gateway" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -90,7 +90,7 @@ resource "aws_security_group" "gateway" {
 
 resource "aws_security_group" "gateway_elb" {
   name        = "builder-gateway-elb-${var.env}"
-  description = "Habitat Builder Gateway Load Balancer"
+  description = "Biome Builder Gateway Load Balancer"
   vpc_id      = "${var.aws_vpc_id}"
 
   ingress {
@@ -108,7 +108,7 @@ resource "aws_security_group" "gateway_elb" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -141,7 +141,7 @@ resource "aws_security_group" "jobsrv" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -154,7 +154,7 @@ resource "aws_security_group" "jobsrv_client" {
   vpc_id      = "${var.aws_vpc_id}"
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -173,7 +173,7 @@ resource "aws_security_group" "service" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -192,7 +192,7 @@ resource "aws_security_group" "worker" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -227,7 +227,7 @@ resource "aws_security_group" "windows-worker" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"
@@ -246,7 +246,7 @@ resource "aws_security_group" "worker_studio" {
   }
 
   tags {
-    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Contact     = "The Biome Maintainers <humans@biome.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
     X-ManagedBy   = "Terraform"

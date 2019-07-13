@@ -35,8 +35,8 @@ variable "aws_admin_sg" {
   description = "Administration security group for all instances"
 }
 
-variable "hab_sup_sg" {
-  description = "AWS security group identifier for Habitat Supervisor gossip connectivity"
+variable "bio_sup_sg" {
+  description = "AWS security group identifier for Biome Supervisor gossip connectivity"
 }
 
 variable "bldr_url" {
@@ -55,17 +55,17 @@ variable "sup_release_channel" {
 }
 
 variable "log_level" {
-  description = "Logging level for the Habitat Supervisor"
+  description = "Logging level for the Biome Supervisor"
   default     = "info"
 }
 
 variable "gossip_listen_port" {
-  description = "Port for Habitat Supervisor's --gossip-listen"
+  description = "Port for Biome Supervisor's --gossip-listen"
   default     = 9638
 }
 
 variable "http_listen_port" {
-  description = "Port for Habitat Supervisor's --http-listen"
+  description = "Port for Biome Supervisor's --http-listen"
   default     = 9631
 }
 

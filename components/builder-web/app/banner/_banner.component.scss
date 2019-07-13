@@ -1,9 +1,9 @@
-hab-banner {
+bio-banner {
   > div {
     display: block;
     padding: $default-padding $default-padding * 2;
     position: relative;
-    background-color: $hab-blue;
+    background-color: $bio-blue;
     color: $white;
     text-align: center;
     max-height: 1000px;

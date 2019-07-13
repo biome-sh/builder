@@ -29,6 +29,9 @@ class MockAppStore {
     return {
       packages: {
         current: Package()
+      },
+      app: {
+        name: 'Biome'
       }
     };
   }
@@ -63,11 +66,11 @@ describe('PackageVersionsComponent', () => {
       ],
       declarations: [
         PackageVersionsComponent,
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol', 'title'] }),
-        MockComponent({ selector: 'hab-platform-icon', inputs: ['platform'] }),
-        MockComponent({ selector: 'hab-channels', inputs: ['channels', 'canDemote'] }),
-        MockComponent({ selector: 'hab-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),
-        MockComponent({ selector: 'hab-copyable', inputs: ['text', 'style'] })
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol', 'title'] }),
+        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
+        MockComponent({ selector: 'bio-channels', inputs: ['channels', 'canDemote'] }),
+        MockComponent({ selector: 'bio-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),
+        MockComponent({ selector: 'bio-copyable', inputs: ['text', 'style'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },

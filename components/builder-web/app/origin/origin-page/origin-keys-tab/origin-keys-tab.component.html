@@ -17,20 +17,20 @@
           </li>
           <li class="item" *ngIf="privateKey">
             <span class="column name">
-              <hab-icon symbol="visibility-off"></hab-icon>
+              <bio-icon symbol="visibility-off"></bio-icon>
               <span>{{ privateKey }}</span>
               <span class="tag">private</span>
             </span>
             <span class="column actions">
               <a (click)="downloadPrivateKey()">
-                <hab-icon symbol="file-download" title="Download this key"></hab-icon>
+                <bio-icon symbol="file-download" title="Download this key"></bio-icon>
               </a>
             </span>
           </li>
         </ul>
         <div class="upload">
           <button mat-raised-button color="basic" (click)="openKeyAddForm('private')" *ngIf="memberOfOrigin">
-            <hab-icon symbol="file-upload"></hab-icon>
+            <bio-icon symbol="file-upload"></bio-icon>
             Upload a private key
           </button>
         </div>
@@ -53,14 +53,14 @@
           </span>
           <span class="column actions">
             <a href="{{ urlFor(key) }}">
-              <hab-icon symbol="file-download" title="Download this key"></hab-icon>
+              <bio-icon symbol="file-download" title="Download this key"></bio-icon>
             </a>
           </span>
         </li>
       </ul>
       <div class="upload">
         <button mat-raised-button color="basic" *ngIf="memberOfOrigin" (click)="openKeyAddForm('public')">
-          <hab-icon symbol="file-upload"></hab-icon>
+          <bio-icon symbol="file-upload"></bio-icon>
           Upload a public key
         </button>
       </div>

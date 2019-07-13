@@ -1,8 +1,8 @@
 [package]
-name = "habitat_builder_graph"
+name = "biome_builder_graph"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-description = "Habitat-Builder Graph Dev Tool"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+description = "Biome-Builder Graph Dev Tool"
 build = "../build-builder.rs"
 workspace = "../../"
 edition = "2018"
@@ -16,7 +16,7 @@ doc = false
 bitflags = "*"
 clippy = {version = "*", optional = true}
 features = "*"
-habitat-builder-protocol = { path = "../builder-protocol" }
+biome-builder-protocol = { path = "../builder-protocol" }
 log = "*"
 env_logger = "*"
 petgraph = "*"
@@ -31,13 +31,13 @@ serde = "*"
 serde_derive = "*"
 copperline = "*"
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"
 
 [dependencies.builder_core]
 path = "../builder-core"
 
-[dependencies.habitat_builder_db]
+[dependencies.biome_builder_db]
 path = "../builder-db"
 
 [build-dependencies]

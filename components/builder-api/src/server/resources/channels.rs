@@ -30,7 +30,7 @@ use diesel::{pg::PgConnection,
 use serde_json;
 
 use crate::{bldr_core::metrics::CounterMetric,
-            hab_core::{package::{PackageIdent,
+            bio_core::{package::{PackageIdent,
                                  PackageTarget},
                        ChannelIdent}};
 

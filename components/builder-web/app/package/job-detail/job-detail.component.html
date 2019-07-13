@@ -4,19 +4,19 @@
       <a [routerLink]="['../']">
         <span>Build Jobs</span>
       </a>
-      <hab-icon symbol="chevron-right"></hab-icon>
+      <bio-icon symbol="chevron-right"></bio-icon>
       <span>{{ job.id }}</span>
     </h3>
   </section>
   <div class="summary">
     <div class="status {{ statusClass }}">
       <div *ngIf="jobState">
-        <hab-job-status [job]="job"></hab-job-status>
+        <bio-job-status [job]="job"></bio-job-status>
         <div class="package" *ngIf="ident">
           <a [routerLink]="packageRoute">
             {{ ident }}
           </a>
-          <hab-channels [channels]="job.channels"></hab-channels>
+          <bio-channels [channels]="job.channels"></bio-channels>
         </div>
       </div>
     </div>
@@ -41,11 +41,11 @@
   </div>
   <div class="controls" [ngStyle]="controlsStyles" [hidden]="!showLog">
     <button type="button" class="jump-to-top" (click)="scrollToTop()">
-      <hab-icon symbol="chevron-up"></hab-icon>
+      <bio-icon symbol="chevron-up"></bio-icon>
       <span>Jump to top</span>
     </button>
     <button type="button" class="jump-to-end" (click)="toggleFollow()" [class.active]="followLog">
-      <hab-icon symbol="chevron-down"></hab-icon>
+      <bio-icon symbol="chevron-down"></bio-icon>
       <span>{{ completed ? "Jump to end" : "Follow log" }}</span>
     </button>
   </div>

@@ -16,14 +16,12 @@
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate hyper;
 
 pub mod client;
 pub mod config;
 pub mod error;
 
-use habitat_core as hab_core;
+use biome_core as bio_core;
 
 pub use crate::{client::ArtifactoryClient,
                 config::ArtifactoryCfg,

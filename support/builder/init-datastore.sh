@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-hab start habitat/builder-datastore &
+bio start biome/builder-datastore &
 
 running=0;
 
@@ -14,14 +14,14 @@ while [ $running -eq 0 ]; do
   if [ -f $pwfile ]; then
     PGPASSWORD=$(cat $pwfile)
     export PGPASSWORD
-    if hab pkg exec core/postgresql psql -w -lqt --host 127.0.0.1 -U hab; then
+    if bio pkg exec core/postgresql psql -w -lqt --host 127.0.0.1 -U bio; then
       running=1
     fi
   fi
   sleep 2
 done
 
-hab stop habitat/builder-datastore
+bio stop biome/builder-datastore
 
 # JW: This hack needs to stay until stop actually waits until the service has stopped
 while [ -f /hab/sup/default/specs/builder-datastore.spec ]; do
@@ -29,5 +29,5 @@ while [ -f /hab/sup/default/specs/builder-datastore.spec ]; do
   sleep 2
 done
 
-hab term
+bio term
 exit 0

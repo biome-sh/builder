@@ -1,6 +1,6 @@
-hab-job-status-icon {
+bio-job-status-icon {
 
-  hab-icon {
+  bio-icon {
 
     @each $key, $color in $status-colors {
       &.#{$key} {
@@ -11,7 +11,7 @@ hab-job-status-icon {
     &.inprogress, &.dispatching, &.dispatched, &.cancelpending, &.cancelprocessing {
 
       &.animate {
-        @extend hab-icon.spinning;
+        @extend bio-icon.spinning;
       }
     }
   }

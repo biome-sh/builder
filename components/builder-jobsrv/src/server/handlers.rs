@@ -30,7 +30,7 @@ use crate::{bldr_core::rpc::RpcMessage,
             db::models::{jobs::*,
                          package::*,
                          projects::*},
-            hab_core::package::{PackageIdent,
+            bio_core::package::{PackageIdent,
                                 PackageTarget}};
 
 use super::AppState;

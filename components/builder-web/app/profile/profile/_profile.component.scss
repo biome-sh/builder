@@ -8,9 +8,9 @@
       align-items: center;
     }
 
-    input, hab-copyable {
+    input, bio-copyable {
       margin-bottom: $default-margin;
-      color: $hab-text;
+      color: $bio-text;
       background-color: #f0f5f8;
       font-weight: 600;
 
@@ -26,14 +26,14 @@
 
     .loading {
       position: relative;
-      color: $hab-orange;
+      color: $bio-orange;
       margin-right: auto;
 
-      input, hab-copyable {
+      input, bio-copyable {
         margin-bottom: 0;
       }
 
-      hab-icon {
+      bio-icon {
         position: absolute;
         @include vertically-centered;
         @include icon-size(16);
@@ -65,7 +65,7 @@
         margin-left: 0;
 
         &.delete {
-          color: $hab-red;
+          color: $bio-red;
         }
 
         .processing & {
@@ -77,11 +77,11 @@
   }
 
   .notice {
-    color: $hab-blue;
+    color: $bio-blue;
   }
 
   @include tablet-up {
-    input, hab-copyable {
+    input, bio-copyable {
       width: $input-width;
     }
   }

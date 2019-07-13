@@ -29,7 +29,7 @@
     border-radius: $default-radius;
     color: $dark-blue;
 
-    hab-icon {
+    bio-icon {
       width: 24px;
       height: 24px;
     }
@@ -81,15 +81,15 @@
     margin-bottom: $default-margin;
 
     .no-keys {
-      color: $hab-blue;
+      color: $bio-blue;
       margin-left: 8px;
 
-      hab-icon {
+      bio-icon {
         margin-right: 4px;
       }
 
       a {
-        color: $hab-links;
+        color: $bio-links;
         text-decoration: underline;
       }
     }
@@ -105,33 +105,33 @@
 
       .plan-path {
 
-        hab-icon {
+        bio-icon {
           margin-right: $default-margin;
         }
       }
 
       .plan-actions {
 
-        hab-icon {
+        bio-icon {
           width: 16px;
-          color: $hab-blue;
+          color: $bio-blue;
           margin-right: 22px;
           cursor: pointer;
           @include transition(color);
 
           &:hover {
-            color: darken($hab-blue, 10%);
+            color: darken($bio-blue, 10%);
           }
 
           &:active {
-            color: $hab-links;
+            color: $bio-links;
           }
         }
       }
 
       .plan-status {
 
-        hab-icon {
+        bio-icon {
           width: 18px;
 
           &.success {
@@ -149,7 +149,7 @@
   .connecting {
 
     ol {
-      background-color: $hab-blue;
+      background-color: $bio-blue;
       border-radius: $default-radius;
       color: $white;
       padding: 4px 14px;
@@ -179,7 +179,7 @@
     .try-again {
       cursor: pointer;
 
-      hab-icon {
+      bio-icon {
         width: 0.9em;
         margin-right: 1px;
       }

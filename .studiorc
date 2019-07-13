@@ -47,12 +47,12 @@ init-datastore() { stop-on-failure _init-datastore; }
 
 load_env_config() {
   local env_config
-  env_config="/src/.secrets/habitat-env"
+  env_config="/src/.secrets/biome-env"
 
   if [[ -f "${env_config}" ]]; then
     source "${env_config}"
   else
-    echo -e "${RED}.secrets/habitat-env is required. Please see DEVELOPING.md for getting started instructions.${NO_COLOR}"
+    echo -e "${RED}.secrets/biome-env is required. Please see DEVELOPING.md for getting started instructions.${NO_COLOR}"
     exit 1
   fi
 }
@@ -63,7 +63,7 @@ configure() {
 }
 
 install-packages() {
-  hab pkg install \
+  bio pkg install \
   core/cacerts \
   core/net-tools \
   core/procps-ng \
@@ -73,12 +73,12 @@ install-packages() {
   -b -c stable
 
   # workaround for https://github.com/habitat-sh/habitat/issues/6418
-  hab pkg binlink core/cacerts
-  hab pkg binlink core/net-tools
-  hab pkg binlink core/procps-ng
-  hab pkg binlink core/shadow
-  hab pkg binlink core/curl
-  hab pkg binlink core/aws-cli
+  bio pkg binlink core/cacerts
+  bio pkg binlink core/net-tools
+  bio pkg binlink core/procps-ng
+  bio pkg binlink core/shadow
+  bio pkg binlink core/curl
+  bio pkg binlink core/aws-cli
 }
 
 _build-builder-component() {
@@ -96,13 +96,13 @@ build-builder-component() { stop-on-failure _build-builder-component "$@"; }
 
 alias bb=build-builder
 _build-builder() {
-  if ! hab sup status > /dev/null 2>&1; then
+  if ! bio sup status > /dev/null 2>&1; then
     echo "Starting supervisor"
     sup-run
     sleep 5
   fi
 
-  if [[ $(hab sup status) == "No services loaded." ]]; then
+  if [[ $(bio sup status) == "No services loaded." ]]; then
     start-builder
   fi
 
@@ -120,10 +120,10 @@ build-builder() { stop-on-failure _build-builder "$@"; }
 upload_github_keys() {
   if [[ -f "/src/.secrets/builder-github-app.pem" ]]; then
     for svc in worker api; do
-      hab file upload "builder-${svc}.default" "$(date +%s)" "/src/.secrets/builder-github-app.pem"
+      bio file upload "builder-${svc}.default" "$(date +%s)" "/src/.secrets/builder-github-app.pem"
     done
   else
-    echo "Missing GitHub key file. Please follow instructions here: https://github.com/habitat-sh/builder/blob/master/DEVELOPING.md"
+    echo "Missing GitHub key file. Please follow instructions here: https://github.com/biome-sh/builder/blob/master/DEVELOPING.md"
     sleep 10
   fi
 }
@@ -159,7 +159,7 @@ _start-builder() {
   for component in "$@"; do
     if [ -v "svc_params[$component]" ]; then
       # shellcheck disable=SC2086
-      load-if-not-loaded habitat/builder-$component ${svc_params[$component]}
+      load-if-not-loaded biome/builder-$component ${svc_params[$component]}
     elif command-exists "start-$component"; then
       "start-$component"
     else
@@ -173,32 +173,32 @@ start-builder() { stop-on-failure _start-builder "$@"; }
 _load-if-not-loaded() {
   local pkg_ident
   pkg_ident=$1
-  if hab sup status "$pkg_ident" > /dev/null 2>&1; then
+  if bio sup status "$pkg_ident" > /dev/null 2>&1; then
     echo "$pkg_ident is already loaded"
   else
-    hab svc load "$@"
+    bio svc load "$@"
   fi
 }
 load-if-not-loaded() { stop-on-failure _load-if-not-loaded "$@"; }
 
 start-datastore() {
   echo "Starting datastore"
-  if hab sup status habitat/builder-datastore > /dev/null 2>&1; then
-    echo "habitat/builder-datastore is already loaded"
+  if bio sup status biome/builder-datastore > /dev/null 2>&1; then
+    echo "biome/builder-datastore is already loaded"
   else
     init-datastore
-    hab svc load habitat/builder-datastore
+    bio svc load biome/builder-datastore
   fi
 }
 
 configure-minio() {
    export AWS_ACCESS_KEY_ID="depot"
    export AWS_SECRET_ACCESS_KEY="password"
-   if aws --endpoint-url http://localhost:9000 s3api list-buckets | grep "habitat-builder-artifact-store.default" > /dev/null; then
+   if aws --endpoint-url http://localhost:9000 s3api list-buckets | grep "biome-builder-artifact-store.default" > /dev/null; then
      echo "Minio already configured"
    else
      echo "Creating bucket in Minio"
-     aws --endpoint-url http://localhost:9000 s3api create-bucket --bucket "habitat-builder-artifact-store.default"
+     aws --endpoint-url http://localhost:9000 s3api create-bucket --bucket "biome-builder-artifact-store.default"
    fi
 }
 
@@ -223,10 +223,10 @@ _stop-builder() {
 
   for component in "$@"; do
     if [ $component == cache ]; then
-      hab svc unload core/sccache
+      bio svc unload core/sccache
     else
       echo "Unloading builder-$component"
-      hab svc unload habitat/builder-$component
+      bio svc unload biome/builder-$component
     fi
   done
 }
@@ -239,18 +239,18 @@ generate_bldr_keys() {
     KEY_NAME=$(echo "${keys[0]}" | grep -Po "bldr-\\d+")
     echo "Re-using existing builder key: $KEY_NAME"
   else
-    KEY_NAME=$(hab user key generate bldr | grep -Po "bldr-\\d+")
+    KEY_NAME=$(bio user key generate bldr | grep -Po "bldr-\\d+")
     echo "Generated new builder key: $KEY_NAME"
   fi
 
   for svc in api jobsrv worker; do
-    hab file upload "builder-${svc}.default" "$(date +%s)" "/hab/cache/keys/${KEY_NAME}.pub"
-    hab file upload "builder-${svc}.default" "$(date +%s)" "/hab/cache/keys/${KEY_NAME}.box.key"
+    bio file upload "builder-${svc}.default" "$(date +%s)" "/hab/cache/keys/${KEY_NAME}.pub"
+    bio file upload "builder-${svc}.default" "$(date +%s)" "/hab/cache/keys/${KEY_NAME}.box.key"
   done
 }
 
 load_package() {
-  hab pkg upload --url http://localhost --auth "${HAB_AUTH_TOKEN}" "$@" --channel stable
+  bio pkg upload --url http://localhost --auth "${HAB_AUTH_TOKEN}" "$@" --channel stable
 }
 
 load_packages() {
@@ -268,17 +268,17 @@ origin() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${HAB_AUTH_TOKEN}";
   then
-    hab origin key generate "${origin}"
-    hab origin key upload --url http://localhost -z "${HAB_AUTH_TOKEN}" -s "${origin}"
+    bio origin key generate "${origin}"
+    bio origin key upload --url http://localhost -z "${HAB_AUTH_TOKEN}" -s "${origin}"
   else
     echo "Failed to create origin ${origin}"
   fi
 }
 
 test-builder() {
-    if hab sup status > /dev/null 2>&1; then
+    if bio sup status > /dev/null 2>&1; then
       echo "Stopping supervisor"
-        hab sup term
+        bio sup term
         sleep 8
     fi
 
@@ -288,7 +288,7 @@ test-builder() {
 
     /src/test/builder-api/test.sh
     echo "Returning supervisor to default mode"
-    hab sup term > /dev/null 2>&1
+    bio sup term > /dev/null 2>&1
     sup-run
 }
 
@@ -296,7 +296,7 @@ function psql() {
   local config_dir port
   config_dir="/hab/svc/builder-datastore/config"
   port=$(grep port $config_dir/postgresql.conf | grep -oE '[[:digit:]]+')
-  PGPASSWORD=$(cat $config_dir/pwfile) hab pkg exec core/postgresql psql -U hab -h 127.0.0.1 -p "$port" "$@"
+  PGPASSWORD=$(cat $config_dir/pwfile) bio pkg exec core/postgresql psql -U hab -h 127.0.0.1 -p "$port" "$@"
 }
 
 export -f psql

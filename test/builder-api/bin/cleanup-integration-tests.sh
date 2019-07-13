@@ -23,10 +23,10 @@
 
 set -eu
 
-# base_dir is the root of the habitat project.
+# base_dir is the root of the biome project.
 base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 dir="$base_dir/target/debug"
-depot=/root/habitat/tmp/depot
+depot=/root/biome/tmp/depot
 origins=( neurosis xmen )
 users=( bobo mystique )
 
@@ -47,7 +47,7 @@ DELETE FROM origin_secret_keys WHERE origin_id=(SELECT id FROM origins WHERE nam
 DELETE FROM origins WHERE name='$origin';
 EOF
 )
-  echo "$sql" | hab pkg exec core/postgresql psql -U hab builder
+  echo "$sql" | bio pkg exec core/postgresql psql -U hab builder
 done
 
 # cleanup users
@@ -57,7 +57,7 @@ do
 DELETE FROM accounts WHERE name='$user';
 EOF
 )
-  echo "$sql" | hab pkg exec core/postgresql psql -U hab builder
+  echo "$sql" | bio pkg exec core/postgresql psql -U hab builder
 done
 
 # cleanup jobs
@@ -70,7 +70,7 @@ DELETE FROM groups WHERE project_name LIKE '$origin%';
 DELETE FROM jobs WHERE project_name LIKE '$origin%';
 EOF
 )
-  echo "$sql" | hab pkg exec core/postgresql psql -U hab builder
+  echo "$sql" | bio pkg exec core/postgresql psql -U hab builder
 done
 
 # cleanup files

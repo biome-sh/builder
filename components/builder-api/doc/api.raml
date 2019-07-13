@@ -8,7 +8,7 @@ baseUriParameters:
     rootUri:
         description: |
             The root URI for the particular installation of Builder
-        example: bldr.habitat.sh, api.habitat.sh, localhost:9636
+        example: bldr.habitat.sh, api.biome.sh, localhost:9636
 mediaType: application/json
 schemas:
     - netError: |
@@ -630,7 +630,7 @@ securitySchemes:
 /projects:
     post:
         description: |
-            Creates a new project for building a Habitat plan scoped to the given origin. The
+            Creates a new project for building a Biome plan scoped to the given origin. The
             resulting project will be created with an identifier containing the origin and name
             of the project the plan is building separated by a forward slash (i.e. `core/nginx`).
         securedBy: [oauth_2_0]
@@ -652,11 +652,11 @@ securitySchemes:
                         schema: project
                         example: |
                             {
-                                "id": "habitat/builder-api",
+                                "id": "biome/builder-api",
                                 "plan_path": "components/builder-api/plan.sh",
                                 "vcs": {
                                     "type": "git",
-                                    "url": "https://github.com/habitat-sh/habitat.git"
+                                    "url": "https://github.com/biome-sh/biome.git"
                                 }
                             }
             400:
@@ -690,11 +690,11 @@ securitySchemes:
                             schema: project
                             example: |
                                 {
-                                    "id": "habitat/builder-api",
+                                    "id": "biome/builder-api",
                                     "plan_path": "components/builder-api/plan.sh",
                                     "vcs": {
                                         "type": "git",
-                                        "url": "https://github.com/habitat-sh/habitat.git"
+                                        "url": "https://github.com/biome-sh/biome.git"
                                     }
                                 }
         put:
@@ -707,8 +707,8 @@ securitySchemes:
                         {
                             "plan_path": "components/builder-api/plan.sh",
                             "github": {
-                                "organization": "habitat-sh",
-                                "repo": "habitat"
+                                "organization": "biome-sh",
+                                "repo": "biome"
                             }
                         }
             responses:
@@ -1279,7 +1279,7 @@ securitySchemes:
                                                         "release":"20161102210957",
                                                         "version":"1.7.0"
                                                     },
-                                                    "manifest":"# core / tree\n\n\n* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>\n* __Version__: 1.7.0\n* __Release__: 20161102210957\n* __Architecture__: x86_64\n* __System__: linux\n* __Target__: x86_64-linux\n* __Upstream URL__: upstream project's website or home page is not defined\n* __License__: gplv2+ \n* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)\n* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`\n* __Path__: `/hab/pkgs/core/tree/1.7.0/20161102210957`\n* __Build Dependencies__: `core/make core/gcc `\n* __Dependencies__: `core/glibc `\n* __Interpreters__: no interpreters or undefined\n\n# Plan\n\n## Build Flags\n\n```bash\nCFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCPPFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCXXFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nLDFLAGS: -L/hab/pkgs/core/glibc/2.22/20160612063629/lib -L/hab/pkgs/core/gcc/5.2.0/20161031031637/lib\nLD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20161102210957/lib:/hab/pkgs/core/glibc/2.22/20160612063629/lib\n```\n\n## Plan Source\n\n```bash\npkg_name=tree\npkg_origin=core\npkg_version=1.7.0\npkg_maintainer=\"The Habitat Maintainers <humans@habitat.sh>\"\npkg_license=('gplv2+')\npkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz\npkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12\npkg_deps=(core/glibc)\npkg_build_deps=(core/make core/gcc)\npkg_bin_dirs=(bin)\npkg_include_dirs=(include)\npkg_lib_dirs=(lib)\n\ndo_build() {\n  make\n}\n\ndo_install() {\n  sed -i \"s#prefix = /usr#prefix = ${pkg_prefix}#\" Makefile\n  make install\n}\n```",
+                                                    "manifest":"# core / tree\n\n\n* __Maintainer__: The Biome Maintainers <humans@biome.sh>\n* __Version__: 1.7.0\n* __Release__: 20161102210957\n* __Architecture__: x86_64\n* __System__: linux\n* __Target__: x86_64-linux\n* __Upstream URL__: upstream project's website or home page is not defined\n* __License__: gplv2+ \n* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)\n* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`\n* __Path__: `/hab/pkgs/core/tree/1.7.0/20161102210957`\n* __Build Dependencies__: `core/make core/gcc `\n* __Dependencies__: `core/glibc `\n* __Interpreters__: no interpreters or undefined\n\n# Plan\n\n## Build Flags\n\n```bash\nCFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCPPFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCXXFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nLDFLAGS: -L/hab/pkgs/core/glibc/2.22/20160612063629/lib -L/hab/pkgs/core/gcc/5.2.0/20161031031637/lib\nLD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20161102210957/lib:/hab/pkgs/core/glibc/2.22/20160612063629/lib\n```\n\n## Plan Source\n\n```bash\npkg_name=tree\npkg_origin=biome\npkg_version=1.7.0\npkg_maintainer=\"The Biome Maintainers <humans@biome.sh>\"\npkg_license=('gplv2+')\npkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz\npkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12\npkg_deps=(core/glibc)\npkg_build_deps=(core/make core/gcc)\npkg_bin_dirs=(bin)\npkg_include_dirs=(include)\npkg_lib_dirs=(lib)\n\ndo_build() {\n  make\n}\n\ndo_install() {\n  sed -i \"s#prefix = /usr#prefix = ${pkg_prefix}#\" Makefile\n  make install\n}\n```",
                                                     "tdeps":[
                                                         {
                                                             "name":"glibc",

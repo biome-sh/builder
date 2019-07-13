@@ -43,7 +43,7 @@ use crate::bldr_core::{self,
                        logger::Logger,
                        socket::DEFAULT_CONTEXT};
 
-use crate::hab_core::{env,
+use crate::bio_core::{env,
                       package::{archive::PackageArchive,
                                 target::{self,
                                          PackageTarget}},
@@ -70,9 +70,9 @@ use crate::{config::Config,
 use crate::vcs::VCS;
 
 // TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
-// on habitat_common it didnt' seem worth it to add a dependency for only this constant. Probably
-// means that the constant should be relocated to habitat_core.
-/// Environment variable to disable progress bars in Habitat programs
+// on biome_common it didnt' seem worth it to add a dependency for only this constant. Probably
+// means that the constant should be relocated to biome_core.
+/// Environment variable to disable progress bars in Biome programs
 const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
 
 /// Environment variable to enable or disable debug output in runner's studio

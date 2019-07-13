@@ -32,7 +32,7 @@ execute_sql() {
   local sql="$2"
   local port=${PORT:-5432}
 
-  hab pkg exec core/postgresql psql -t -U hab -h 127.0.0.1 -p "${port}" -c "${sql}" -d "${database}" -X
+  bio pkg exec core/postgresql psql -t -U bio -h 127.0.0.1 -p "${port}" -c "${sql}" -d "${database}" -X
 }
 
 # before we do anything, let's check to see if this has already been done

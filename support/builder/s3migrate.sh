@@ -72,12 +72,12 @@ installDeps() {
     # We use aws-cli to handle the actual upload.
     # but we also need jq to parse the pkg info
 
-    PDEPS=("core/aws-cli" "core/jq-static" "habitat/s3-bulk-uploader")
+    PDEPS=("core/aws-cli" "core/jq-static" "biome/s3-bulk-uploader")
 
     configMsg
 
     for bin in "${!PDEPS[@]}"; do
-        hab pkg install -b "${PDEPS[$bin]}"
+        bio pkg install -b "${PDEPS[$bin]}"
     done
 }
 

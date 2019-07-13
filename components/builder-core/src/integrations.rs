@@ -21,7 +21,7 @@ use base64;
 
 use crate::{error::{Error,
                     Result},
-            hab_core::crypto::{keys::box_key_pair::WrappedSealedBox,
+            bio_core::crypto::{keys::box_key_pair::WrappedSealedBox,
                                BoxKeyPair},
             keys};
 

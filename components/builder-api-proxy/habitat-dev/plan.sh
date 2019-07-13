@@ -2,7 +2,7 @@ source ../habitat/plan.sh
 source ../../../support/ci/builder-dev-base-plan.sh
 
 # shellcheck disable=2034
-pkg_origin=habitat-dev
+pkg_origin=biome-dev
 
 # shellcheck disable=2154
 do_build() {
@@ -24,7 +24,7 @@ do_build() {
   # Create the dist with the currently installed package version number as we
   # are going to overwrite it with the new app and js
   local pkg_path
-  pkg_path=$(hab pkg path habitat/"$pkg_name")
+  pkg_path=$(bio pkg path biome/"$pkg_name")
   build_line "Creating the NPM dist with cache buster: ${pkg_path: -14}"
   npm run dist -- "${pkg_path: -14}"
 
@@ -38,7 +38,7 @@ do_install() {
   rm -rf "${pkg_prefix}"
 
   local pkg_path
-  pkg_path=$(hab pkg path habitat/"$pkg_name")
+  pkg_path=$(bio pkg path biome/"$pkg_name")
 
   build_line "Copying app into existing path ${pkg_path}/app"
   cp -a "${HAB_CACHE_SRC_PATH}/dist/." "${pkg_path}/app/"

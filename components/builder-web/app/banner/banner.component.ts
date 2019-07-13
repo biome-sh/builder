@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { AppStore } from '../app.store';
 
 @Component({
-  selector: 'hab-banner',
+  selector: 'bio-banner',
   template: require('./banner.component.html')
 })
 export class BannerComponent {

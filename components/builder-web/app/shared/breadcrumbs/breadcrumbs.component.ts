@@ -15,7 +15,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'hab-package-breadcrumbs',
+  selector: 'bio-package-breadcrumbs',
   template: require('./breadcrumbs.component.html')
 })
 

@@ -27,7 +27,7 @@ use crate::{bldr_core::{self,
                         metrics::GaugeMetric,
                         socket::DEFAULT_CONTEXT},
             db::DbPool,
-            hab_core::{crypto::{keys::{box_key_pair::WrappedSealedBox,
+            bio_core::{crypto::{keys::{box_key_pair::WrappedSealedBox,
                                        parse_key_str,
                                        parse_name_with_rev},
                                 BoxKeyPair},
@@ -597,7 +597,7 @@ impl WorkerMgr {
                                     Ok((_, name_with_rev, _)) => {
                                         parse_name_with_rev(name_with_rev)?
                                     }
-                                    Err(e) => return Err(Error::HabitatCore(e)),
+                                    Err(e) => return Err(Error::BiomeCore(e)),
                                 };
                                 (name, rev, BoxKeyPair::public_key_from_str(key_str)?)
                             }

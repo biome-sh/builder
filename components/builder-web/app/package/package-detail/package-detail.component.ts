@@ -18,7 +18,7 @@ import { parseDate } from '../../util';
 import { demotePackage } from '../../actions/index';
 
 @Component({
-  selector: 'hab-package-detail',
+  selector: 'bio-package-detail',
   template: require('./package-detail.component.html')
 })
 export class PackageDetailComponent {

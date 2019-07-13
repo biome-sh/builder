@@ -16,7 +16,7 @@
 pub const DEFAULT_ARTIFACTORY_API_URL: &str = "http://localhost:8081";
 
 /// Default repository name
-pub const DEFAULT_ARTIFACTORY_REPO: &str = "habitat-artifact-store";
+pub const DEFAULT_ARTIFACTORY_REPO: &str = "biome-artifact-store";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]

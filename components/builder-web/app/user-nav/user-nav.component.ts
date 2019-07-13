@@ -16,7 +16,7 @@ import { Component, ElementRef, HostListener, Input } from '@angular/core';
 import { AppStore } from '../app.store';
 
 @Component({
-  selector: 'hab-user-nav',
+  selector: 'bio-user-nav',
   template: require('./user-nav.component.html')
 })
 export class UserNavComponent {

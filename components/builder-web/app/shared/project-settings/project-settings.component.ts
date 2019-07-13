@@ -31,7 +31,7 @@ import {
 import config from '../../config';
 
 @Component({
-  selector: 'hab-project-settings',
+  selector: 'bio-project-settings',
   template: require('./project-settings.component.html')
 })
 export class ProjectSettingsComponent implements OnChanges, AfterViewChecked {

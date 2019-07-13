@@ -25,12 +25,12 @@ use std::{fmt,
           process,
           str::FromStr};
 
-use habitat_builder_api as bldr_api;
-use habitat_core as hab_core;
+use biome_builder_api as bldr_api;
+use biome_core as bio_core;
 
 use crate::{bldr_api::{config::Config,
                        server},
-            hab_core::config::ConfigFile};
+            bio_core::config::ConfigFile};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &str = "/hab/svc/builder-api/config/config.toml";
@@ -48,7 +48,7 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderApi =>
         (version: VERSION)
-        (about: "Habitat builder-api")
+        (about: "Biome builder-api")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand start =>

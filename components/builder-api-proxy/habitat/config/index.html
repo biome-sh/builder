@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Habitat - Automation that travels with the app.</title>
-    <meta name="description" content="Habitat allows automation to travel with your app, so you can be confident that what you build, deploy and manage will behave consistently in any runtime.">
+    <title>Biome - Automation that travels with the app.</title>
+    <meta name="description" content="Biome allows automation to travel with your app, so you can be confident that what you build, deploy and manage will behave consistently in any runtime.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {{#if cfg.hosted}}
-      <meta property="og:title" content="Habitat - Automation that travels with the app.">
+      <meta property="og:title" content="Biome - Automation that travels with the app.">
       <meta property="og:type" content="website">
-      <meta property="og:image" content="https://www.habitat.sh/assets/images/habitat-social.jpg">
+      <meta property="og:image" content="https://www.habitat.sh/assets/images/biome-social.jpg">
       <meta property="og:url" content="https://www.habitat.sh/">
-      <meta property="og:description" content="Habitat allows automation to travel with your app, so you can be confident that what you build, deploy and manage will behave consistently in any runtime.">
+      <meta property="og:description" content="Biome allows automation to travel with your app, so you can be confident that what you build, deploy and manage will behave consistently in any runtime.">
       <meta name="twitter:card" content="summary_large_image">
       <meta name="twitter:site" content="@chef">
       <meta name="twitter:creator" content="@chef">
-      <meta name="twitter:image" content="/assets/images/habitat-social.jpg">
-      <link rel="search" href="/opensearch.xml" type="application/opensearchdescription+xml" title="habitat.sh">
+      <meta name="twitter:image" content="/assets/images/biome-social.jpg">
+      <link rel="search" href="/opensearch.xml" type="application/opensearchdescription+xml" title="biome.sh">
     {{/if}}
 
     <link rel="stylesheet" href="/assets/app-{{ pkg.release }}.css">
@@ -41,14 +41,14 @@
       <!-- Statuspage -->
       <script src="//cdn.statuspage.io/se-v2.js"></script>
     {{/if}}
-    <hab-app>
+    <bio-app>
     <script>
-        window.Habitat = { config: {} };
-        function habitatConfig(options) {
-          window.Habitat.config = options || {};
+        window.Biome = { config: {} };
+        function biomeConfig(options) {
+          window.Biome.config = options || {};
         };
     </script>
-    <script src="/habitat.conf.js"></script>
+    <script src="/biome.conf.js"></script>
     <script src="/assets/app-{{ pkg.release }}.js"></script>
   </body>
 </html>

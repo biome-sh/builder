@@ -31,7 +31,7 @@ use diesel_full_text_search::{to_tsquery,
                               TsQueryExtensions};
 
 use super::db_id_format;
-use crate::{hab_core::{self,
+use crate::{bio_core::{self,
                        package::{FromArchive,
                                  Identifiable,
                                  PackageArchive,
@@ -809,9 +809,9 @@ impl Deref for BuilderPackageTarget {
 }
 
 impl FromArchive for NewPackage {
-    type Error = hab_core::Error;
+    type Error = bio_core::Error;
 
-    fn from_archive(archive: &mut PackageArchive) -> hab_core::Result<Self> {
+    fn from_archive(archive: &mut PackageArchive) -> bio_core::Result<Self> {
         let ident = match archive.ident() {
             Ok(value) => BuilderPackageIdent(value),
             Err(e) => return Err(e),

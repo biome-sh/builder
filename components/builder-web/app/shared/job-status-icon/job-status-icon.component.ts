@@ -2,8 +2,8 @@ import { Component, Input } from '@angular/core';
 import { iconForJobState, labelForJobState } from '../../util';
 
 @Component({
-  selector: 'hab-job-status-icon',
-  template: `<hab-icon [ngClass]="classes" [symbol]="symbol" [title]="label" [attr.title]="label"></hab-icon>`
+  selector: 'bio-job-status-icon',
+  template: `<bio-icon [ngClass]="classes" [symbol]="symbol" [title]="label" [attr.title]="label"></bio-icon>`
 })
 export class JobStatusIconComponent {
 

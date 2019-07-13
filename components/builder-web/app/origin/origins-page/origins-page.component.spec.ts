@@ -44,6 +44,9 @@ class MockAppStore {
             errorMessage: undefined
           }
         }
+      },
+      app: {
+        name: 'Biome'
       }
     };
   }
@@ -72,7 +75,7 @@ describe('OriginsPageComponent', () => {
       ],
       declarations: [
         OriginsPageComponent,
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol', 'chevron-right'] })
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol', 'chevron-right'] })
       ],
       providers: [
         { provide: AppStore, useValue: store },

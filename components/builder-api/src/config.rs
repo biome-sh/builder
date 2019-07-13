@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Configuration for a Habitat Builder-API service
+//! Configuration for a Biome Builder-API service
 
 use std::{env,
           error,
@@ -33,7 +33,7 @@ use oauth_client::config::OAuth2Cfg;
 use segment_api_client::SegmentCfg;
 
 use crate::{db::config::DataStoreCfg,
-            hab_core::{self,
+            bio_core::{self,
                        config::ConfigFile,
                        package::target::{self,
                                          PackageTarget}}};
@@ -97,8 +97,8 @@ impl ConfigFile for Config {
     type Error = ConfigError;
 }
 
-impl From<hab_core::Error> for ConfigError {
-    fn from(err: hab_core::Error) -> ConfigError { ConfigError(format!("{:?}", err)) }
+impl From<bio_core::Error> for ConfigError {
+    fn from(err: bio_core::Error) -> ConfigError { ConfigError(format!("{:?}", err)) }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -123,7 +123,7 @@ impl Default for S3Cfg {
     fn default() -> Self {
         S3Cfg { key_id:      String::from("depot"),
                 secret_key:  String::from("password"),
-                bucket_name: String::from("habitat-builder-artifact-store.default"),
+                bucket_name: String::from("biome-builder-artifact-store.default"),
                 backend:     S3Backend::Minio,
                 endpoint:    String::from("http://localhost:9000"), }
     }
@@ -263,9 +263,9 @@ mod tests {
     fn config_from_file() {
         let content = r#"
         [api]
-        data_path = "/hab/svc/hab-depot/data"
-        log_path = "/hab/svc/hab-depot/var/log"
-        key_path = "/hab/svc/hab-depot/files"
+        data_path = "/hab/svc/bio-depot/data"
+        log_path = "/hab/svc/bio-depot/var/log"
+        key_path = "/hab/svc/bio-depot/files"
         targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
         build_targets = ["x86_64-linux"]
         features_enabled = "foo, bar"
@@ -322,11 +322,11 @@ mod tests {
 
         let config = Config::from_raw(&content).unwrap();
         assert_eq!(config.api.data_path,
-                   PathBuf::from("/hab/svc/hab-depot/data"));
+                   PathBuf::from("/hab/svc/bio-depot/data"));
         assert_eq!(config.api.log_path,
-                   PathBuf::from("/hab/svc/hab-depot/var/log"));
+                   PathBuf::from("/hab/svc/bio-depot/var/log"));
         assert_eq!(config.api.key_path,
-                   PathBuf::from("/hab/svc/hab-depot/files"));
+                   PathBuf::from("/hab/svc/bio-depot/files"));
 
         assert_eq!(config.api.targets.len(), 3);
         assert_eq!(config.api.targets[0], target::X86_64_LINUX);

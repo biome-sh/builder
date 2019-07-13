@@ -1,12 +1,12 @@
 ##############################################################################
 #
-# Script to auto-create habitat core plan projects in a specified depot
+# Script to auto-create biome core plan projects in a specified depot
 #
 # Usage: ruby project_create.rb <core-plans-dir> <bldr-api-url> \
 #                               <installation-id> [<auth-token>]
 #
 # The bldr-api-url should be in this form:
-# http://bldr.acceptance.habitat.sh
+# http://bldr.acceptance.biome.sh
 #
 # For a development environment, the URL will be:
 # http://localhost:9636

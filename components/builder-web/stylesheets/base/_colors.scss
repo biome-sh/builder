@@ -16,33 +16,33 @@ $dim-slate-gray: #7D868E;
 $dark-gray: #5C6670;
 $very-dark-gray: #444;
 
-$hab-red: #EB6852;
-$hab-yellow: #EBE269;
-$hab-green: #87B09A;
-$hab-orange: #FF9012;
-$hab-blue: #4296b4;
+$bio-red: #EB6852;
+$bio-yellow: #EBE269;
+$bio-green: #87B09A;
+$bio-orange: #FF9012;
+$bio-blue: #4296b4;
 
-$hab-light-green: #7da28e;
-$hab-light-green-2: #87B09A;
-$hab-light-green-3: #93ADA9;
-$hab-very-light-green: #c7d7cf;
-$hab-blue-green: #6F8E92;
+$bio-light-green: #7da28e;
+$bio-light-green-2: #87B09A;
+$bio-light-green-3: #93ADA9;
+$bio-very-light-green: #c7d7cf;
+$bio-blue-green: #6F8E92;
 
 $docker-blue: #0792E9;
 $google-blue: #4285F4;
 $amazon-orange: #FF9900;
 $azure-blue: #1374c3;
 
-$hab-text: $dark-gray;
-$hab-links: $hab-blue;
-$hab-borders: 1px solid $very-light-gray;
+$bio-text: $dark-gray;
+$bio-links: $bio-blue;
+$bio-borders: 1px solid $very-light-gray;
 
-$active: $hab-orange;
-$success: $hab-green;
-$pending: $hab-blue;
+$active: $bio-orange;
+$success: $bio-green;
+$pending: $bio-blue;
 $waiting: $medium-gray;
-$warn: $hab-yellow;
-$error: $hab-red;
+$warn: $bio-yellow;
+$error: $bio-red;
 $disabled: $medium-gray;
 
 $status-colors: (
@@ -72,7 +72,7 @@ $form-colors: (
 );
 
 $icon-colors: (
-  info: $hab-blue,
+  info: $bio-blue,
   warn: $warn,
   alert: $error
 )

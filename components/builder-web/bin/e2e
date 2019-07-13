@@ -3,6 +3,6 @@ set -ex
 
 ./bin/dist e2e
 cp index.html dist/
-cp habitat.conf.sample.js dist/habitat.conf.js
+cp biome.conf.sample.js dist/biome.conf.js
 mv dist/assets/app-e2e.css dist/assets/app.css
 mv dist/assets/app-e2e.js dist/assets/app.js

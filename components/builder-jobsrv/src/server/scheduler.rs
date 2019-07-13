@@ -41,7 +41,7 @@ use crate::{bldr_core::{logger::Logger,
                                   GaugeMetric,
                                   HistogramMetric},
                         socket::DEFAULT_CONTEXT},
-            hab_core::package::{target,
+            bio_core::package::{target,
                                 PackageIdent,
                                 PackageTarget}};
 

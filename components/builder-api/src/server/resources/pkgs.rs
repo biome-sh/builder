@@ -51,7 +51,7 @@ use uuid::Uuid;
 
 use crate::{bldr_core::{error::Error::RpcError,
                         metrics::CounterMetric},
-            hab_core::{package::{FromArchive,
+            bio_core::{package::{FromArchive,
                                  Identifiable,
                                  PackageArchive,
                                  PackageIdent,
@@ -1093,7 +1093,7 @@ fn do_upload_package_finish(req: &HttpRequest,
         Ok(package) => package,
         Err(e) => {
             debug!("Error building package from archive: {:#?}", e);
-            return Error::HabitatCore(e).into();
+            return Error::BiomeCore(e).into();
         }
     };
 
@@ -1438,7 +1438,7 @@ fn has_circular_deps(req: &HttpRequest,
         Ok(build_deps) => build_deps,
         Err(e) => {
             debug!("Could not get build deps from {:#?}: {:#?}", archive, e);
-            return Err(Error::HabitatCore(e));
+            return Err(Error::BiomeCore(e));
         }
     };
 
@@ -1446,7 +1446,7 @@ fn has_circular_deps(req: &HttpRequest,
         Ok(deps) => deps,
         Err(e) => {
             debug!("Could not get deps from {:#?}: {:#?}", archive, e);
-            return Err(Error::HabitatCore(e));
+            return Err(Error::BiomeCore(e));
         }
     };
     for ident in build_deps_from_artifact {

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Configuration for a Habitat Scheduler service
+//! Configuration for a Biome Scheduler service
 
 use crate::{db::config::DataStoreCfg,
             error::Error,
-            hab_core::config::ConfigFile};
+            bio_core::config::ConfigFile};
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]

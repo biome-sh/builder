@@ -30,7 +30,7 @@ mod builder {
 }
 
 #[allow(dead_code)]
-mod habitat {
+mod biome {
     use std::env;
     use std::fs::File;
     use std::io::{BufRead, BufReader};

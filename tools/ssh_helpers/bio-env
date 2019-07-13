@@ -3,7 +3,7 @@
 set -euo pipefail
 
 HAB_ENV=${1:?specify an environment such as \"acceptance\" or \"live\"}
-SESSION="hab_${HAB_ENV}"
+SESSION="bio_${HAB_ENV}"
 SCRIPT_DIR=$(dirname "$0")
 TMUXINATOR_DIR=~/.tmuxinator
 
@@ -11,7 +11,7 @@ mkdir -p "${TMUXINATOR_DIR}"
 
 # (Re-)generate a tmuxinator session description. This ensures we're
 # always up-to-date
-"${SCRIPT_DIR}/generate-habitat-env-tmuxinator.sh" "${HAB_ENV}" \
+"${SCRIPT_DIR}/generate-biome-env-tmuxinator.sh" "${HAB_ENV}" \
     > "${TMUXINATOR_DIR}/${SESSION}.yml"
 
 # TODO: What if the session is already running?

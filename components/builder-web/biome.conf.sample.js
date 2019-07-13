@@ -1,8 +1,8 @@
-habitatConfig({
+biomeConfig({
 
     // Company information, for analytics (optional)
     company_id: "builder-dev",
-    company_name: "Habitat Builder Dev",
+    company_name: "Biome Builder Dev",
 
     // Cookie domain (optional; e.g., 'bldr.company.co')
     cookie_domain: "",
@@ -30,10 +30,10 @@ habitatConfig({
     // The API URL for GitHub
     github_api_url: "https://api.github.com",
 
-    // The Habitat Builder GitHub app
+    // The Biome Builder GitHub app
     github_app_url: "https://github.com/apps/habitat-builder-dev",
 
-    // The Habitat Builder GitHub app ID
+    // The Biome Builder GitHub app ID
     github_app_id: "5629",
 
     // OAuth properties
@@ -49,11 +49,11 @@ habitatConfig({
     // oauth_redirect_url: "http://localhost:3000/",
     // oauth_signup_url: "https://bitbucket.org/account/signup/",
 
-    // The URL for the Habitat source code
-    source_code_url: "https://github.com/habitat-sh/habitat",
+    // The URL for the Biome source code
+    source_code_url: "https://github.com/biome-sh/biome",
 
     // The URL for status
-    status_url: "https://status.habitat.sh/",
+    status_url: "https://status.biome.sh/",
 
     // The URL for tutorials
     tutorials_url: "https://www.habitat.sh/learn",
@@ -62,7 +62,7 @@ habitatConfig({
     use_gravatar: true,
 
     // The version of the software we're running. In production, this should
-    // be automatically populated by Habitat
+    // be automatically populated by Biome
     version: "",
 
     // The main website URL

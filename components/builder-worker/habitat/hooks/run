@@ -3,7 +3,7 @@
 export HOME="{{pkg.svc_data_path}}"
 export RUST_LOG="{{cfg.log_level}}"
 export RUST_BACKTRACE=1
-export HAB_STUDIO_BACKLINE_PKG=core/hab-backline
+export HAB_STUDIO_BACKLINE_PKG=biome/bio-backline
 
 title="Service Start"
 text="builder-worker starting"

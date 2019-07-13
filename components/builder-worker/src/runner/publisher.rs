@@ -16,7 +16,7 @@ use retry::retry;
 
 use crate::{bldr_core::{api_client::ApiClient,
                         logger::Logger},
-            hab_core::{package::archive::PackageArchive,
+            bio_core::{package::archive::PackageArchive,
                        util::wait_for,
                        ChannelIdent}};
 

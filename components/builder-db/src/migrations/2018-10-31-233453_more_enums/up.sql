@@ -9,7 +9,7 @@ ALTER TABLE audit_package_group ALTER COLUMN trigger SET DATA TYPE package_chann
     USING CASE trigger
         WHEN 0 THEN 'unknown'
         WHEN 1 THEN 'builder_ui'
-        WHEN 2 THEN 'hab_client'
+        WHEN 2 THEN 'bio_client'
         ELSE NULL
     END :: package_channel_trigger;
 

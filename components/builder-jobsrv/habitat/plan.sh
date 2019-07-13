@@ -1,7 +1,7 @@
 source "../../../support/ci/builder-base-plan.sh"
 pkg_name=builder-jobsrv
-pkg_origin=habitat
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_origin=biome
+pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive

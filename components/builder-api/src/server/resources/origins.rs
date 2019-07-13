@@ -41,7 +41,7 @@ use diesel::{pg::PgConnection,
 use serde_json;
 
 use crate::{bldr_core,
-            hab_core::{crypto::{keys::{box_key_pair::WrappedSealedBox,
+            bio_core::{crypto::{keys::{box_key_pair::WrappedSealedBox,
                                        parse_key_str,
                                        parse_name_with_rev,
                                        PairType},
@@ -282,7 +282,7 @@ fn create_keys(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> H
         Err(err) => return err.into(),
     };
 
-    let pair = match SigKeyPair::generate_pair_for_origin(&origin).map_err(Error::HabitatCore) {
+    let pair = match SigKeyPair::generate_pair_for_origin(&origin).map_err(Error::BiomeCore) {
         Ok(pair) => pair,
         Err(err) => {
             error!("Failed to generate origin key pair for {}, err={}",
@@ -299,7 +299,7 @@ fn create_keys(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> H
         }
     };
 
-    let pk_body = match pair.to_public_string().map_err(Error::HabitatCore) {
+    let pk_body = match pair.to_public_string().map_err(Error::BiomeCore) {
         Ok(pk) => pk.into_bytes(),
         Err(err) => {
             error!("create_keys: Failed to get pk body, err={}", err);
@@ -322,7 +322,7 @@ fn create_keys(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> H
         }
     }
 
-    let sk_body = match pair.to_secret_string().map_err(Error::HabitatCore) {
+    let sk_body = match pair.to_secret_string().map_err(Error::BiomeCore) {
         Ok(sk) => sk.into_bytes(),
         Err(err) => {
             error!("create_keys: Failed to get sk body, err={}", err);
@@ -493,7 +493,7 @@ fn list_origin_secrets(req: HttpRequest,
 
     match OriginSecret::list(&origin, &*conn).map_err(Error::DieselError) {
         Ok(list) => {
-            // Need to map to different struct for hab cli backward compat
+            // Need to map to different struct for bio cli backward compat
             let new_list: Vec<OriginSecretWithOriginId> =
                 list.into_iter().map(|s| s.into()).collect();
             HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
@@ -1292,10 +1292,10 @@ fn generate_origin_encryption_keys(origin: &str,
                                    -> Result<OriginPublicEncryptionKey> {
     debug!("Generating encryption keys for {}", origin);
 
-    let pair = BoxKeyPair::generate_pair_for_origin(origin).map_err(Error::HabitatCore)?;
+    let pair = BoxKeyPair::generate_pair_for_origin(origin).map_err(Error::BiomeCore)?;
 
     let pk_body = pair.to_public_string()
-                      .map_err(Error::HabitatCore)?
+                      .map_err(Error::BiomeCore)?
                       .into_bytes();
 
     let new_pk = NewOriginPublicEncryptionKey { owner_id:  session_id as i64,
@@ -1306,7 +1306,7 @@ fn generate_origin_encryption_keys(origin: &str,
                                                 body:      &pk_body, };
 
     let sk_body = pair.to_secret_string()
-                      .map_err(Error::HabitatCore)?
+                      .map_err(Error::BiomeCore)?
                       .into_bytes();
 
     let new_sk = NewOriginPrivateEncryptionKey { owner_id:  session_id as i64,

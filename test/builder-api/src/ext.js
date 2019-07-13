@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const request = supertest('http://localhost:9636/v1');
 
-// These magic values correspond to the testpp repo in the habitat-sh org
+// These magic values correspond to the testpp repo in the biome-sh org
 const installationId = 56940;
 const repoId = 114932712;
 

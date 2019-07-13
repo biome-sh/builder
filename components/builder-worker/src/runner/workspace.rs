@@ -18,7 +18,7 @@ use std::{fs::File,
           path::{Path,
                  PathBuf}};
 
-use crate::hab_core::package::{PackageArchive,
+use crate::bio_core::package::{PackageArchive,
                                PackageIdent};
 
 use super::Job;
@@ -185,7 +185,7 @@ mod tests {
     use super::*;
 
     const LAST_BUILD: &str = "
-    pkg_origin=core
+    pkg_origin=biome
     pkg_name=valgrind
     pkg_version=3.12.0
     pkg_release=20161031181251
@@ -196,7 +196,7 @@ mod tests {
     ";
 
     const PRE_BUILD: &str = "
-    pkg_origin=core
+    pkg_origin=biome
     pkg_name=redis
     pkg_version=3.2.4
     pkg_release=20170817102134

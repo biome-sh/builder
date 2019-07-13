@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Create a tarball of all the Habitat artifacts needed to run the
-# Habitat Supervisor on a system and upload it to S3. This includes
+# Create a tarball of all the Biome artifacts needed to run the
+# Biome Supervisor on a system and upload it to S3. This includes
 # *all* dependencies. The goal is to have everything needed to run the
 # Supervisor *without* needing to talk to a running Builder.
 #
 # Because you have to bootstrap yourself from *somewhere* :)
 #
-# You must run this as root, because `hab` is going to be installing
+# You must run this as root, because `bio` is going to be installing
 # packages.
 #
 # This script also uploads to S3, so it will need AWS credentials. We
@@ -23,7 +23,7 @@
 # |   |-- artifacts
 # |   |   `-- all the hart files
 # |   |-- bin
-# |   |   `-- hab
+# |   |   `-- bio
 # |   `-- keys
 # |       `-- all the origin keys
 #
@@ -45,9 +45,9 @@ log() {
 # Pass the version of the Supervisor you want to be using.
 # TODO: Alternatively, just dispense with versions altogether and just
 # get the latest stable?
-hab_version=${1:?Provide hab_version as argument 1}
+bio_version=${1:?Provide bio_version as argument 1}
 # TODO: Validate version?
-log "Version ${hab_version}"
+log "Version ${bio_version}"
 
 ########################################################################
 # Preliminaries, Helpers, Constants
@@ -58,23 +58,23 @@ find_if_exists() {
 
 # These are the key utilities this script uses. If any are not present
 # on the machine, the script will exit.
-hab=$(find_if_exists hab)
-hab pkg install core/aws-cli core/coreutils core/gawk core/tar
-hab pkg binlink core/aws-cli aws
-hab pkg binlink core/gawk awk
-# hab pkg binlink core/tar tar
-hab pkg binlink core/coreutils sha256sum
-hab pkg binlink core/coreutils sort
+bio=$(find_if_exists bio)
+bio pkg install core/aws-cli core/coreutils core/gawk core/tar
+bio pkg binlink core/aws-cli aws
+bio pkg binlink core/gawk awk
+# bio pkg binlink core/tar tar
+bio pkg binlink core/coreutils sha256sum
+bio pkg binlink core/coreutils sort
 
-# The packages needed to run a Habitat Supervisor. These will be
+# The packages needed to run a Biome Supervisor. These will be
 # installed on all machines.
 #
-# hab-launcher is versioned differently than the other packages. It is
+# bio-launcher is versioned differently than the other packages. It is
 # also changed and released relatively infrequently. We can just ask
 # the depot for the latest stable version of it.
-sup_packages=(core/hab-launcher
-              core/hab/"${hab_version}"
-              core/hab-sup/"${hab_version}")
+sup_packages=(biome/bio-launcher
+              biome/bio/"${bio_version}"
+              biome/bio-sup/"${bio_version}")
 
 # If the HAB_BLDR_URL environment variable is set, we'll use that
 # when downloading packages. Otherwise, we'll just default to the
@@ -91,10 +91,10 @@ fi
 # All packages that compose the Builder service. Not all need
 # to be installed on the same machine, but all need to be present in
 # our bundle.
-builder_packages=(habitat/builder-api
-                  habitat/builder-api-proxy
-                  habitat/builder-jobsrv
-                  habitat/builder-worker)
+builder_packages=(biome/builder-api
+                  biome/builder-api-proxy
+                  biome/builder-jobsrv
+                  biome/builder-worker)
 
 # Helper packages. Not all need to to be installed on the same machine,
 # but all need to be present in our bundle.
@@ -102,27 +102,27 @@ helper_packages=(core/sumologic
                  core/nmap)
 
 # This is where we ultimately put all the things in S3.
-s3_bucket="habitat-builder-bootstrap"
+s3_bucket="biome-builder-bootstrap"
 
 # This is the name by which we can refer to the bundle we're making
 # right now. Note that other bundles can be made that contain the
 # exact same packages.
-this_bootstrap_bundle=hab_builder_bootstrap_$(date +%Y%m%d%H%M%S)
+this_bootstrap_bundle=bio_builder_bootstrap_$(date +%Y%m%d%H%M%S)
 
 ########################################################################
 # Download all files locally
 
-# Because Habitat may have already run on this system, we'll want to
+# Because Biome may have already run on this system, we'll want to
 # make sure we start in a pristine environment. That way, we can just
 # blindly copy everything in ${sandbox_dir}/hab/cache/artifacts, confident
 # that those artifacts are everything we need, and no more.
 sandbox_dir=${this_bootstrap_bundle}
 mkdir "${sandbox_dir}"
-log "Using ${sandbox_dir} as the Habitat root directory"
+log "Using ${sandbox_dir} as the Biome root directory"
 
 for package in "${sup_packages[@]}" "${builder_packages[@]}" "${helper_packages[@]}"
 do
-  env FS_ROOT="${sandbox_dir}" ${depot_flag} "${hab}" pkg install --channel=stable "${package}" >&2
+  env FS_ROOT="${sandbox_dir}" ${depot_flag} "${bio}" pkg install --channel=stable "${package}" >&2
 done
 
 ########################################################################
@@ -131,7 +131,7 @@ done
 artifact_dir=${sandbox_dir}/hab/cache/artifacts
 log "Creating TAR for all artifacts"
 
-sup_artifact=$(echo "${artifact_dir}"/core-hab-sup-*)
+sup_artifact=$(echo "${artifact_dir}"/biome-bio-sup-*)
 export sup_artifact
 archive_name=${this_bootstrap_bundle}.tar
 log "Generating archive: ${archive_name}"
@@ -142,13 +142,13 @@ tar --create \
        --directory="${sandbox_dir}"/hab/cache \
        artifacts >&2
 
-# We'll need a hab binary to bootstrap ourselves; let's take the one
+# We'll need a bio binary to bootstrap ourselves; let's take the one
 # we just downloaded, shall we?
-hab_pkg_dir=$(echo "${sandbox_dir}"/hab/pkgs/core/hab/"${hab_version}"/*)
+bio_pkg_dir=$(echo "${sandbox_dir}"/hab/pkgs/biome/bio/"${bio_version}"/*)
 tar --append \
        --verbose \
        --file="${archive_name}" \
-       --directory="${hab_pkg_dir}" \
+       --directory="${bio_pkg_dir}" \
        bin >&2
 
 # We're also going to need the public origin key(s)!

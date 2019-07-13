@@ -1,6 +1,6 @@
 <div class="docker-export-settings-component">
   <h3>
-    <hab-icon symbol="docker"></hab-icon>
+    <bio-icon symbol="docker"></bio-icon>
     Publish to Container Registries
   </h3>
   <p>
@@ -21,14 +21,14 @@
     <section class="integrations">
       <mat-radio-group [(ngModel)]="name" (change)="onChange(name)">
         <ul class="action-list">
-          <ng-container *ngFor="let type of integrations | habKeysPipe">
+          <ng-container *ngFor="let type of integrations | bioKeysPipe">
             <li class="item" *ngFor="let integration of integrations[type]">
               <mat-radio-button class="column" [value]="integration" [checked]="settingsFor(integration)">
-                <hab-icon [symbol]="type"></hab-icon>
+                <bio-icon [symbol]="type"></bio-icon>
                 <span>{{ decode(integration) }}</span>
               </mat-radio-button>
               <span class="actions column">
-                <hab-icon *ngIf="settingsFor(integration)" symbol="settings" title="Edit publish settings" (click)="configure(integration)"></hab-icon>
+                <bio-icon *ngIf="settingsFor(integration)" symbol="settings" title="Edit publish settings" (click)="configure(integration)"></bio-icon>
               </span>
             </li>
           </ng-container>

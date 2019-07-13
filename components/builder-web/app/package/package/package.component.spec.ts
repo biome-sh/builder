@@ -86,10 +86,10 @@ describe('PackageComponent', () => {
       ],
       declarations: [
         PackageComponent,
-        MockComponent({ selector: 'hab-package-breadcrumbs', inputs: ['ident'] }),
-        MockComponent({ selector: 'hab-package-sidebar', inputs: ['origin', 'name', 'building', 'buildable'] }),
-        MockComponent({ selector: 'hab-job-notice', inputs: ['job'] }),
-        MockComponent({ selector: 'hab-visibility-icon', inputs: ['visibility', 'prefix'] })
+        MockComponent({ selector: 'bio-package-breadcrumbs', inputs: ['ident'] }),
+        MockComponent({ selector: 'bio-package-sidebar', inputs: ['origin', 'name', 'building', 'buildable'] }),
+        MockComponent({ selector: 'bio-job-notice', inputs: ['job'] }),
+        MockComponent({ selector: 'bio-visibility-icon', inputs: ['visibility', 'prefix'] })
       ],
       providers: [
         { provide: ActivatedRoute, useClass: MockRoute },
@@ -108,8 +108,8 @@ describe('PackageComponent', () => {
       component.showSidebar = true;
       fixture.detectChanges();
 
-      expect(element.query(By.css('hab-package-breadcrumbs'))).not.toBeNull();
-      expect(element.query(By.css('hab-package-sidebar'))).not.toBeNull();
+      expect(element.query(By.css('bio-package-breadcrumbs'))).not.toBeNull();
+      expect(element.query(By.css('bio-package-sidebar'))).not.toBeNull();
     });
 
     describe('when Builder is disabled', () => {

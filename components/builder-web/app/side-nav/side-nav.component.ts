@@ -16,7 +16,7 @@ import { Component, Input } from '@angular/core';
 import config from '../config';
 
 @Component({
-  selector: 'hab-side-nav',
+  selector: 'bio-side-nav',
   template: require('./side-nav.component.html')
 })
 export class SideNavComponent {

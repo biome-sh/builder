@@ -14,7 +14,7 @@
 
     .actions {
       text-align: right;
-      color: $hab-blue;
+      color: $bio-blue;
       flex: 0;
       white-space: nowrap;
       padding-right: $default-padding;
@@ -40,7 +40,7 @@
         @include transition(color, background-color);
 
         &:hover {
-          background-color: $hab-blue;
+          background-color: $bio-blue;
           color: white;
         }
       }

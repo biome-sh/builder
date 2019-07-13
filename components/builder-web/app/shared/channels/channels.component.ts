@@ -17,7 +17,7 @@ import { MatDialog } from '@angular/material';
 import { SimpleConfirmDialog } from '../../shared/dialog/simple-confirm/simple-confirm.dialog';
 
 @Component({
-  selector: 'hab-channels',
+  selector: 'bio-channels',
   template: require('./channels.component.html')
 })
 export class ChannelsComponent {

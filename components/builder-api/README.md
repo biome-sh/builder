@@ -1,3 +1,3 @@
 # builder-api
 
-Habitat-Builder HTTP API gateway
+Biome-Builder HTTP API gateway

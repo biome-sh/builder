@@ -56,6 +56,9 @@ describe('SearchComponent', () => {
         ui: {
           visible: {}
         }
+      },
+      app: {
+        name: 'Biome'
       }
     };
   });
@@ -69,10 +72,10 @@ describe('SearchComponent', () => {
         NoopAnimationsModule
       ],
       declarations: [
-        MockComponent({ selector: 'hab-package-breadcrumbs', inputs: ['ident'] }),
-        MockComponent({ selector: 'hab-icon', inputs: ['symbol'] }),
+        MockComponent({ selector: 'bio-package-breadcrumbs', inputs: ['ident'] }),
+        MockComponent({ selector: 'bio-icon', inputs: ['symbol'] }),
         MockComponent({
-          selector: 'hab-search-results',
+          selector: 'bio-search-results',
           inputs: ['errorMessage', 'noPackages', 'layout', 'packages', 'versions']
         }),
         SearchComponent

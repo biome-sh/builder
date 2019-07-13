@@ -1,12 +1,12 @@
 <div class="body">
   <div class="content">
     <section *ngIf="builderEnabled && memberOfOrigin">
-      <hab-project-settings
+      <bio-project-settings
         [origin]="origin"
         [integrations]="integrations"
         (toggled)="toggled($event)"
         (saved)="saved($event)">
-      </hab-project-settings>
+      </bio-project-settings>
     </section>
     <section *ngIf="!selectingPlan">
       <ul class="nav-list" *ngIf="projectsExist">
@@ -17,7 +17,7 @@
           <a [routerLink]="['/pkgs', origin, proj, 'latest']">
             <span class="column name">{{ proj }}</span>
           </a>
-          <hab-icon symbol="chevron-right"></hab-icon>
+          <bio-icon symbol="chevron-right"></bio-icon>
         </li>
       </ul>
       <ul class="nav-list">
@@ -31,7 +31,7 @@
           <a [routerLink]="['/pkgs', pkg.origin, pkg.name, 'latest']">
             <span class="column name">{{ pkg.name }}</span>
           </a>
-          <hab-icon symbol="chevron-right"></hab-icon>
+          <bio-icon symbol="chevron-right"></bio-icon>
         </li>
       </ul>
       <div *ngIf="packages.size < totalCount">

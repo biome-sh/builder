@@ -1,4 +1,4 @@
-hab-job-status {
+bio-job-status {
 
   @each $status, $color in $status-colors {
     .#{$status} {
@@ -6,7 +6,7 @@ hab-job-status {
     }
   }
 
-  hab-job-status-label {
+  bio-job-status-label {
     font-weight: 600;
   }
 }

@@ -1,14 +1,14 @@
 [package]
-name = "habitat_builder_db"
+name = "biome_builder_db"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-description = "Habitat-Builder Database Library"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+description = "Biome-Builder Database Library"
 workspace = "../../"
 edition = "2018"
 
 [dependencies]
 clippy = {version = "*", optional = true}
-habitat-builder-protocol = { path = "../builder-protocol" }
+biome-builder-protocol = { path = "../builder-protocol" }
 log = "*"
 diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
 diesel-derive-enum = { version = "*", features = ["postgres"] }
@@ -31,8 +31,8 @@ r2d2_postgres = "*"
 threadpool = "*"
 url = "*"
 
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/habitat.git"
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"
 
 [dependencies.builder_core]
 path = "../builder-core"

@@ -55,7 +55,7 @@ describe('NotificationsComponent', () => {
     });
 
     it('renders them', () => {
-      let items = element.queryAll(By.css('ul.hab-notifications li'));
+      let items = element.queryAll(By.css('ul.bio-notifications li'));
       expect(items.length).toBe(2);
 
       let first = items[0], second = items[1];
@@ -75,7 +75,7 @@ describe('NotificationsComponent', () => {
     it('delegates to the supplied dismiss function', () => {
       spyOn(component, 'removeNotification');
 
-      let second = element.queryAll(By.css('ul.hab-notifications li a'))[1];
+      let second = element.queryAll(By.css('ul.bio-notifications li a'))[1];
       second.triggerEventHandler('click', {});
       fixture.detectChanges();
 

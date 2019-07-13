@@ -2,7 +2,7 @@ source ../../../support/ci/builder-dev-base-plan.sh
 
 pkg_build_deps+=(core/sccache)
 # shellcheck disable=2034
-pkg_origin=habitat-dev
+pkg_origin=biome-dev
 
 do_dev_prepare() {
   # Order matters here
@@ -14,7 +14,7 @@ do_dev_prepare() {
   export SCCACHE_START_SERVER=0
   do_builder_prepare
   export CARGO_TARGET_DIR="/tmp/target"
-  PLAN_CONTEXT="../habitat"
+  PLAN_CONTEXT="../biome"
   export RUST_BACKTRACE=1
 }
 
@@ -25,7 +25,7 @@ do_prepare() {
 # shellcheck disable=2154
 do_builder_install() {
   local pkg_path
-  pkg_path=$(hab pkg path habitat/"$pkg_name")
+  pkg_path=$(bio pkg path biome/"$pkg_name")
 
   build_line "Linking new binary into package"
   ln -sfv "$CARGO_TARGET_DIR/$rustc_target/${builder_build_type#--}/$bin" \

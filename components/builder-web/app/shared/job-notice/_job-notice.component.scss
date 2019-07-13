@@ -1,10 +1,10 @@
-.hab-job-notice {
+.bio-job-notice {
   padding-bottom: $default-padding / 2;
   margin-bottom: $default-margin;
 
-  hab-icon {
+  bio-icon {
     &.dispatched, &.processing {
-      @extend hab-icon.spinning;
+      @extend bio-icon.spinning;
     }
   }
 

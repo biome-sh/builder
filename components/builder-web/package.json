@@ -1,9 +1,9 @@
 {
-  "name": "habitat",
+  "name": "biome",
   "version": "0.8.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/habitat-sh/builder.git"
+    "url": "https://github.com/biome-sh/builder.git"
   },
   "engines": {
     "node": ">=8.9.4",

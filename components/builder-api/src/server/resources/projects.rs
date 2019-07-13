@@ -29,7 +29,7 @@ use serde_json;
 
 use crate::protocol::jobsrv;
 
-use crate::hab_core::package::{PackageIdent,
+use crate::bio_core::package::{PackageIdent,
                                Plan};
 
 use crate::db::models::{jobs::*,
@@ -137,7 +137,7 @@ fn create_project(req: HttpRequest,
                          name:                &format!("{}/{}", &origin.name, "testapp"),
                          plan_path:           &body.plan_path,
                          vcs_type:            "git",
-                         vcs_data:            "https://github.com/habitat-sh/testapp.git",
+                         vcs_data:            "https://github.com/biome-sh/testapp.git",
                          vcs_installation_id: Some(i64::from(body.installation_id)),
                          visibility:          &PackageVisibility::Public,
                          auto_build:          body.auto_build, };
@@ -313,7 +313,7 @@ fn update_project(req: HttpRequest,
                             package_name:        "testapp",
                             plan_path:           &body.plan_path,
                             vcs_type:            "git",
-                            vcs_data:            "https://github.com/habitat-sh/testapp.git",
+                            vcs_data:            "https://github.com/biome-sh/testapp.git",
                             vcs_installation_id: Some(i64::from(body.installation_id)),
                             visibility:          &PackageVisibility::Public,
                             auto_build:          body.auto_build, };

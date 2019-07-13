@@ -15,7 +15,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'hab-visibility-selector',
+  selector: 'bio-visibility-selector',
   template: require('./visibility-selector.component.html')
 })
 export class VisibilitySelectorComponent {

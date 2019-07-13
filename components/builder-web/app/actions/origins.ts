@@ -142,7 +142,7 @@ export function createOrigin(body: object, token: string, isFirstOrigin = false,
       callback(origin);
 
       // We delay this call briefly to allow for data to propagate.
-      // Once this is resolved: https://github.com/habitat-sh/builder/issues/142
+      // Once this is resolved: https://github.com/biome-sh/builder/issues/142
       // we should be able to remove the setTimeout and just make the
       // call immediately on successful create.
       setTimeout(() => {

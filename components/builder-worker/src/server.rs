@@ -77,7 +77,7 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         // Set custom panic hook - a panic on the runner thread will
         // cause the builder-worker process to exit (and be re-started
-        // by the supervisor when running under hab)
+        // by the supervisor when running under bio)
         panic::set_hook(Box::new(|panic_info| {
                             let backtrace = backtrace::Backtrace::new();
                             println!("panic info: {:?}", panic_info);

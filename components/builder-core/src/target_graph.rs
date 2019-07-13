@@ -16,7 +16,7 @@ use std::{collections::HashMap,
           iter::Iterator,
           str::FromStr};
 
-use crate::{hab_core::package::PackageTarget,
+use crate::{bio_core::package::PackageTarget,
             package_graph::PackageGraph,
             protocol::originsrv};
 

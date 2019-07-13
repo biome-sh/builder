@@ -12,7 +12,7 @@ use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
 
-use crate::hab_core::{self,
+use crate::bio_core::{self,
                       package::{self,
                                 Identifiable}};
 
@@ -63,8 +63,8 @@ impl fmt::Display for OriginPackageIdent {
     }
 }
 
-impl From<hab_core::package::PackageIdent> for OriginPackageIdent {
-    fn from(value: hab_core::package::PackageIdent) -> OriginPackageIdent {
+impl From<bio_core::package::PackageIdent> for OriginPackageIdent {
+    fn from(value: bio_core::package::PackageIdent) -> OriginPackageIdent {
         let mut ident = OriginPackageIdent::new();
         ident.set_origin(value.origin);
         ident.set_name(value.name);
@@ -97,7 +97,7 @@ impl<'a> From<&'a OriginPackageIdent> for package::PackageIdent {
 }
 
 impl FromStr for OriginPackageIdent {
-    type Err = hab_core::Error;
+    type Err = bio_core::Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         let mut parts = value.split('/');

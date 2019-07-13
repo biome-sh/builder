@@ -20,13 +20,13 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
-use habitat_builder_jobsrv as jobsrv;
-use habitat_core as hab_core;
+use biome_builder_jobsrv as jobsrv;
+use biome_core as bio_core;
 
 use std::{error,
           process};
 
-use crate::{hab_core::config::ConfigFile,
+use crate::{bio_core::config::ConfigFile,
             jobsrv::{Config,
                      Result}};
 
@@ -62,7 +62,7 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderJobSrv =>
         (version: VERSION)
-        (about: "Habitat builder-jobsrv")
+        (about: "Biome builder-jobsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand migrate =>
@@ -71,7 +71,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
                 "Filepath to configuration file. [default: /hab/svc/builder-api/config/config.toml]")
         )
         (@subcommand start =>
-            (about: "Run a Habitat Builder job server")
+            (about: "Run a Biome Builder job server")
             (@arg config: -c --config +takes_value
                 "Filepath to configuration file. [default: /hab/svc/builder-jobsrv/config/config.toml]")
         )

@@ -19,7 +19,7 @@ use std::{cell::UnsafeCell,
 
 use zmq;
 
-use crate::hab_core::os;
+use crate::bio_core::os;
 
 lazy_static! {
     /// A threadsafe shared ZMQ context for consuming services.

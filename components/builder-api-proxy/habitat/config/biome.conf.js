@@ -1,4 +1,4 @@
-habitatConfig({
+biomeConfig({
     company_id: "{{cfg.analytics.company_id}}",
     company_name: "{{cfg.analytics.company_name}}",
     cookie_domain: "{{cfg.cookie_domain}}",

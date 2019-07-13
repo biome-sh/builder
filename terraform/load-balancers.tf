@@ -1,5 +1,5 @@
 data "aws_acm_certificate" "ssl" {
-  domain      = "habitat.sh"
+  domain      = "biome.sh"
   types       = ["AMAZON_ISSUED"]
   most_recent = true
 }
