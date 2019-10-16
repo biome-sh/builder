@@ -12,6 +12,7 @@ ExecStart=/bin/bio run ${flags}
 ExecStop=/bin/bio sup term
 KillMode=process
 LimitNOFILE=65535
+LimitCORE=infinity
 
 [Install]
 WantedBy=default.target

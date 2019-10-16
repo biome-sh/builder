@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Component, DebugElement, SimpleChange } from '@angular/core';
+import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import { List } from 'immutable';
@@ -75,6 +75,20 @@ describe('PackageSidebarComponent', () => {
             }
           }
         },
+        currentPlatforms: [
+          {
+            id: 'x86_64-linux-kernel2',
+            name: 'Linux 2',
+            title: 'Linux (Kernel Version 2)',
+            param: 'kernel2'
+          }
+        ],
+        currentPlatform: {
+          id: 'x86_64-linux-kernel2',
+          name: 'Linux 2',
+          title: 'Linux (Kernel Version 2)',
+          param: 'kernel2'
+        }
       },
       projects: {
         current: {
@@ -101,25 +115,20 @@ describe('PackageSidebarComponent', () => {
       spyOn(store, 'dispatch');
       spyOn(actions, 'fetchLatestInChannel');
 
-      component.ngOnChanges({
-        origin: new SimpleChange(undefined, 'core', true),
-        name: new SimpleChange(undefined, 'nginx', true)
-      });
-    });
-
-    it('fetches the latest package', () => {
-      expect(store.dispatch).toHaveBeenCalled();
-      expect(actions.fetchLatestInChannel).toHaveBeenCalledWith('core', 'nginx', 'stable');
+      component.origin = 'core';
+      component.name = 'nginx';
+      fixture.detectChanges();
     });
 
     it('hides the build button', () => {
       expect(element.query(By.css('.package-sidebar-component button.build'))).toBeNull();
     });
 
-    describe('when buildable', () => {
+    describe('when package has a connected plan file', () => {
 
       beforeEach(() => {
-        component.buildable = true;
+        component.isOriginMember = true;
+        component.hasPlan = true;
       });
 
       it('shows the build button', () => {

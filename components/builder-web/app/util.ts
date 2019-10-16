@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import * as moment from 'moment';
 import { Project } from './records/Project';
 import { AppStore } from './app.store';
 import { FeatureFlags } from './privilege';
+import { find } from 'lodash';
 
 // Pretty print a time
 // Print a number of seconds as minutes and seconds
@@ -113,9 +114,53 @@ export function isEarlyAccess() {
   return !!(flags & FeatureFlags.EARLY_ACCESS);
 }
 
-// Plucks the os portion out of a target string (e.g., "x86_64-linux" -> "linux")
-export function targetToPlatform(target: string = ''): string {
-  return target.split('-').slice(-1).toString();
+export const targets = [
+  {
+    id: 'x86_64-linux',
+    name: 'Linux',
+    title: 'Linux',
+    param: 'linux'
+  },
+  {
+    id: 'x86_64-linux-kernel2',
+    name: 'Linux 2',
+    title: 'Linux (Kernel Version 2)',
+    param: 'linux2'
+  },
+  {
+    id: 'x86_64-windows',
+    name: 'Windows',
+    title: 'Windows',
+    param: 'windows'
+  },
+  {
+    id: 'x86_64-darwin',
+    name: 'macOS',
+    title: 'macOS',
+    param: 'mac'
+  }
+];
+
+export function targetFrom(key: string, value: string): any {
+  return find(targets, { [key]: value });
+}
+
+export function targetsFromIds(ids: string[]) {
+  return ids.map(id => targetFrom('id', id)).filter(target => target);
+}
+
+export function targetsFromPkgVersions(versions = []) {
+  let targetIds = [];
+
+  versions.forEach((v) => {
+    v.platforms.forEach((p) => {
+      if (targetIds.indexOf(p) === -1) {
+        targetIds.push(p);
+      }
+    });
+  });
+
+  return targetsFromIds(targetIds).sort((a, b) => targets.indexOf(a) - targets.indexOf(b));
 }
 
 // Return a job state's proper icon symbol

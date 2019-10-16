@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use retry::retry;
-
-use crate::{bldr_core::{api_client::ApiClient,
-                        logger::Logger},
-            bio_core::{package::archive::PackageArchive,
-                       util::wait_for,
-                       ChannelIdent}};
-
 use super::{RETRIES,
             RETRY_WAIT};
-use crate::error::{Error,
-                   Result};
+use crate::{bldr_core::{api_client::ApiClient,
+                        logger::Logger},
+            error::{Error,
+                    Result},
+            bio_core::{package::archive::PackageArchive,
+                       ChannelIdent}};
+use retry::{delay,
+            retry};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Publisher {
@@ -45,11 +43,11 @@ impl Publisher {
         debug!("Publisher (url: {}, channel: {:?})",
                self.url, self.channel_opt);
 
-        let client = ApiClient::new(&self.url);
+        let client = ApiClient::new(&self.url)?;
         let ident = archive.ident().unwrap();
         let target = archive.target().unwrap();
 
-        match retry(wait_for(RETRY_WAIT, RETRIES), || {
+        match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), || {
                   let res = client.x_put_package(archive, auth_token);
                   if let Err(ref err) = res {
                       let msg = format!("Upload {}: {:?}", ident, err);
@@ -70,7 +68,7 @@ impl Publisher {
 
         if let Some(channel) = &self.channel_opt {
             if channel != &ChannelIdent::stable() && channel != &ChannelIdent::unstable() {
-                match retry(wait_for(RETRY_WAIT, RETRIES), || {
+                match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), || {
                           let res = client.create_channel(&ident.origin, &channel, auth_token);
                           if let Err(ref err) = res {
                               let msg = format!("Create channel {}: {:?}", channel, err);
@@ -91,7 +89,7 @@ impl Publisher {
                 }
             }
 
-            match retry(wait_for(RETRY_WAIT, RETRIES), || {
+            match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), || {
                       let res = client.promote_package((&ident, target), channel, auth_token);
                       if res.is_err() {
                           let msg = format!("Promote {} to {}: {:?}", ident, channel, res);

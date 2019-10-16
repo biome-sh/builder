@@ -56,15 +56,28 @@ find_if_exists() {
   command -v "${1}" || { log "Required utility '${1}' cannot be found!  Aborting."; exit 1; }
 }
 
-# These are the key utilities this script uses. If any are not present
-# on the machine, the script will exit.
 bio=$(find_if_exists bio)
+
+# This is the name by which we can refer to the bundle we're making
+# right now. Note that other bundles can be made that contain the
+# exact same packages.
+this_bootstrap_bundle=bio_builder_bootstrap_$(date +%Y%m%d%H%M%S)
+
+# These are the key utilities this script uses; we'll use Biome
+# itself to ensure they're present.
+#
+# In order to use the utilities, but not inadvertently overwrite
+# system utilities that may exist with the same name, we'll binlink to
+# a temporary directory and put that on our PATH.
 bio pkg install core/aws-cli core/coreutils core/gawk core/tar
-bio pkg binlink core/aws-cli aws
-bio pkg binlink core/gawk awk
-# bio pkg binlink core/tar tar
-bio pkg binlink core/coreutils sha256sum
-bio pkg binlink core/coreutils sort
+link_dir="/tmp/${this_bootstrap_bundle}_binlinks"
+mkdir "${link_dir}"
+bio pkg binlink core/aws-cli aws --dest="${link_dir}"
+bio pkg binlink core/gawk awk --dest="${link_dir}"
+bio pkg binlink core/tar tar --dest="${link_dir}"
+bio pkg binlink core/coreutils sha256sum --dest="${link_dir}"
+bio pkg binlink core/coreutils sort --dest="${link_dir}"
+export PATH="${link_dir}:${PATH}"
 
 # The packages needed to run a Biome Supervisor. These will be
 # installed on all machines.
@@ -104,11 +117,6 @@ helper_packages=(core/sumologic
 # This is where we ultimately put all the things in S3.
 s3_bucket="biome-builder-bootstrap"
 
-# This is the name by which we can refer to the bundle we're making
-# right now. Note that other bundles can be made that contain the
-# exact same packages.
-this_bootstrap_bundle=bio_builder_bootstrap_$(date +%Y%m%d%H%M%S)
-
 ########################################################################
 # Download all files locally
 
@@ -137,26 +145,26 @@ archive_name=${this_bootstrap_bundle}.tar
 log "Generating archive: ${archive_name}"
 
 tar --create \
-       --verbose \
-       --file="${archive_name}" \
-       --directory="${sandbox_dir}"/hab/cache \
-       artifacts >&2
+    --verbose \
+    --file="${archive_name}" \
+    --directory="${sandbox_dir}"/hab/cache \
+    artifacts >&2
 
 # We'll need a bio binary to bootstrap ourselves; let's take the one
 # we just downloaded, shall we?
 bio_pkg_dir=$(echo "${sandbox_dir}"/hab/pkgs/biome/bio/"${bio_version}"/*)
 tar --append \
-       --verbose \
-       --file="${archive_name}" \
-       --directory="${bio_pkg_dir}" \
-       bin >&2
+    --verbose \
+    --file="${archive_name}" \
+    --directory="${bio_pkg_dir}" \
+    bin >&2
 
 # We're also going to need the public origin key(s)!
 tar --append \
-       --verbose \
-       --file="${archive_name}" \
-       --directory="${sandbox_dir}"/hab/cache \
-       keys >&2
+    --verbose \
+    --file="${archive_name}" \
+    --directory="${sandbox_dir}"/hab/cache \
+    keys >&2
 
 ########################################################################
 # Upload to S3

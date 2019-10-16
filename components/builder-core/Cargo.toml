@@ -11,7 +11,8 @@ bitflags = "*"
 chrono = { version = "*", features = ["serde"] }
 clippy = { version = "*", optional = true }
 dogstatsd = "*"
-env_proxy = "*"
+# Unlock with url here and in builder-api-client
+env_proxy = "=0.3.1"
 glob = "*"
 biome-builder-protocol = { path = "../builder-protocol" }
 lazy_static = "*"
@@ -27,8 +28,9 @@ time = "*"
 toml = { version = "*", default-features = false }
 walkdir = "*"
 reqwest = "=0.9.17"
-url = "*"
-zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "release/v0.8" }
+# Unlock with env_proxy
+url = "=1.7.2"
+zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"

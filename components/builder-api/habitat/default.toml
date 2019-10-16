@@ -3,7 +3,7 @@ log_level = "info"
 [api]
 features_enabled = "jobsrv"
 targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
-build_targets = ["x86_64-linux", "x86_64-windows"]
+build_targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
 build_on_upload = true
 
 [http]
@@ -23,21 +23,17 @@ api_url        = "https://api.github.com"
 app_id         = 5565
 webhook_secret = ""
 
-[segment]
-url       = "https://api.segment.io"
-write_key = ""
-
 [s3]
 backend = "minio"
 key_id = "depot"
 secret_key = "password"
 endpoint = "http://localhost:9000"
-bucket_name = "biome-builder-artifact-store.default"
+bucket_name = "habitat-builder-artifact-store.default"
 
 [artifactory]
 api_url = "http://localhost:8080"
 api_key = "key"
-repo = "biome-builder-artifact-store.default"
+repo = "habitat-builder-artifact-store.default"
 
 [memcache]
 ttl = 15

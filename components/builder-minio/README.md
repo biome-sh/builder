@@ -4,7 +4,7 @@ This plans implements `builder-minio` - **AWS S3** compatible storage for the **
 
 # Configuration
 
-All important configuration is described in the `biome/default.toml` file and it is good practice.
+All important configuration is described in the `habitat/default.toml` file and it is good practice.
 
 # Versioning
 

@@ -29,7 +29,8 @@ postgres-derive = "*"
 postgres-shared = "*"
 r2d2_postgres = "*"
 threadpool = "*"
-url = "*"
+# Unlock with builder_core
+url = "=1.7.2"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AppStore } from '../../app.store';
-import { packageString, parseDate } from '../../util';
-import { demotePackage, fetchPackageVersions, filterPackagesBy } from '../../actions/index';
+import { packageString, parseDate, targetsFromPkgVersions } from '../../util';
+import { demotePackage, filterPackagesBy } from '../../actions/index';
 
 @Component({
   template: require('./package-versions.component.html')
@@ -40,7 +40,6 @@ export class PackageVersionsComponent implements OnDestroy {
       this.origin = params['origin'];
       this.name = params['name'];
       this.title.setTitle(`Packages › ${this.origin}/${this.name} › Versions | ${store.getState().app.name}`);
-      this.fetchVersions();
     });
   }
 
@@ -73,15 +72,7 @@ export class PackageVersionsComponent implements OnDestroy {
   }
 
   platformsFor(version) {
-    let targets = [];
-
-    version.platforms.forEach((p) => {
-      if (targets.indexOf(p) === -1) {
-        targets.push(p);
-      }
-    });
-
-    return targets.sort();
+    return targetsFromPkgVersions([version]).map(target => target.id);
   }
 
   fetchPackages(params) {
@@ -134,9 +125,5 @@ export class PackageVersionsComponent implements OnDestroy {
     }
 
     return [];
-  }
-
-  private fetchVersions() {
-    this.store.dispatch(fetchPackageVersions(this.origin, this.name));
   }
 }

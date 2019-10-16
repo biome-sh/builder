@@ -1,11 +1,15 @@
 <div class="package-sidebar-component">
-  <section *ngIf="buildable">
+  <section *ngIf="platform && isOriginMember">
     <h3>Build</h3>
-    <button class="build" mat-raised-button color="primary" (click)="build()" [disabled]="building">
-      {{ buildButtonLabel }}
+    <button class="build" mat-raised-button color="primary" (click)="build()" [disabled]="!isBuildable" [attr.aria-label]="buildButtonAriaLabel">
+      <span aria-hidden="true">
+        <bio-platform-icon [platform]="platform.id" *ngIf="!isNewProject"></bio-platform-icon>
+        {{ buildButtonLabel }}
+      </span>
     </button>
+    <p *ngIf="!isBuildable" class="disabled-build-msg">{{ buildButtonDisabledMessage }}</p>
   </section>
-  <section *ngIf="buildable">
+  <section *ngIf="isOriginMember && hasPlan">
     <h3>Settings</h3>
     <ul>
       <li>
@@ -24,13 +28,6 @@
       </li>
     </ul>
   </section>
-  <section class="platforms">
-    <h3>Supported Platforms</h3>
-    <p *ngIf="platforms.length === 0">
-      None.
-    </p>
-    <bio-platform-icon [platform]="platform" *ngFor="let platform of platforms"></bio-platform-icon>
-  </section>
   <section class="latest-stable">
     <h3>Latest Stable</h3>
     <p *ngIf="latestStable">
@@ -44,14 +41,4 @@
       <a [routerLink]="['./']">View available versions</a>.
     </p>
   </section>
-  <ng-container *ngIf="isAService">
-    <section>
-      <h3>Run Command</h3>
-      <bio-copyable style="input" [text]="runCommand"></bio-copyable>
-    </section>
-    <section>
-      <h3>Export Command</h3>
-      <bio-copyable style="input" [text]="exportCommand"></bio-copyable>
-    </section>
-  </ng-container>
 </div>

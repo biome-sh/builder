@@ -103,12 +103,14 @@ fn do_validate_registry_credentials(body: Json<Body>, registry_type: &str) -> Re
                              CONTENT_TYPE_APPLICATION_JSON.clone()];
     let headers = HeaderMap::from_iter(header_values.into_iter());
 
-    let client = HttpClient::new(actual_url, headers);
+    let client = HttpClient::new(actual_url, headers)?;
     let sbody = serde_json::to_string(&body.into_inner()).unwrap();
 
     let body: reqwest::Body = sbody.into();
 
-    match client.post("users/login")
+    let post_url = format!("{}/users/login", actual_url);
+
+    match client.post(&post_url)
                 .body(body)
                 .send()
                 .map_err(Error::HttpClient)

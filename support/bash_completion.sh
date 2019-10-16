@@ -1,19 +1,19 @@
-# Copyright:: Copyright (c) 2015-2016 The Biome Maintainers
+# Copyright:: Copyright (c) 2015-2016 The Habitat Maintainers
 #
-# The terms of the Evaluation Agreement (Biome) between Chef Software Inc.
+# The terms of the Evaluation Agreement (Habitat) between Chef Software Inc.
 # and the party accessing this file ("Licensee") apply to Licensee's use of
 # the Software until such time that the Software is made available under an
 # open source license such as the Apache 2.0 License.
 
-# This is a bash completion file for the Biome `bio` command. It requires
+# This is a bash completion file for the Habitat `hab` command. It requires
 # a "newer" version of bash-completion, so if you see an error such as
-# "_get_comp_words_by_ref: command not found", try sourcing the Biome
+# "_get_comp_words_by_ref: command not found", try sourcing the Habitat
 # bash-completion package via:
-#   source "`bio pkg path core/bash-completion`/etc/profile.d/bash_completion.sh"
+#   source "`hab pkg path core/bash-completion`/etc/profile.d/bash_completion.sh"
 
-# bash_completion for bio
+# bash_completion for hab
 # shellcheck disable=2207
-_bio()
+_hab()
 {
     local cur prev
     _get_comp_words_by_ref cur prev
@@ -29,7 +29,7 @@ _bio()
 
     if [ "$COMP_CWORD" -eq 1 ]; then
         case $prev in
-            bio)
+            hab)
                 COMPREPLY=( $( compgen -W "apply artifact config file help install origin pkg ring svc setup start studio sup user" -- "$cur" ) )
                 ;;
                    esac
@@ -86,13 +86,13 @@ _bio()
         case "$minus2" in
             origin)
                 case "$prev" in
-                    key) #bio origin key
+                    key) #hab origin key
                         cmds="download export generate help import upload"
                         COMPREPLY=( $( compgen -W "$cmds" -- "$cur") )
                     ;;
                 esac
             ;;
-            ring) # bio ring key
+            ring) # hab ring key
                 case "$prev" in
                     key)
                         cmds="export generate help import"
@@ -100,7 +100,7 @@ _bio()
                     ;;
                 esac
             ;;
-            svc) # bio svc key
+            svc) # hab svc key
                 case "$prev" in
                     key)
                         cmds="generate help"
@@ -108,7 +108,7 @@ _bio()
                     ;;
                 esac
             ;;
-            user) # bio user key
+            user) # hab user key
                 case "$prev" in
                     key)
                         cmds="generate help"
@@ -119,4 +119,4 @@ _bio()
         esac
     fi
 }
-complete -F _bio bio
+complete -F _hab hab

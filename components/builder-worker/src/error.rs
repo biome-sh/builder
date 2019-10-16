@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -178,6 +178,10 @@ impl From<bldr_core::Error> for Error {
 
 impl From<bio_core::Error> for Error {
     fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
+}
+
+impl From<github_api_client::HubError> for Error {
+    fn from(err: github_api_client::HubError) -> Error { Error::GithubAppAuthErr(err) }
 }
 
 impl From<protobuf::ProtobufError> for Error {

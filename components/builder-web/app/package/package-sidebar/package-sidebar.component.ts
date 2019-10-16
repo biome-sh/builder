@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,50 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AppStore } from '../../app.store';
 import { fetchLatestInChannel, fetchPackageVersions, submitJob } from '../../actions/index';
+import { targets } from '../../util';
 
 @Component({
   selector: 'bio-package-sidebar',
   template: require('./package-sidebar.component.html')
 })
-export class PackageSidebarComponent implements OnChanges {
+export class PackageSidebarComponent {
   @Input() origin: string;
   @Input() name: string;
+  @Input() target: string;
   @Input() building: boolean = false;
-  @Input() buildable: boolean = false;
+  @Input() isOriginMember: boolean = false;
+  @Input() isNewProject: boolean = false;
+  @Input() hasPlan: boolean = false;
 
   constructor(private store: AppStore) { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    let fetch = false;
-
-    if (changes['origin']) {
-      this.origin = changes['origin'].currentValue;
-      fetch = true;
-    }
-
-    if (changes['name']) {
-      this.name = changes['name'].currentValue;
-      fetch = true;
-    }
-
-    if (fetch) {
-      this.fetchLatestStable();
-      this.fetchPackageVersions();
-    }
-  }
-
   build() {
-    if (this.buildable) {
-      let token = this.store.getState().session.token;
-      this.store.dispatch(submitJob(this.origin, this.name, token));
+    let token = this.store.getState().session.token;
+    if (this.isNewProject) {
+      targets.forEach(target => this.store.dispatch(submitJob(this.origin, this.name, target.id, token)));
+    } else {
+      this.store.dispatch(submitJob(this.origin, this.name, this.target, token));
     }
   }
 
   get buildButtonLabel() {
-    return this.building ? 'Build pending' : 'Build latest version';
+    return this.building ? 'Build pending' :
+           this.isNewProject ? 'Build latest versions' : 'Build latest version';
+  }
+
+  get buildButtonAriaLabel() {
+    return this.building ? 'Build pending' :
+           this.isNewProject ? 'Build latest versions' : `Build latest ${this.platform.name} version`;
+  }
+
+  get buildButtonDisabledMessage() {
+    return this.targetIsMac ?
+      `* Builder can't build the package because a macOS plan file is not supported yet.` :
+      `* Builder can't build the package because there is no ${this.platform.name} Plan file.`;
   }
 
   get exportCommand() {
@@ -94,26 +93,15 @@ export class PackageSidebarComponent implements OnChanges {
     return this.project.vcs_data.replace('.git', '');
   }
 
-  get platforms() {
-    let targets = [];
-    let versions = this.store.getState().packages.versions || [];
-
-    versions.forEach((v) => {
-      v.platforms.forEach((p) => {
-        if (targets.indexOf(p) === -1) {
-          targets.push(p);
-        }
-      });
-    });
-
-    return targets.sort();
+  get platform() {
+    return this.store.getState().packages.currentPlatform;
   }
 
-  private fetchLatestStable() {
-    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable'));
+  get targetIsMac() {
+    return this.target === 'x86_64-darwin';
   }
 
-  private fetchPackageVersions() {
-    this.store.dispatch(fetchPackageVersions(this.origin, this.name));
+  get isBuildable() {
+    return this.isOriginMember && this.hasPlan && !this.targetIsMac && !this.building;
   }
 }

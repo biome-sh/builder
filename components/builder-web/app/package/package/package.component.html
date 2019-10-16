@@ -47,6 +47,14 @@
     <router-outlet (activate)="onRouteActivate($event)"></router-outlet>
   </div>
   <aside *ngIf="showSidebar">
-    <bio-package-sidebar [origin]="origin" [name]="name" [building]="building" [buildable]="buildable"></bio-package-sidebar>
+    <bio-package-sidebar
+      [origin]="origin"
+      [name]="name"
+      [target]="target"
+      [isOriginMember]="isOriginMember"
+      [isNewProject]="isNewProject"
+      [hasPlan]="hasPlan"
+      [building]="building">
+    </bio-package-sidebar>
   </aside>
 </div>

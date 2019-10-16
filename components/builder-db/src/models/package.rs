@@ -289,6 +289,12 @@ pub struct GetPackage {
 }
 
 #[derive(Debug)]
+pub struct GetPackageGroup {
+    pub pkgs:       Vec<BuilderPackageIdent>,
+    pub visibility: Vec<PackageVisibility>,
+}
+
+#[derive(Debug)]
 pub struct DeletePackage {
     pub ident:  BuilderPackageIdent,
     pub target: BuilderPackageTarget,
@@ -418,6 +424,12 @@ impl Package {
         .execute(conn)
     }
 
+    pub fn get_group(req: GetPackageGroup, conn: &PgConnection) -> QueryResult<Vec<Package>> {
+        Self::all().filter(origin_packages::ident.eq(any(req.pkgs)))
+                   .filter(origin_packages::visibility.eq(any(req.visibility)))
+                   .get_results(conn)
+    }
+
     pub fn get_all(req_ident: BuilderPackageIdent,
                    conn: &PgConnection)
                    -> QueryResult<Vec<Package>> {
@@ -528,18 +540,22 @@ impl Package {
                 -> QueryResult<(Vec<PackageWithChannelPlatform>, i64)> {
         Counter::DBCall.increment();
 
-        let (mut pkgs, _) = packages_with_channel_platform::table
-            .filter(packages_with_channel_platform::ident_array.contains(pl.ident.parts()))
+        let (mut pkgs, _) : (std::vec::Vec<PackageWithChannelPlatform>, i64) = packages_with_channel_platform::table
+            .filter(packages_with_channel_platform::ident_array.contains(pl.ident.clone().parts()))
             .filter(packages_with_channel_platform::visibility.eq(any(pl.visibility)))
             .order(packages_with_channel_platform::ident.desc())
             .paginate(pl.page)
             .per_page(pl.limit)
             .load_and_count_records(conn)?;
 
+        trace!(target: "biome_builder_api::server::resources::pkgs::versions", "Package::list for {:?}, returned {} items", pl.ident, pkgs.len());
+
         // Note: dedup here as packages_with_channel_platform can return
         // duplicate rows. TODO: Look for a performant Postgresql fix
         // and possibly rethink the channels design
         pkgs.dedup();
+        trace!(target: "biome_builder_api::server::resources::pkgs::versions", "Package::list for {:?} after de-dup has {} items", pl.ident, pkgs.len());
+
         let new_count = pkgs.len() as i64;
         Ok((pkgs, new_count))
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import { HttpClientModule } from '@angular/common/http';
 import { routing } from './routes';
 import { AppStore } from './app.store';
 import { AppComponent } from './app.component';
-import { BannerComponent } from './banner/banner.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { SideNavComponent } from './side-nav/side-nav.component';
@@ -54,7 +53,6 @@ import { SharedModule } from './shared/shared.module';
   ],
   declarations: [
     AppComponent,
-    BannerComponent,
     NotificationsComponent,
     SideNavComponent,
     SignInPageComponent,

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ export function clearJobs() {
   };
 }
 
-export function submitJob(origin: string, name: string, token: string) {
+export function submitJob(origin: string, name: string, target: string, token: string) {
   return dispatch => {
-    return depotApi.submitJob(origin, name, token)
+    return depotApi.submitJob(origin, name, target, token)
       .then(response => {
         dispatch(addNotification({
           title: 'Job submitted',
