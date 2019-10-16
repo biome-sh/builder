@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subject, Subscription } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { List } from 'immutable';
 import { PackageJobComponent } from '../package-job/package-job.component';
 import { PackageJobsComponent } from '../package-jobs/package-jobs.component';
@@ -22,7 +22,8 @@ import { PackageLatestComponent } from '../package-latest/package-latest.compone
 import { PackageReleaseComponent } from '../package-release/package-release.component';
 import { PackageVersionsComponent } from '../package-versions/package-versions.component';
 import { AppStore } from '../../app.store';
-import { fetchJobs, fetchIntegrations, fetchLatestInChannel, fetchOrigin, fetchProject } from '../../actions/index';
+import { fetchJobs, fetchIntegrations, fetchLatestPackage, fetchLatestInChannel, fetchOrigin, fetchProject, fetchPackageVersions, setCurrentPackageTarget, clearPackageVersions } from '../../actions/index';
+import { targetFrom, targets as allPlatforms } from '../../util';
 
 @Component({
   template: require('./package.component.html')
@@ -30,23 +31,53 @@ import { fetchJobs, fetchIntegrations, fetchLatestInChannel, fetchOrigin, fetchP
 export class PackageComponent implements OnInit, OnDestroy {
   origin: string;
   name: string;
+  target: string;
   showSidebar: boolean = false;
   showActiveJob: boolean = false;
   useFullWidth: boolean = true;
 
-  private sub: Subscription;
+  private isDestroyed$: Subject<boolean> = new Subject();
   private poll: number;
 
-  constructor(private route: ActivatedRoute, private store: AppStore) {
-    this.sub = this.route.params.subscribe(params => {
-      this.origin = params['origin'];
-      this.name = params['name'];
-      this.store.dispatch(fetchOrigin(this.origin));
-    });
+  constructor(private store: AppStore) {
+    const origin$ = this.store.observe('router.route.params.origin').pipe(filter(v => v));
+    const name$ = this.store.observe('router.route.params.name').pipe(filter(v => v));
+    const target$ = this.store.observe('router.route.params.target');
+    const token$ = this.store.observe('session.token');
+    const origins$ = this.store.observe('origins.mine');
+    const platforms$ = this.store.observe('packages.currentPlatforms');
+
+    combineLatest(origin$, name$)
+      .pipe(takeUntil(this.isDestroyed$))
+      .subscribe(([origin, name]) => {
+        this.origin = origin;
+        this.name = name;
+        this.fetchOrigin();
+        this.fetchPackageVersions();
+        this.fetchJobs();
+      });
+
+    combineLatest(origin$, name$, target$, platforms$)
+      .pipe(takeUntil(this.isDestroyed$))
+      .subscribe(([origin, name, target, platforms]) => {
+        const defaultTarget = platforms.length ? platforms[0] : allPlatforms[0];
+        const currentTarget = target ?
+          targetFrom('param', target || defaultTarget.param) :
+          targetFrom('id', this.target || defaultTarget.id);
+        this.target = currentTarget.id;
+        this.store.dispatch(setCurrentPackageTarget(currentTarget));
+        this.fetchLatest();
+        this.fetchLatestStable();
+      });
+
+    combineLatest(origin$, name$, token$, origins$, platforms$)
+      .pipe(takeUntil(this.isDestroyed$))
+      .subscribe(() => {
+        this.fetchProject();
+      });
   }
 
   ngOnInit() {
-
     // When a build is active, check on it periodically so we can
     // indicate when it completes.
     this.poll = window.setInterval(() => {
@@ -59,9 +90,11 @@ export class PackageComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     window.clearInterval(this.poll);
 
-    if (this.sub) {
-      this.sub.unsubscribe();
-    }
+    this.store.dispatch(setCurrentPackageTarget(undefined));
+    this.store.dispatch(clearPackageVersions());
+
+    this.isDestroyed$.next(true);
+    this.isDestroyed$.complete();
   }
 
   get ident() {
@@ -77,18 +110,16 @@ export class PackageComponent implements OnInit, OnDestroy {
     });
   }
 
-  get builderEnabled() {
-    return this.store.getState().features.builder;
+  get isNewProject() {
+    return this.store.getState().packages.currentPlatforms.length === 0;
   }
 
-  get buildable(): boolean {
-    const hasProject = this.store.getState().projects.ui.current.exists;
+  get hasPlan() {
+    return this.store.getState().projects.ui.current.exists;
+  }
 
-    if (this.isOriginMember && hasProject) {
-      return true;
-    }
-
-    return false;
+  get builderEnabled() {
+    return this.store.getState().features.builder;
   }
 
   get activeJobs(): List<any> {
@@ -135,14 +166,22 @@ export class PackageComponent implements OnInit, OnDestroy {
     if (routedComponent instanceof PackageJobComponent) {
       this.useFullWidth = true;
     }
+  }
 
-    this.fetchLatestStable();
-    this.fetchProject();
-    this.fetchJobs();
+  private fetchOrigin() {
+    this.store.dispatch(fetchOrigin(this.origin));
+  }
+
+  private fetchLatest() {
+    this.store.dispatch(fetchLatestPackage(this.origin, this.name, this.target));
   }
 
   private fetchLatestStable() {
-    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable'));
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable', this.target));
+  }
+
+  private fetchPackageVersions() {
+    this.store.dispatch(fetchPackageVersions(this.origin, this.name));
   }
 
   private fetchProject() {

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -282,7 +282,7 @@ impl WorkerMgr {
                     warn!("Worker-manager unable to process cancels: err {:?}", err);
                 }
 
-                for target in PackageTarget::supported_targets() {
+                for target in PackageTarget::targets() {
                     if self.build_targets.contains(&target) {
                         if let Err(err) = self.process_work(*target) {
                             warn!("Worker-manager unable to process work: err {:?}", err);
@@ -292,7 +292,7 @@ impl WorkerMgr {
                 last_processed = now;
             }
 
-            for target in PackageTarget::supported_targets() {
+            for target in PackageTarget::targets() {
                 if self.build_targets.contains(target) {
                     if let Err(err) = self.process_metrics(*target) {
                         warn!("Worker-manager unable to process metrics: err {:?}", err);

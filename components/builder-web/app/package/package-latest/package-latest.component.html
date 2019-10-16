@@ -1,4 +1,12 @@
 <div class="package-latest-component">
+  <nav class="platform-options" *ngIf="targets.length > 1">
+    <a *ngFor="let target of targets; index as i"
+      [routerLink]="['/pkgs', origin, name, 'latest', target.param]"
+      [class.active]="(store.observe('packages.currentPlatform.id') | async) === target.id">
+      <bio-platform-icon [platform]="target.id"></bio-platform-icon>
+      {{ target.name }}
+    </a>
+  </nav>
   <bio-icon symbol="loading" class="spinning" *ngIf="ui.loading"></bio-icon>
   <ng-container *ngIf="!ui.loading">
     <bio-package-detail [package]="latest" *ngIf="hasLatest"></bio-package-detail>
@@ -17,7 +25,7 @@
         </li>
         <li>
           Set up automated builds under
-          <a [routerLink]="['../settings']">Build Settings</a> by connecting a plan file to Biome Builder.
+          <a [routerLink]="['/pkgs', origin, name, 'settings']">Build Settings</a> by connecting a plan file to Biome Builder.
         </li>
       </ol>
       <p>

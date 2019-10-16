@@ -30,7 +30,8 @@ lazy_static = "*"
 log = "*"
 memcache = "*"
 num_cpus = "*"
-openssl = "*"
+openssl = "=0.10.22"
+percent-encoding = "*"
 protobuf = "*"
 serde = "*"
 serde_derive = "*"
@@ -58,7 +59,7 @@ features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.zmq]
 git = "https://github.com/habitat-sh/rust-zmq"
-branch = "release/v0.8"
+branch = "v0.8-symlinks-removed"
 
 [dependencies.artifactory-client]
 path = "../artifactory-client"
@@ -68,9 +69,6 @@ path = "../oauth-client"
 
 [dependencies.github-api-client]
 path = "../github-api-client"
-
-[dependencies.segment-api-client]
-path = "../segment-api-client"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"

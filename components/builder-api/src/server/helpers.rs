@@ -1,36 +1,18 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-use std::str::FromStr;
-
+use crate::{db::models::{channel::PackageChannelTrigger as PCT,
+                         package::PackageVisibility},
+            bio_core::package::PackageTarget,
+            protocol::jobsrv,
+            server::{authorize::authorize_session,
+                     AppState}};
 use actix_web::{http::header,
                 web::Query,
                 HttpRequest};
 use regex::Regex;
 use serde::Serialize;
 use serde_json;
+use std::str::FromStr;
 
-use crate::{bio_core::package::PackageTarget,
-            protocol::jobsrv};
-
-use crate::{db::models::{channel::PackageChannelTrigger as PCT,
-                         package::PackageVisibility},
-            server::{authorize::authorize_session,
-                     AppState}};
-
-// TO DO - this module should not just be a grab bag of stuff
-//
+// TODO - this module should not just be a grab bag of stuff
 
 pub const PAGINATION_RANGE_MAX: isize = 50;
 
@@ -56,6 +38,12 @@ pub struct PaginatedResults<'a, T: 'a> {
     data:        &'a [T],
 }
 
+#[derive(Deserialize)]
+pub struct ToChannel {
+    #[serde(default)]
+    pub channel: String,
+}
+
 pub fn package_results_json<T: Serialize>(packages: &[T],
                                           count: isize,
                                           start: isize,
@@ -75,6 +63,7 @@ pub fn extract_pagination(pagination: &Query<Pagination>) -> (isize, isize) {
 
 // Returns the page number we are currently on and the per_page size
 pub fn extract_pagination_in_pages(pagination: &Query<Pagination>) -> (isize, isize) {
+    #[allow(clippy::integer_division)]
     (pagination.range / PAGINATION_RANGE_MAX + 1, PAGINATION_RANGE_MAX)
 }
 
@@ -90,7 +79,7 @@ pub fn target_from_headers(req: &HttpRequest) -> PackageTarget {
         Err(_) => return PackageTarget::from_str("x86_64-linux").unwrap(),
     };
 
-    debug!("Parsing target from UserAgent header: {}", &user_agent);
+    trace!("Parsing target from UserAgent header: {}", &user_agent);
 
     let user_agent_regex =
         Regex::new(r"(?P<client>[^\s]+)\s?(\((?P<target>\w+-\w+); (?P<kernel>.*)\))?").unwrap();

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -498,5 +498,4 @@ mod tests {
                             "↓ Downloading biome/bio-backline/0.23.0/20170511220008",];
         assert_eq!(stripped_lines, expected);
     }
-
 }

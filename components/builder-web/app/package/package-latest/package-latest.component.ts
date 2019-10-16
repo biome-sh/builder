@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
 
 import { Component, OnDestroy } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppStore } from '../../app.store';
-import { fetchLatestPackage } from '../../actions/index';
 import config from '../../config';
 
 @Component({
@@ -27,21 +26,25 @@ export class PackageLatestComponent implements OnDestroy {
   origin: string;
   name: string;
 
-  private sub: Subscription;
+  private isDestroyed$: Subject<boolean> = new Subject();
 
-  constructor(private route: ActivatedRoute, private store: AppStore, private title: Title) {
-    this.route.parent.params.subscribe((params) => {
-      this.origin = params['origin'];
-      this.name = params['name'];
-      this.title.setTitle(`Packages › ${this.origin}/${this.name} › Latest | ${store.getState().app.name}`);
-      this.fetchLatest();
-    });
+  constructor(private store: AppStore, private title: Title) {
+    this.store.observe('router.route.params')
+      .pipe(takeUntil(this.isDestroyed$))
+      .subscribe(params => {
+        this.origin = params['origin'];
+        this.name = params['name'];
+        this.title.setTitle(`Packages › ${this.origin}/${this.name} › Latest | ${store.getState().app.name}`);
+      });
   }
 
   ngOnDestroy() {
-    if (this.sub) {
-      this.sub.unsubscribe();
-    }
+    this.isDestroyed$.next(true);
+    this.isDestroyed$.complete();
+  }
+
+  get targets() {
+    return this.store.getState().packages.currentPlatforms;
   }
 
   get config() {
@@ -65,9 +68,5 @@ export class PackageLatestComponent implements OnDestroy {
 
   get ui() {
     return this.store.getState().packages.ui.latest;
-  }
-
-  private fetchLatest() {
-    this.store.dispatch(fetchLatestPackage(this.origin, this.name));
   }
 }

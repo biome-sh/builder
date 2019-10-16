@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{error::Error,
-          fmt};
-
 use num_cpus;
 use postgres_shared::params::{ConnectParams,
                               Host,
                               IntoConnectParams};
+use std::{error::Error,
+          fmt};
 use url::percent_encoding::{utf8_percent_encode,
                             PATH_SEGMENT_ENCODE_SET};
 
@@ -71,7 +70,7 @@ impl fmt::Display for DataStoreCfg {
 }
 
 impl<'a> IntoConnectParams for &'a DataStoreCfg {
-    fn into_connect_params(self) -> Result<ConnectParams, Box<Error + Sync + Send>> {
+    fn into_connect_params(self) -> Result<ConnectParams, Box<dyn Error + Sync + Send>> {
         let mut builder = ConnectParams::builder();
         builder.port(self.port);
         builder.user(&self.user, self.password.as_ref().map(|p| &**p));

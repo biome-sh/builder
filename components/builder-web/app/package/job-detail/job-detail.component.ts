@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -190,8 +190,7 @@ export class JobDetailComponent implements OnChanges, OnDestroy {
 
   public scrollToEnd() {
     let appHeight = this.elementHeight(this.container);
-    let bannerHeight = this.elementHeight(this.element('bio-banner'));
-    this.scrollTo(appHeight + bannerHeight - window.innerHeight);
+    this.scrollTo(appHeight - window.innerHeight);
   }
 
   public scrollTo(x = 0) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -81,13 +81,5 @@ describe('PackageVersionsComponent', () => {
     fixture = TestBed.createComponent(PackageVersionsComponent);
     component = fixture.componentInstance;
     element = fixture.debugElement;
-  });
-
-  describe('given origin and name', () => {
-
-    it('fetches the list of versions', () => {
-      expect(store.dispatch).toHaveBeenCalled();
-      expect(actions.fetchPackageVersions).toHaveBeenCalledWith('core', 'nginx');
-    });
   });
 });

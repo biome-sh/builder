@@ -1,17 +1,3 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 mod docker;
 mod job_streamer;
 mod postprocessor;
@@ -21,7 +7,36 @@ mod toml_builder;
 mod util;
 mod workspace;
 
+use self::{docker::DockerExporter,
+           job_streamer::{JobStreamer,
+                          Section},
+           postprocessor::post_process,
+           studio::Studio,
+           workspace::Workspace};
+pub use crate::protocol::jobsrv::JobState;
+use crate::{bldr_core::{self,
+                        api_client::ApiClient,
+                        job::Job,
+                        logger::Logger,
+                        socket::DEFAULT_CONTEXT},
+            config::Config,
+            error::{Error,
+                    Result},
+            bio_core::{env,
+                       package::{archive::PackageArchive,
+                                 target::{self,
+                                          PackageTarget}}},
+            protocol::{jobsrv,
+                       message,
+                       net::{self,
+                             ErrCode},
+                       originsrv::OriginPackageIdent},
+            vcs::VCS};
+use chrono::Utc;
+use retry::{delay,
+            retry};
 use std::{fs,
+          process::Command,
           str::FromStr,
           sync::{atomic::{AtomicBool,
                           Ordering},
@@ -30,44 +45,7 @@ use std::{fs,
           thread::{self,
                    JoinHandle},
           time::Duration};
-
-use std::process::Command;
-
-use chrono::Utc;
-use retry::retry;
 use zmq;
-
-use crate::bldr_core::{self,
-                       api_client::ApiClient,
-                       job::Job,
-                       logger::Logger,
-                       socket::DEFAULT_CONTEXT};
-
-use crate::bio_core::{env,
-                      package::{archive::PackageArchive,
-                                target::{self,
-                                         PackageTarget}},
-                      util::wait_for};
-
-pub use crate::protocol::jobsrv::JobState;
-use crate::protocol::{jobsrv,
-                      message,
-                      net::{self,
-                            ErrCode},
-                      originsrv::OriginPackageIdent};
-
-use self::{docker::DockerExporter,
-           job_streamer::{JobStreamer,
-                          Section},
-           postprocessor::post_process,
-           studio::Studio,
-           workspace::Workspace};
-
-use crate::{config::Config,
-            error::{Error,
-                    Result}};
-
-use crate::vcs::VCS;
 
 // TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
 // on biome_common it didnt' seem worth it to add a dependency for only this constant. Probably
@@ -110,21 +88,25 @@ pub struct Runner {
 }
 
 impl Runner {
-    pub fn new(job: Job, config: Arc<Config>, net_ident: &str, cancel: Arc<AtomicBool>) -> Self {
+    pub fn new(job: Job,
+               config: Arc<Config>,
+               net_ident: &str,
+               cancel: Arc<AtomicBool>)
+               -> Result<Self> {
         debug!("Creating new Runner with config: {:?}", config);
-        let depot_cli = ApiClient::new(&config.bldr_url);
+        let depot_cli = ApiClient::new(&config.bldr_url)?;
 
         let log_path = config.log_path.clone();
         let mut logger = Logger::init(log_path, "builder-worker.log");
         logger.log_ident(net_ident);
         let bldr_token = bldr_core::access_token::generate_bldr_token(&config.key_dir).unwrap();
 
-        Runner { workspace: Workspace::new(&config.data_path, job),
-                 config,
-                 depot_cli,
-                 logger,
-                 bldr_token,
-                 cancel }
+        Ok(Runner { workspace: Workspace::new(&config.data_path, job),
+                    config,
+                    depot_cli,
+                    logger,
+                    bldr_token,
+                    cancel })
     }
 
     pub fn job(&self) -> &Job { &self.workspace.job }
@@ -214,7 +196,7 @@ impl Runner {
         self.check_cancel(tx)?;
         let mut section = streamer.start_section(Section::CloneRepository)?;
 
-        let vcs = VCS::from_job(&self.job(), self.config.github.clone());
+        let vcs = VCS::from_job(&self.job(), self.config.github.clone())?;
         if let Some(err) = vcs.clone(&self.workspace.src()).err() {
             let msg = format!("Failed to clone remote source repository for {}, err={:?}",
                               self.workspace.job.get_project().get_name(),
@@ -363,7 +345,7 @@ impl Runner {
         debug!("Installing origin secret key for {} to {:?}",
                self.job().origin(),
                self.workspace.key_path());
-        match retry(wait_for(RETRY_WAIT, RETRIES), || {
+        match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), || {
                   let res = self.depot_cli.fetch_origin_secret_key(self.job().origin(),
                                                                    &self.bldr_token,
                                                                    self.workspace.key_path());
@@ -722,8 +704,9 @@ impl RunnerMgr {
             }
 
             let res = rx.try_recv();
-            if res.is_ok() {
-                let job: Job = res.unwrap();
+
+            if let Ok(r) = res {
+                let job: Job = r;
                 debug!("Got result from spawned runner: {:?}", job);
                 self.send_complete(&job)?;
             }
@@ -734,7 +717,7 @@ impl RunnerMgr {
         let runner = Runner::new(job,
                                  self.config.clone(),
                                  &self.net_ident,
-                                 self.cancel.clone());
+                                 self.cancel.clone())?;
 
         let _ = thread::Builder::new().name("job_runner".to_string())
                                       .spawn(move || runner.run(&tx))

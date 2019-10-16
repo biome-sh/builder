@@ -12,16 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs::{self,
-               remove_file,
-               File},
-          io::{BufReader,
-               BufWriter,
-               Read,
-               Write},
-          path::PathBuf,
-          str::FromStr};
-
+use crate::{bldr_core::{error::Error::RpcError,
+                        metrics::CounterMetric},
+            db::models::{channel::Channel,
+                         origin::Origin,
+                         package::{BuilderPackageIdent,
+                                   BuilderPackageTarget,
+                                   DeletePackage,
+                                   GetLatestPackage,
+                                   GetPackage,
+                                   ListPackages,
+                                   NewPackage,
+                                   Package,
+                                   PackageIdentWithChannelPlatform,
+                                   PackageVisibility,
+                                   SearchPackages},
+                         projects::Project},
+            bio_core::{package::{FromArchive,
+                                 Identifiable,
+                                 PackageArchive,
+                                 PackageIdent,
+                                 PackageTarget},
+                       ChannelIdent},
+            protocol::{jobsrv,
+                       net::NetOk,
+                       originsrv},
+            server::{authorize::authorize_session,
+                     error::{Error,
+                             Result},
+                     feat,
+                     framework::{headers,
+                                 middleware::route_message},
+                     helpers::{self,
+                               req_state,
+                               Pagination,
+                               Target},
+                     resources::channels::channels_for_package_ident,
+                     services::metrics::Counter,
+                     AppState}};
 use actix_web::{body::Body,
                 error,
                 http::{self,
@@ -43,53 +71,20 @@ use futures::{future::ok as fut_ok,
               sync::mpsc,
               Future,
               Stream};
+use percent_encoding;
 use protobuf;
 use serde_json;
+use std::{fs::{self,
+               remove_file,
+               File},
+          io::{BufReader,
+               BufWriter,
+               Read,
+               Write},
+          path::PathBuf,
+          str::FromStr};
 use tempfile::tempdir_in;
-use url;
 use uuid::Uuid;
-
-use crate::{bldr_core::{error::Error::RpcError,
-                        metrics::CounterMetric},
-            bio_core::{package::{FromArchive,
-                                 Identifiable,
-                                 PackageArchive,
-                                 PackageIdent,
-                                 PackageTarget},
-                       ChannelIdent}};
-
-use crate::protocol::{jobsrv,
-                      net::NetOk,
-                      originsrv};
-
-use crate::db::models::{channel::Channel,
-                        origin::Origin,
-                        package::{BuilderPackageIdent,
-                                  BuilderPackageTarget,
-                                  DeletePackage,
-                                  GetLatestPackage,
-                                  GetPackage,
-                                  ListPackages,
-                                  NewPackage,
-                                  Package,
-                                  PackageIdentWithChannelPlatform,
-                                  PackageVisibility,
-                                  SearchPackages},
-                        projects::Project};
-
-use crate::server::{authorize::authorize_session,
-                    error::{Error,
-                            Result},
-                    feat,
-                    framework::{headers,
-                                middleware::route_message},
-                    helpers::{self,
-                              req_state,
-                              Pagination,
-                              Target},
-                    resources::channels::channels_for_package_ident,
-                    services::metrics::Counter,
-                    AppState};
 
 // Query param containers
 #[derive(Debug, Deserialize)]
@@ -315,7 +310,7 @@ fn delete_package(req: HttpRequest,
     // TODO: Deprecate target from headers
     let target = match qtarget.target {
         Some(ref t) => {
-            debug!("Query requested target = {}", t);
+            trace!("Query requested target = {}", t);
             match PackageTarget::from_str(t) {
                 Ok(t) => t,
                 Err(err) => {
@@ -433,7 +428,7 @@ fn download_package(req: HttpRequest,
     // TODO: Deprecate target from headers
     let target = match qtarget.target {
         Some(ref t) => {
-            debug!("Query requested target = {}", t);
+            trace!("Query requested target = {}", t);
             match PackageTarget::from_str(t) {
                 Ok(t) => t,
                 Err(err) => {
@@ -490,7 +485,7 @@ fn upload_package(req: HttpRequest,
                   qupload: Query<Upload>,
                   stream: web::Payload,
                   state: Data<AppState>)
-                  -> Box<Future<Item = HttpResponse, Error = Error>> {
+                  -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     let (origin, name, version, release) = path.into_inner();
 
     let ident = PackageIdent::new(origin, name, Some(version), Some(release));
@@ -570,9 +565,6 @@ fn schedule_job_group(req: HttpRequest,
 
     match route_message::<jobsrv::JobGroupSpec, jobsrv::JobGroup>(&req, &request) {
         Ok(group) => {
-            let msg = format!("Scheduled job group for {}", group.get_project_name());
-            state.segment.track(&session.get_name(), &msg);
-
             HttpResponse::Created().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
                                    .json(group)
         }
@@ -662,7 +654,7 @@ fn get_package_channels(req: HttpRequest,
     // TODO: Deprecate target from headers
     let target = match qtarget.target {
         Some(ref t) => {
-            debug!("Query requested target = {}", t);
+            trace!("Query requested target = {}", t);
             match PackageTarget::from_str(t) {
                 Ok(t) => t,
                 Err(err) => {
@@ -714,13 +706,15 @@ fn list_package_versions(req: HttpRequest,
 
     let ident = PackageIdent::new(origin.to_string(), name, None, None);
 
-    match Package::list_package_versions(&BuilderPackageIdent(ident),
+    match Package::list_package_versions(&BuilderPackageIdent(ident.clone()),
                                          helpers::visibility_for_optional_session(&req,
                                                                                   opt_session_id,
                                                                                   &origin),
                                          &*conn)
     {
         Ok(packages) => {
+            trace!(target: "biome_builder_api::server::resources::pkgs::versions", "list_package_versions for {} found {} package versions: {:?}", ident, packages.len(), packages);
+
             let body = serde_json::to_string(&packages).unwrap();
             HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
                               .header(http::header::CACHE_CONTROL, headers::NO_CACHE)
@@ -760,8 +754,7 @@ fn search_packages(req: HttpRequest,
     // works, set the origin appropriately and do a regular search.  If that doesn't work, do a
     // search across all origins, similar to how the "distinct" search works now, but returning all
     // the details instead of just names.
-    let decoded_query = match url::percent_encoding::percent_decode(query.as_bytes()).decode_utf8()
-    {
+    let decoded_query = match percent_encoding::percent_decode(query.as_bytes()).decode_utf8() {
         Ok(q) => q.to_string().trim_end_matches('/').replace("/", " & "),
         Err(err) => {
             debug!("{}", err);
@@ -947,6 +940,9 @@ fn do_get_packages(req: &HttpRequest,
         Ok((packages, count)) => {
             let ident_pkgs: Vec<PackageIdentWithChannelPlatform> =
                 packages.into_iter().map(|p| p.into()).collect();
+
+            trace!(target: "biome_builder_api::server::resources::pkgs::versions", "do_get_packages for {}, got {} packages, idents: {:?}", ident, count, ident_pkgs);
+
             Ok((ident_pkgs, count))
         }
         Err(e) => Err(e),
@@ -969,7 +965,7 @@ fn do_upload_package_start(req: &HttpRequest,
     } else {
         let target = match qupload.target {
             Some(ref t) => {
-                debug!("Query requested target = {}", t);
+                trace!("Query requested target = {}", t);
                 PackageTarget::from_str(t)?
             }
             None => helpers::target_from_headers(req),
@@ -1218,7 +1214,7 @@ fn do_upload_package_async(req: HttpRequest,
                            ident: PackageIdent,
                            temp_path: PathBuf,
                            writer: BufWriter<File>)
-                           -> Box<Future<Item = HttpResponse, Error = Error>> {
+                           -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     Box::new(
              stream
         // `Future::from_err` acts like `?` in that it coerces the error type from
@@ -1253,7 +1249,7 @@ fn do_get_package(req: &HttpRequest,
 
     let target = match qtarget.target {
         Some(ref t) => {
-            debug!("Query requested target = {}", t);
+            trace!("Query requested target = {}", t);
             PackageTarget::from_str(&t)?
         }
         None => helpers::target_from_headers(req),

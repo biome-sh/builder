@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -114,8 +114,8 @@ export function getUnique(origin: string, nextRange: number = 0, token: string =
   });
 }
 
-export function getLatest(origin: string, pkg: string) {
-  const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/latest?target=x86_64-linux`;
+export function getLatest(origin: string, pkg: string, target: string) {
+  const url = `${urlPrefix}/depot/pkgs/${origin}/${pkg}/latest?target=${target}`;
 
   return new Promise((resolve, reject) => {
     fetch(url, opts())
@@ -134,8 +134,8 @@ export function getLatest(origin: string, pkg: string) {
   });
 }
 
-export function getLatestInChannel(origin: string, name: string, channel: string, version: string = undefined) {
-  const url = `${urlPrefix}/depot/channels/${origin}/${channel}/pkgs/${name}/${version ? version + '/' : ''}latest?target=x86_64-linux`;
+export function getLatestInChannel(origin: string, name: string, channel: string, target: string) {
+  const url = `${urlPrefix}/depot/channels/${origin}/${channel}/pkgs/${name}/latest?target=${target}`;
 
   return new Promise((resolve, reject) => {
     fetch(url, opts())
@@ -260,8 +260,8 @@ export function promotePackage(origin: string, name: string, version: string, re
   });
 }
 
-export function submitJob(origin: string, pkg: string, token: string) {
-  const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}`;
+export function submitJob(origin: string, pkg: string, target: string, token: string) {
+  const url = `${urlPrefix}/depot/pkgs/schedule/${origin}/${pkg}?target=${target}`;
 
   return new Promise((resolve, reject) => {
     fetch(url, {

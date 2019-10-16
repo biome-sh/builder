@@ -11,5 +11,5 @@ sudo mkdir -p /mnt/bio
 sudo ln -s /mnt/bio /bio
 
 # Add hab user / group
-sudo adduser --group bio || echo "Group 'bio' already exists"
-sudo useradd -g bio bio || echo "User 'bio' already exists"
+sudo adduser --group hab || echo "Group 'hab' already exists"
+sudo useradd -g hab hab || echo "User 'hab' already exists"

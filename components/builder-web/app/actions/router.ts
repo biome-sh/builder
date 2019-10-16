@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Community fork of Chef Habitat
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,12 +13,20 @@
 // limitations under the License.
 
 export const ROUTE_CHANGE = 'ROUTE_CHANGE';
+export const ROUTE_CHANGE_END = 'ROUTE_CHANGE_END';
 export const ROUTE_REQUESTED = 'ROUTE_REQUESTED';
 
 export function routeChange(newRoute) {
   return {
     type: ROUTE_CHANGE,
     payload: newRoute,
+  };
+}
+
+export function routeChangeEnd(payload) {
+  return {
+    type: ROUTE_CHANGE_END,
+    payload
   };
 }
 
