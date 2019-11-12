@@ -19,11 +19,11 @@ let projectExpectations = function (res) {
   expect(res.body.package_name).to.equal('testapp');
   expect(res.body.name).to.equal('neurosis/testapp');
   expect(res.body.plan_path).to.equal('plan.sh');
+  expect(res.body.target).to.equal('x86_64-linux');
   expect(res.body.owner_id).to.equal(global.sessionBobo.id);
   expect(res.body.vcs_type).to.equal('git');
   expect(res.body.vcs_data).to.equal('https://github.com/biome-sh/testapp.git');
   expect(res.body.vcs_installation_id).to.equal(installationId.toString());
-  expect(res.body.visibility).to.equal('public');
   expect(res.body.auto_build).to.equal(true);
 };
 
@@ -207,6 +207,7 @@ describe('Projects API', function () {
         .send({
           plan_path: 'awesome/plan.sh',
           installation_id: installationId,
+          target: 'x86_64-linux',
           repo_id: repoId
         })
         .expect(204)
@@ -228,11 +229,11 @@ describe('Projects API', function () {
           expect(res.body.package_name).to.equal('testapp');
           expect(res.body.name).to.equal('neurosis/testapp');
           expect(res.body.plan_path).to.equal('awesome/plan.sh');
+          expect(res.body.target).to.equal('x86_64-linux');
           expect(res.body.owner_id).to.equal(global.sessionBobo.id);
           expect(res.body.vcs_type).to.equal('git');
           expect(res.body.vcs_data).to.equal('https://github.com/biome-sh/testapp.git')
           expect(res.body.vcs_installation_id).to.equal(installationId.toString());
-          expect(res.body.visibility).to.equal('public');
           done(err);
         });
     });
