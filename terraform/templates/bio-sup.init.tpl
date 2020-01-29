@@ -5,7 +5,9 @@ start on filesystem or runlevel [2345]
 script
     export RUST_LOG=${log_level}
     export HAB_STATS_ADDR=localhost:8125
-    export HAB_FEAT_PIDS_FROM_LAUNCHER=1
+%{ for feature in enabled_features ~}
+    export HAB_FEAT_${upper(feature)}=1
+%{ endfor ~}
     export SSL_CERT_FILE=$(bio pkg path core/cacerts)/ssl/cert.pem
     echo $$ > /var/run/bio-sup.pid
     echo "starting bio sup with: ${flags}" >> /var/log/bio-sup.log

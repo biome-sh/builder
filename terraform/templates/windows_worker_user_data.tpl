@@ -27,7 +27,7 @@
 
   # Install biome
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  iwr https://api.bintray.com/content/biome/stable/windows/x86_64/bio-%24latest-x86_64-windows.zip?bt_package=bio-x86_64-windows -Outfile c:\biome.zip
+  iwr https://packages.chef.io/files/stable/biome/latest/bio-x86_64-windows.zip -Outfile c:\biome.zip
   Expand-Archive c:/biome.zip c:/
   mv c:/bio-* c:/biome
   $env:Path = $env:Path,"C:\biome" -join ";"
@@ -42,11 +42,19 @@
   # Add config to HabService.dll.config
   $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
   [xml]$configXml = Get-Content (Join-Path $svcPath HabService.dll.config)
-  $configXml.configuration.appSettings.add[2].value = "${flags}"
-  $configXml.Save((Join-Path $svcPath HabService.dll.config))
 
-  # Enable PIDS_FROM_LAUNCHER feature
-  $env:HAB_FEAT_PIDS_FROM_LAUNCHER=1;
+  # Update the arguments for the Supervisor
+  $launcherArgs = $configxml | select-xml -xpath "//appSettings/add[@key='launcherArgs']"
+  $launcherArgs.Node.value = "${flags}"
+
+%{ for feature in enabled_features ~}
+  $child = $configXml.CreateElement("add")
+  $child.SetAttribute("key", "ENV_HAB_FEAT_${upper(feature)}")
+  $child.SetAttribute("value", "true")
+  $configXml.configuration.appSettings.AppendChild($child)
+
+%{ endfor ~}
+  $configXml.Save((Join-Path $svcPath HabService.dll.config))
 
   # Start service
   Start-Service Biome

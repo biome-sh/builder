@@ -45,6 +45,7 @@ use crate::{bio_core::{self,
 
 use crate::schema::{channel::{origin_channel_packages,
                               origin_channels},
+                    member::origin_members,
                     origin::origins,
                     package::{origin_package_versions,
                               origin_packages,
@@ -462,6 +463,7 @@ impl Package {
         trace!("DBCall package::get_latest time: {} ms",
                start_time.to(end_time).num_milliseconds());
         Histogram::DbCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
+        Histogram::GetLatestPackageCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
 
         result
     }
@@ -480,6 +482,7 @@ impl Package {
         trace!("DBCall package::get_all_latest time: {} ms",
                start_time.to(end_time).num_milliseconds());
         Histogram::DbCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
+        Histogram::GetAllLatestCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
         result
     }
 
@@ -638,17 +641,18 @@ impl Package {
                   -> QueryResult<(Vec<BuilderPackageIdent>, i64)> {
         Counter::DBCall.increment();
         let mut query = origin_packages::table
-            .inner_join(origins::table)
             .select(origin_packages::ident)
             .filter(to_tsquery(sp.query).matches(origin_packages::ident_vector))
             .order(origin_packages::ident.asc())
             .into_boxed();
 
         if let Some(session_id) = sp.account_id {
+            let origins = origin_members::table.select(origin_members::origin)
+                                               .filter(origin_members::account_id.eq(session_id));
             query = query.filter(
                 origin_packages::visibility
                     .eq(any(PackageVisibility::private()))
-                    .and(origins::owner_id.eq(session_id))
+                    .and(origin_packages::origin.eq_any(origins))
                     .or(origin_packages::visibility.eq(PackageVisibility::Public)),
             );
         } else {

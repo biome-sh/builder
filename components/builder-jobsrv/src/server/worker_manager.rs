@@ -1,4 +1,4 @@
-// Community fork of Chef Habitat
+// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -604,8 +604,7 @@ impl WorkerMgr {
                             Err(err) => return Err(err),
                         };
 
-                    let box_key_pair =
-                        BoxKeyPair::new(name, rev.clone(), Some(pub_key), Some(priv_key));
+                    let box_key_pair = BoxKeyPair::new(name, rev, Some(pub_key), Some(priv_key));
                     for secret in secrets_list {
                         debug!("Adding secret to job: {:?}", secret);
                         let mut secret_decrypted = originsrv::OriginSecret::new();
