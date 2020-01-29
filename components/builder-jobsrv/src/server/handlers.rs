@@ -225,6 +225,12 @@ fn is_project_buildable(state: &AppState, project_name: &str, target: &str) -> b
         Err(_) => return false,
     };
 
+    let target = if feat::is_enabled(feat::LegacyProject) {
+        "x86_64-linux"
+    } else {
+        target
+    };
+
     match Project::get(project_name, &target, &*conn) {
         Ok(project) => project.auto_build,
         Err(diesel::result::Error::NotFound) => false,
@@ -360,7 +366,7 @@ pub fn job_group_create(req: &RpcMessage, state: &AppState) -> Result<RpcMessage
 
     // Add the root package if needed
     if !msg.get_deps_only() || msg.get_package_only() {
-        projects.push((project_name.clone(), project_ident.clone()));
+        projects.push((project_name.clone(), project_ident));
     }
 
     // Search the packages graph to find the reverse dependencies
