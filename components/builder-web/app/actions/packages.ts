@@ -14,8 +14,10 @@
 
 import { groupBy } from 'lodash';
 import * as depotApi from '../client/depot-api';
+import { BuilderApiClient } from '../client/builder-api';
 import { addNotification, SUCCESS, DANGER } from './notifications';
 
+export const SET_PACKAGE_CREATING_FLAG = 'SET_PACKAGE_CREATING_FLAG';
 export const CLEAR_CURRENT_PACKAGE_CHANNELS = 'CLEAR_CURRENT_PACKAGE_CHANNELS';
 export const CLEAR_PACKAGES = 'CLEAR_PACKAGES';
 export const CLEAR_LATEST_IN_CHANNEL = 'CLEAR_LATEST_IN_CHANNEL';
@@ -28,6 +30,7 @@ export const SET_CURRENT_PACKAGE_TARGETS = 'SET_CURRENT_PACKAGE_TARGETS';
 export const SET_LATEST_IN_CHANNEL = 'SET_LATEST_IN_CHANNEL';
 export const SET_LATEST_PACKAGE = 'SET_LATEST_PACKAGE';
 export const SET_CURRENT_PACKAGE_CHANNELS = 'SET_CURRENT_PACKAGE_CHANNELS';
+export const SET_CURRENT_PACKAGE_SETTINGS = 'SET_CURRENT_PACKAGE_SETTINGS';
 export const SET_CURRENT_PACKAGE_VERSIONS = 'SET_CURRENT_PACKAGE_VERSIONS';
 export const SET_PACKAGES_NEXT_RANGE = 'SET_PACKAGES_NEXT_RANGE';
 export const SET_PACKAGES_SEARCH_QUERY = 'SET_PACKAGES_SEARCH_QUERY';
@@ -71,6 +74,39 @@ export function fetchDashboardRecent(origin: string) {
 export function clearPackageVersions() {
   return {
     type: CLEAR_PACKAGE_VERSIONS
+  };
+}
+
+function setPackageCreatingFlag(payload) {
+  return {
+    type: SET_PACKAGE_CREATING_FLAG,
+    payload,
+  };
+}
+
+export function createEmptyPackage(body: object, token: string, callback: Function = (newPackage) => { }) {
+  return dispatch => {
+    dispatch(setPackageCreatingFlag(true));
+
+    new BuilderApiClient(token).createEmptyPackage(body).then((newPackage: any) => {
+      dispatch(setPackageCreatingFlag(false));
+
+      dispatch(addNotification({
+        title: 'Package created',
+        body: `${newPackage.name} successfully created`,
+        type: SUCCESS,
+      }));
+
+      callback(newPackage);
+
+    }).catch(error => {
+      dispatch(setPackageCreatingFlag(false));
+      dispatch(addNotification({
+        title: 'Failed to create package',
+        body: error.message,
+        type: DANGER,
+      }));
+    });
   };
 }
 
@@ -146,6 +182,14 @@ export function fetchLatestInChannel(origin: string, name: string, channel: stri
       .catch(error => {
         dispatch(setLatestInChannel(channel, undefined, error));
       });
+  };
+}
+
+export function fetchPackageSettings(origin: string, name: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).getPackageSettings(origin, name)
+      .then(settings => dispatch(setCurrentPackageSettings(settings)))
+      .catch(error => dispatch(setCurrentPackageSettings({}, error)));
   };
 }
 
@@ -294,6 +338,34 @@ export function setCurrentPackageChannels(channels) {
   };
 }
 
+export function setCurrentPackageSettings(settings, error = undefined) {
+  return {
+    type: SET_CURRENT_PACKAGE_SETTINGS,
+    payload: settings,
+    error: error,
+  };
+}
+
+export function setCurrentPackageVisibility(origin: string, name: string, setting: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).setPackageVisibility(origin, name, setting)
+      .then(settings => {
+        dispatch(setCurrentPackageSettings(settings));
+        dispatch(addNotification({
+          title: 'Privacy settings saved',
+          type: SUCCESS
+        }));
+      })
+      .catch(error => {
+        dispatch(addNotification({
+          title: 'Failed to save privacy settings',
+          body: error.message,
+          type: DANGER
+        }));
+      });
+  };
+}
+
 export function setCurrentPackageVersions(versions, error = undefined) {
   return {
     type: SET_CURRENT_PACKAGE_VERSIONS,
@@ -328,5 +400,26 @@ export function setVisiblePackages(params, error = undefined) {
     type: SET_VISIBLE_PACKAGES,
     payload: params,
     error: error,
+  };
+}
+
+export function setPackageReleaseVisibility(origin: string, name: string, version: string, release: string, setting: string, token: string) {
+  return dispatch => {
+    new BuilderApiClient(token).setPackageReleaseVisibility(origin, name, version, release, setting)
+      .then(response => {
+        const ident = { origin, name, version, release };
+        dispatch(fetchPackage({ ident }));
+        dispatch(addNotification({
+          title: 'Privacy settings saved',
+          type: SUCCESS
+        }));
+      })
+      .catch(error => {
+        dispatch(addNotification({
+          title: 'Failed to save privacy settings',
+          body: error.message,
+          type: DANGER
+        }));
+      });
   };
 }

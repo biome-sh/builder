@@ -54,6 +54,11 @@ variable "sup_release_channel" {
   default     = "builder-live"
 }
 
+variable "worker_release_channel" {
+  description = "Release channel in Builder to pull biome/builder-worker updates from"
+  default     = "stable"
+}
+
 variable "log_level" {
   description = "Logging level for the Biome Supervisor"
   default     = "info"

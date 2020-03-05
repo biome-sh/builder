@@ -23,8 +23,12 @@ extern crate features;
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
 
-use builder_core as bldr_core;
+extern crate diesel;
+
+// use builder_core as bldr_core;
 use biome_builder_db as db;
 use biome_builder_protocol as protocol;
 use biome_core as bio_core;
@@ -32,24 +36,32 @@ use biome_core as bio_core;
 pub mod config;
 pub mod data_store;
 pub mod error;
+pub mod ident_graph;
+pub mod package_graph;
+pub mod rdeps;
+pub mod util;
 
 use std::{collections::HashMap,
           fs::File,
           io::Write,
-          iter::FromIterator};
+          iter::FromIterator,
+          str::FromStr,
+          time::Instant};
 
 use clap::{App,
            Arg};
 use copperline::Copperline;
-use time::PreciseTime;
 
-use crate::{bldr_core::package_graph::PackageGraph,
-            config::Config,
+use crate::{config::Config,
             data_store::DataStore,
-            bio_core::config::ConfigFile};
+            bio_core::{config::ConfigFile,
+                       package::{PackageIdent,
+                                 PackageTarget}},
+            package_graph::PackageGraph};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
+#[allow(clippy::cognitive_complexity)]
 fn main() {
     env_logger::init();
 
@@ -78,15 +90,25 @@ fn main() {
     println!("Building graph... please wait.");
 
     let mut graph = PackageGraph::new();
+    let start_time = Instant::now();
     let packages = datastore.get_job_graph_packages().unwrap();
-    let start_time = PreciseTime::now();
-    let (ncount, ecount) = graph.build(packages.into_iter(), feat::is_enabled(feat::BuildDeps));
-    let end_time = PreciseTime::now();
+    let fetch_time = start_time.elapsed().as_secs();
+    println!("OK: fetched {} packages ({} sec)",
+             packages.len(),
+             fetch_time);
 
+    let start_time = Instant::now();
+    let (ncount, ecount) = graph.build(packages.into_iter(), feat::is_enabled(feat::BuildDeps));
     println!("OK: {} nodes, {} edges ({} sec)",
              ncount,
              ecount,
-             start_time.to(end_time));
+             start_time.elapsed().as_secs());
+
+    let targets = graph.targets();
+    let target_as_string: Vec<String> = targets.iter().map(|t| t.to_string()).collect();
+
+    println!("Found following targets {}", target_as_string.join(", "));
+    println!("Default target is {}", graph.current_target());
 
     println!("\nAvailable commands: help, stats, top, find, resolve, filter, rdeps, deps, check, \
               exit\n",);
@@ -95,7 +117,8 @@ fn main() {
     let mut done = false;
 
     while !done {
-        let line = cl.read_line_utf8("command> ").ok();
+        let prompt = format!("{}: command> ", graph.current_target());
+        let line = cl.read_line_utf8(&prompt).ok();
         if line.is_none() {
             continue;
         }
@@ -107,6 +130,7 @@ fn main() {
         if !v.is_empty() {
             match v[0].to_lowercase().as_str() {
                 "help" => do_help(),
+                "all_stats" => do_all_stats(&graph),
                 "stats" => do_stats(&graph),
                 "top" => {
                     let count = if v.len() < 2 {
@@ -137,6 +161,46 @@ fn main() {
                         do_find(&graph, v[1].to_lowercase().as_str(), max)
                     }
                 }
+                "dot" => {
+                    if v.len() < 2 {
+                        println!("Missing file name\n")
+                    } else {
+                        let origin = if v.len() > 2 { Some(v[2]) } else { None };
+                        do_dot(&graph, v[1], origin)
+                    }
+                }
+                "latest_dot" => {
+                    if v.len() < 2 {
+                        println!("Missing file name\n")
+                    } else {
+                        let origin = if v.len() > 2 { Some(v[2]) } else { None };
+                        do_latest_dot(&graph, v[1], origin)
+                    }
+                }
+                "latest_raw" => {
+                    if v.len() < 2 {
+                        println!("Missing search term\n")
+                    } else {
+                        let origin = if v.len() > 2 { Some(v[2]) } else { None };
+                        do_latest_raw(&graph, v[1], origin)
+                    }
+                }
+                "scc" => {
+                    if v.len() < 3 {
+                        println!("Missing search term\n")
+                    } else {
+                        let origin = if v.len() > 2 { Some(v[2]) } else { None };
+                        do_scc(&graph, v[1], origin)
+                    }
+                }
+                "build_levels" => {
+                    if v.len() < 3 {
+                        println!("Missing search term\n")
+                    } else {
+                        let origin = if v.len() > 2 { Some(v[2]) } else { None };
+                        do_build_levels(&graph, v[1], origin)
+                    }
+                }
                 "resolve" => {
                     if v.len() < 2 {
                         println!("Missing package name\n")
@@ -156,11 +220,18 @@ fn main() {
                         do_rdeps(&graph, v[1].to_lowercase().as_str(), &filter, max)
                     }
                 }
+                "db_deps" => {
+                    if v.len() < 2 {
+                        println!("Missing package name\n")
+                    } else {
+                        do_db_deps(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
+                    }
+                }
                 "deps" => {
                     if v.len() < 2 {
                         println!("Missing package name\n")
                     } else {
-                        do_deps(&datastore, &graph, v[1].to_lowercase().as_str(), &filter)
+                        do_deps(&graph, v[1].to_lowercase().as_str())
                     }
                 }
                 "check" => {
@@ -177,7 +248,8 @@ fn main() {
                         do_export(&graph, v[1].to_lowercase().as_str(), &filter)
                     }
                 }
-                "exit" => done = true,
+                "target" => do_target(&mut graph, v[1]),
+                "quit" | "exit" => done = true,
                 _ => println!("Unknown command\n"),
             }
         }
@@ -187,7 +259,16 @@ fn main() {
 fn do_help() {
     println!("Commands:");
     println!("  help                    Print this message");
+    println!("  target                  Set current target architecture");
+    println!("  all_stats               Stats for all targets");
+
+    println!("Conditionalized by current target architecture");
+
     println!("  stats                   Print graph statistics");
+    println!("  scc                     Write SCC to file");
+    println!("  build_levels            Write Build Levels to file");
+    println!("  latest_dot              Write latest graph to dot file");
+
     println!("  top     [<count>]       Print nodes with the most reverse dependencies");
     println!("  filter  [<origin>]      Filter outputs to the specified origin");
     println!("  resolve <name>          Find the most recent version of the package 'origin/name'");
@@ -197,6 +278,17 @@ fn do_help() {
     println!("  check   <name>|<ident>  Validate the latest dependencies for the package");
     println!("  export  <filename>      Export data from graph to specified file");
     println!("  exit                    Exit the application\n");
+}
+
+fn do_all_stats(graph: &PackageGraph) {
+    let stats = graph.all_stats();
+    for (target, stat) in stats {
+        println!("Target: {}", target);
+        println!("  Node count: {}", stat.node_count);
+        println!("  Edge count: {}", stat.edge_count);
+        println!("  Connected components: {}", stat.connected_comp);
+        println!("  Is cyclic: {}", stat.is_cyclic)
+    }
 }
 
 fn do_stats(graph: &PackageGraph) {
@@ -209,13 +301,12 @@ fn do_stats(graph: &PackageGraph) {
 }
 
 fn do_top(graph: &PackageGraph, count: usize) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let top = graph.top(count);
-    let end_time = PreciseTime::now();
 
     println!("OK: {} items ({} sec)\n",
              top.len(),
-             start_time.to(end_time));
+             start_time.elapsed().as_secs());
 
     for (name, count) in top {
         println!("{}: {}", name, count);
@@ -224,11 +315,12 @@ fn do_top(graph: &PackageGraph, count: usize) {
 }
 
 fn do_find(graph: &PackageGraph, phrase: &str, max: usize) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let mut v = graph.search(phrase);
-    let end_time = PreciseTime::now();
 
-    println!("OK: {} items ({} sec)\n", v.len(), start_time.to(end_time));
+    println!("OK: {} items ({} sec)\n",
+             v.len(),
+             start_time.elapsed().as_secs());
 
     if v.is_empty() {
         println!("No matching packages found")
@@ -244,12 +336,51 @@ fn do_find(graph: &PackageGraph, phrase: &str, max: usize) {
     println!();
 }
 
-fn do_resolve(graph: &PackageGraph, name: &str) {
-    let start_time = PreciseTime::now();
-    let result = graph.resolve(name);
-    let end_time = PreciseTime::now();
+fn do_latest_dot(graph: &PackageGraph, filename: &str, origin: Option<&str>) {
+    let start_time = Instant::now();
+    graph.dump_latest_graph_as_dot(filename, origin);
+    let duration_secs = start_time.elapsed().as_secs();
+    println!("Wrote latest graph to file {} filtered by {:?} TBI in {} sec",
+             filename, origin, duration_secs);
+}
 
-    println!("OK: ({} sec)\n", start_time.to(end_time));
+fn do_latest_raw(graph: &PackageGraph, filename: &str, origin: Option<&str>) {
+    let start_time = Instant::now();
+    graph.dump_latest_graph_raw(filename, origin);
+    let duration_secs = start_time.elapsed().as_secs();
+    println!("Wrote latest graph to file {} filtered by {:?} TBI in {} sec",
+             filename, origin, duration_secs);
+}
+
+fn do_dot(graph: &PackageGraph, filename: &str, origin: Option<&str>) {
+    let start_time = Instant::now();
+    graph.emit_graph(filename, None, true, None);
+    let duration_secs = start_time.elapsed().as_secs();
+    println!("Wrote graph to file {} filtered by {:?} TBI in {} sec",
+             filename, origin, duration_secs);
+}
+
+fn do_scc(graph: &PackageGraph, filename: &str, origin: Option<&str>) {
+    let start_time = Instant::now();
+    graph.dump_scc(filename, origin);
+    let duration_secs = start_time.elapsed().as_secs();
+    println!("Wrote SCC information to file {} filtered by {:?} TBI in {} sec",
+             filename, origin, duration_secs);
+}
+
+fn do_build_levels(graph: &PackageGraph, filename: &str, origin: Option<&str>) {
+    let start_time = Instant::now();
+    graph.dump_build_levels(filename, origin);
+    let duration_secs = start_time.elapsed().as_secs();
+    println!("Wrote Build levels information to file {} filtered by {:?} TBI in {} sec",
+             filename, origin, duration_secs);
+}
+
+fn do_resolve(graph: &PackageGraph, name: &str) {
+    let start_time = Instant::now();
+    let result = graph.resolve(name);
+
+    println!("OK: ({} sec)\n", start_time.elapsed().as_secs());
 
     match result {
         Some(s) => println!("{}", s),
@@ -260,35 +391,37 @@ fn do_resolve(graph: &PackageGraph, name: &str) {
 }
 
 fn do_rdeps(graph: &PackageGraph, name: &str, filter: &str, max: usize) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
 
-    match graph.rdeps(name) {
-        Some(rdeps) => {
-            let end_time = PreciseTime::now();
-            let mut filtered: Vec<(String, String)> =
-                rdeps.into_iter()
-                     .filter(|&(ref x, _)| x.starts_with(filter))
-                     .collect();
+    let ident_option = PackageIdent::from_str(name);
+    if let Ok(ident) = ident_option {
+        match graph.rdeps(&ident) {
+            Some(rdeps) => {
+                let duration_secs = start_time.elapsed().as_secs();
+                let mut filtered: Vec<(String, String)> =
+                    rdeps.into_iter()
+                         .filter(|&(ref x, _)| x.starts_with(filter))
+                         .collect();
 
-            println!("OK: {} items ({} sec)\n",
-                     filtered.len(),
-                     start_time.to(end_time));
+                println!("OK: {} items ({} sec)\n", filtered.len(), duration_secs);
 
-            if filtered.len() > max {
-                filtered.drain(max..);
+                if filtered.len() > max {
+                    filtered.drain(max..);
+                }
+
+                if !filter.is_empty() {
+                    println!("Results filtered by: {}", filter);
+                }
+
+                for (s1, s2) in filtered {
+                    println!("{} ({})", s1, s2);
+                }
             }
-
-            if !filter.is_empty() {
-                println!("Results filtered by: {}", filter);
-            }
-
-            for (s1, s2) in filtered {
-                println!("{} ({})", s1, s2);
-            }
+            None => println!("No entries found"),
         }
-        None => println!("No entries found"),
+    } else {
+        println!("Bad ident {}", name)
     }
-
     println!();
 }
 
@@ -304,19 +437,23 @@ fn resolve_name(graph: &PackageGraph, name: &str) -> String {
     }
 }
 
-fn do_deps(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str) {
-    let start_time = PreciseTime::now();
+fn do_deps(graph: &PackageGraph, name: &str) {
+    println!("Dependencies for: {}", name);
+    graph.write_deps(name);
+}
+
+fn do_db_deps(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str) {
+    let start_time = Instant::now();
     let ident = resolve_name(graph, name);
+    let target = graph.current_target();
 
     println!("Dependencies for: {}", ident);
 
-    match datastore.get_job_graph_package(&ident) {
+    match datastore.get_job_graph_package(&ident, &target) {
         Ok(package) => {
-            let end_time = PreciseTime::now();
             println!("OK: {} items ({} sec)\n",
                      package.get_deps().len(),
-                     start_time.to(end_time));
-
+                     start_time.elapsed().as_secs());
             if !filter.is_empty() {
                 println!("Results filtered by: {}\n", filter);
             }
@@ -340,12 +477,13 @@ fn short_name(ident: &str) -> String {
 }
 
 fn do_check(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &str) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let mut deps_map = HashMap::new();
     let mut new_deps = Vec::new();
     let ident = resolve_name(graph, name);
+    let target = graph.current_target();
 
-    match datastore.get_job_graph_package(&ident) {
+    match datastore.get_job_graph_package(&ident, &target.to_string()) {
         Ok(package) => {
             if !filter.is_empty() {
                 println!("Checks filtered by: {}\n", filter);
@@ -365,21 +503,21 @@ fn do_check(datastore: &DataStore, graph: &PackageGraph, name: &str, filter: &st
             println!();
 
             for new_dep in new_deps {
-                check_package(datastore, &mut deps_map, &new_dep, filter);
+                check_package(datastore, target, &mut deps_map, &new_dep, filter);
             }
         }
         Err(_) => println!("No matching package found"),
     }
 
-    let end_time = PreciseTime::now();
-    println!("\nTime: {} sec\n", start_time.to(end_time));
+    println!("\nTime: {} sec\n", start_time.elapsed().as_secs());
 }
 
 fn check_package(datastore: &DataStore,
+                 target: PackageTarget,
                  deps_map: &mut HashMap<String, String>,
                  ident: &str,
                  filter: &str) {
-    match datastore.get_job_graph_package(ident) {
+    match datastore.get_job_graph_package(ident, &target.to_string()) {
         Ok(package) => {
             for dep in package.get_deps() {
                 if dep.to_string().starts_with(filter) {
@@ -392,7 +530,7 @@ fn check_package(datastore: &DataStore,
                             println!("  {}", dep);
                         }
                     }
-                    check_package(datastore, deps_map, &dep.to_string(), filter);
+                    check_package(datastore, target, deps_map, &dep.to_string(), filter);
                 }
             }
         }
@@ -401,10 +539,9 @@ fn check_package(datastore: &DataStore,
 }
 
 fn do_export(graph: &PackageGraph, filename: &str, filter: &str) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let latest = graph.latest();
-    let end_time = PreciseTime::now();
-    println!("\nTime: {} sec\n", start_time.to(end_time));
+    println!("\nTime: {} sec\n", start_time.elapsed().as_secs());
 
     let mut file = File::create(filename).expect("Failed to initialize file");
 
@@ -416,6 +553,13 @@ fn do_export(graph: &PackageGraph, filename: &str, filter: &str) {
         if ident.starts_with(filter) {
             file.write_fmt(format_args!("{}\n", ident)).unwrap();
         }
+    }
+}
+
+fn do_target(graph: &mut PackageGraph, target: &str) {
+    match PackageTarget::from_str(target) {
+        Ok(package_target) => graph.set_target(package_target),
+        Err(_) => println!("{} is not a valid target", target),
     }
 }
 

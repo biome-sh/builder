@@ -35,6 +35,7 @@ use actix_web::{body::Body,
                       ServiceConfig},
                 HttpRequest,
                 HttpResponse};
+use builder_core::Error::OriginDeleteError;
 use bytes::Bytes;
 use diesel::{pg::PgConnection,
              result::Error::NotFound};
@@ -53,6 +54,7 @@ use crate::{bldr_core,
 use crate::protocol::originsrv::OriginKeyIdent;
 
 use crate::db::models::{account::*,
+                        channel::Channel,
                         integration::*,
                         invitations::*,
                         keys::*,
@@ -61,6 +63,7 @@ use crate::db::models::{account::*,
                                   ListPackages,
                                   Package,
                                   PackageVisibility},
+                        projects::Project,
                         secrets::*};
 
 use crate::server::{authorize::{authorize_session,
@@ -111,6 +114,8 @@ impl Origins {
                   web::delete().to(origin_member_delete))
            .route("/depot/origins/{origin}/transfer/{user}",
                   web::post().to(transfer_origin_ownership))
+           .route("/depot/origins/{origin}/depart",
+                  web::post().to(depart_from_origin))
            .route("/depot/origins/{origin}/invitations",
                   web::get().to(list_origin_invitations))
            .route("/depot/origins/{origin}/users/{username}/invitations",
@@ -208,7 +213,15 @@ fn create_origin(req: HttpRequest,
                                  default_package_visibility: &dpv, };
 
     match Origin::create(&new_origin, &*conn).map_err(Error::DieselError) {
-        Ok(origin) => HttpResponse::Created().json(origin),
+        Ok(origin) => {
+            origin_audit(&body.0.name,
+                         OriginOperation::OriginCreate,
+                         &body.0.name,
+                         session.get_id() as i64,
+                         session.get_name(),
+                         &*conn);
+            HttpResponse::Created().json(origin)
+        }
         Err(err) => {
             debug!("{}", err);
             err.into()
@@ -267,13 +280,113 @@ fn delete_origin(req: HttpRequest, path: Path<String>, state: Data<AppState>) ->
         Err(err) => return err.into(),
     };
 
-    match Origin::delete(&origin, &*conn).map_err(Error::DieselError) {
-        Ok(_) => HttpResponse::NoContent().into(),
+    // Prior to passing the deletion request to the backend, we validate
+    // that the user has already cleaned up the most critical origin data.
+    match origin_delete_preflight(&origin, &*conn) {
+        Ok(_) => {
+            match Origin::delete(&origin, &*conn).map_err(Error::DieselError) {
+                Ok(_) => {
+                    origin_audit(&origin,
+                                 OriginOperation::OriginDelete,
+                                 &origin,
+                                 session.get_id() as i64,
+                                 session.get_name(),
+                                 &*conn);
+                    HttpResponse::NoContent().into()
+                }
+                Err(err) => {
+                    debug!("Origin {} deletion failed! err = {}", origin, err);
+                    // We do not want to expose any database details from diesel
+                    // thus we simply return a 409 with an empty body.
+                    HttpResponse::new(StatusCode::CONFLICT)
+                }
+            }
+        }
         Err(err) => {
-            debug!("Origin {} is not deletable, err = {}", origin, err);
-            HttpResponse::new(StatusCode::CONFLICT)
+            debug!("Origin preflight determined that {} is not deletable, err = {}!",
+                   origin, err);
+            // Here we want to enrich the http response with a sanitized error
+            // by returning a 409 with a helpful message in the body.
+            HttpResponse::with_body(StatusCode::CONFLICT, Body::from_message(format!("{}", err)))
         }
     }
+}
+
+fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
+    match Project::count_origin_projects(&origin, &*conn) {
+        Ok(0) => {}
+        Ok(count) => {
+            let err = format!("There are {} projects remaining in origin {}. Must be zero.",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => return Err(Error::DieselError(e)),
+    };
+
+    match OriginMember::count_origin_members(&origin, &*conn) {
+        // allow 1 - the origin owner
+        Ok(1) => {}
+        Ok(count) => {
+            let err = format!("There are {} members remaining in origin {}. Only one is allowed.",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => {
+            return Err(Error::DieselError(e));
+        }
+    };
+
+    match OriginSecret::count_origin_secrets(&origin, &*conn) {
+        Ok(0) => {}
+        Ok(count) => {
+            let err = format!("There are {} secrets remaining in origin {}. Must be zero.",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => {
+            return Err(Error::DieselError(e));
+        }
+    };
+
+    match OriginIntegration::count_origin_integrations(&origin, &*conn) {
+        Ok(0) => {}
+        Ok(count) => {
+            let err = format!("There are {} integrations remaining in origin {}. Must be zero.",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => {
+            return Err(Error::DieselError(e));
+        }
+    };
+
+    match Channel::count_origin_channels(&origin, &*conn) {
+        // allow 2 - [unstable, stable] channels cannot be deleted
+        Ok(2) => {}
+        Ok(count) => {
+            let err = format!("There are {} channels remaining in origin {}. Only two are \
+                               allowed [unstable, stable].",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => {
+            return Err(Error::DieselError(e));
+        }
+    };
+
+    match Package::count_origin_packages(&origin, &*conn) {
+        Ok(0) => {}
+        Ok(count) => {
+            let err = format!("There are {} packages remaining in origin {}. Must be zero.",
+                              count, origin);
+            return Err(Error::BuilderCore(OriginDeleteError(err)));
+        }
+        Err(e) => {
+            return Err(Error::DieselError(e));
+        }
+    };
+
+    Ok(())
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -285,14 +398,7 @@ fn create_keys(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> H
         Err(err) => return err.into(),
     };
 
-    let pair = match SigKeyPair::generate_pair_for_origin(&origin).map_err(Error::BiomeCore) {
-        Ok(pair) => pair,
-        Err(err) => {
-            error!("Failed to generate origin key pair for {}, err={}",
-                   origin, err);
-            return err.into();
-        }
-    };
+    let pair = SigKeyPair::generate_pair_for_origin(&origin);
 
     let conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
@@ -818,7 +924,9 @@ fn list_unique_packages(req: HttpRequest,
                              limit:      per_page as i64, };
 
     match Package::distinct_for_origin(lpr, &*conn) {
-        Ok((packages, count)) => postprocess_package_list(&req, &packages, count, &pagination),
+        Ok((packages, count)) => {
+            postprocess_package_list(&req, packages.as_slice(), count, &pagination)
+        }
         Err(err) => {
             debug!("{}", err);
             Error::DieselError(err).into()
@@ -1093,6 +1201,51 @@ fn transfer_origin_ownership(req: HttpRequest,
     }
 
     match Origin::transfer(&origin, recipient_id, &*conn).map_err(Error::DieselError) {
+        Ok(_) => {
+            origin_audit(&origin,
+                         OriginOperation::OwnerTransfer,
+                         &recipient_id.to_string(),
+                         session.get_id() as i64,
+                         session.get_name(),
+                         &*conn);
+            HttpResponse::NoContent().finish()
+        }
+        Err(err) => {
+            debug!("{}", err);
+            err.into()
+        }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+fn depart_from_origin(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> HttpResponse {
+    let origin = path.into_inner();
+
+    let session = match authorize_session(&req, None) {
+        Ok(session) => session,
+        Err(err) => return err.into(),
+    };
+
+    // Do not allow an origin owner to depart which would orphan the origin
+    if check_origin_owner(&req, session.get_id(), &origin).unwrap_or(false) {
+        return HttpResponse::new(StatusCode::FORBIDDEN);
+    }
+
+    // Pass a meaningful error in the case that the user isn't a member of origin
+    if !check_origin_member(&req, &origin, session.get_id()).unwrap_or(false) {
+        return HttpResponse::new(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    let conn = match state.db.get_conn().map_err(Error::DbError) {
+        Ok(conn_ref) => conn_ref,
+        Err(err) => return err.into(),
+    };
+
+    debug!("Departing user {} from origin {}",
+           session.get_name(),
+           &origin);
+
+    match Origin::depart(&origin, session.get_id() as i64, &*conn).map_err(Error::DieselError) {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(err) => {
             debug!("{}", err);

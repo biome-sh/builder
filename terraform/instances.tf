@@ -31,12 +31,12 @@ locals {
   windows_worker_user_data_content = templatefile(
     "${path.module}/templates/windows_worker_user_data.tpl",
     {
-      environment      = var.env
-      password         = var.admin_password
-      flags            = "--no-color --auto-update --peer ${join(" ", var.peers)} --channel ${var.sup_release_channel} --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
-      bldr_url         = var.bldr_url
-      channel          = var.release_channel
-      enabled_features = var.enabled_features
+      environment            = var.env
+      password               = var.admin_password
+      flags                  = "--no-color --auto-update --peer ${join(" ", var.peers)} --channel ${var.sup_release_channel} --listen-gossip 0.0.0.0:${var.gossip_listen_port} --listen-http 0.0.0.0:${var.http_listen_port}"
+      bldr_url               = var.bldr_url
+      worker_release_channel = var.worker_release_channel
+      enabled_features       = var.enabled_features
     })
 }
 
@@ -146,7 +146,7 @@ resource "aws_instance" "api" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install_base_packages.sh",
-      "sudo /tmp/install_base_packages.sh biome/builder-api",
+      "sudo /tmp/install_base_packages.sh -s biome/builder-api",
       "sudo mv /home/ubuntu/bio-sup.service /etc/systemd/system/bio-sup.service",
       "sudo mkdir -p /hab/sup/default/config",
       "sudo mv /tmp/sup_log.yml /hab/sup/default/config/log.yml",
@@ -272,7 +272,7 @@ resource "aws_instance" "jobsrv" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install_base_packages.sh",
-      "sudo /tmp/install_base_packages.sh biome/builder-jobsrv",
+      "sudo /tmp/install_base_packages.sh -s biome/builder-jobsrv",
       "sudo mv /home/ubuntu/bio-sup.service /etc/systemd/system/bio-sup.service",
       "sudo mkdir -p /hab/sup/default/config",
       "sudo mv /tmp/sup_log.yml /hab/sup/default/config/log.yml",
@@ -397,7 +397,7 @@ resource "aws_instance" "worker" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install_base_packages.sh",
-      "sudo /tmp/install_base_packages.sh biome/builder-worker",
+      "sudo /tmp/install_base_packages.sh -s biome/builder-worker",
       "sudo iptables -I DOCKER-USER -p tcp -s 10.0.0.0/24 -j DROP",
       "sudo iptables -I DOCKER-USER -p udp -s 10.0.0.0/24 -m multiport --sports 0:52,54:65535 -j DROP",
       "sudo mv /home/ubuntu/bio-sup.service /etc/systemd/system/bio-sup.service",
@@ -407,7 +407,7 @@ resource "aws_instance" "worker" {
       "sudo systemctl start bio-sup",
       "sudo systemctl enable bio-sup",
       "sleep 10",
-      "sudo bio svc load biome/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
+      "sudo bio svc load biome/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.worker_release_channel}",
       "sudo bio svc load core/sumologic --group ${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
     ]
   }
@@ -460,8 +460,8 @@ resource "aws_instance" "linux2-worker" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/scripts/install_linux2_packages.sh"
-    destination = "/tmp/install_linux2_packages.sh"
+    source      = "${path.module}/scripts/install_base_packages.sh"
+    destination = "/tmp/install_base_packages.sh"
   }
 
   provisioner "remote-exec" {
@@ -496,8 +496,8 @@ resource "aws_instance" "linux2-worker" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/install_linux2_packages.sh",
-      "sudo /tmp/install_linux2_packages.sh",
+      "chmod +x /tmp/install_base_packages.sh",
+      "sudo /tmp/install_base_packages.sh -t x86_64-linux-kernel2",
       "sudo iptables -I DOCKER -p tcp -s 10.0.0.0/24 -j DROP",
       "sudo iptables -I DOCKER -p udp -s 10.0.0.0/24 -m multiport --sports 0:52,54:65535 -j DROP",
       "sudo mv /tmp/bio-sup.init /etc/init/bio-sup.conf",
@@ -505,7 +505,7 @@ resource "aws_instance" "linux2-worker" {
       "sudo mv /tmp/sup_log.yml /hab/sup/default/config/log.yml",
       "sudo service bio-sup start",
       "sleep 10",
-      "sudo bio svc load biome/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.release_channel}",
+      "sudo bio svc load biome/builder-worker --group ${var.env} --bind jobsrv:builder-jobsrv.${var.env} --bind depot:builder-api-proxy.${var.env} --strategy at-once --url ${var.bldr_url} --channel ${var.worker_release_channel}",
     ]
   }
 
@@ -519,8 +519,8 @@ resource "aws_instance" "linux2-worker" {
 }
 
 resource "aws_instance" "windows-worker" {
-  // Windows_Server-2019-English-Full-ContainersLatest-2019.10.09
-  ami           = "ami-0a6b38f2d62c0cc94"
+  // Windows_Server-2019-English-Full-ContainersLatest-2020.02.12
+  ami           = "ami-001589977a146ef31"
   instance_type = var.instance_size_windows_worker
   key_name      = var.aws_key_pair
 

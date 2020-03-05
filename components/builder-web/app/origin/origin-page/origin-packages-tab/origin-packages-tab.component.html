@@ -1,39 +1,32 @@
 <div class="body">
   <div class="content">
     <section *ngIf="builderEnabled && memberOfOrigin">
-      <bio-project-settings
-        [origin]="origin"
-        [integrations]="integrations"
-        (toggled)="toggled($event)"
-        (saved)="saved($event)">
-      </bio-project-settings>
+
+      <!-- TODO: Remove inline style when second button is removed -->
+      <button 
+        [ngStyle]="{marginBottom: '10px'}"
+        mat-raised-button color="primary" 
+        class="button" 
+        (click)="showCreatePackageDialog()" 
+        [disabled]="!hasPrivateKey">
+        Create Package
+      </button>
+
     </section>
+
     <section *ngIf="!selectingPlan">
-      <ul class="nav-list" *ngIf="projectsExist">
+      <ol class="nav-list">
         <li class="heading">
-          <h4>Connected Plans</h4>
-        </li>
-        <li class="item" *ngFor="let proj of projects">
-          <a [routerLink]="['/pkgs', origin, proj, 'latest']">
-            <span class="column name">{{ proj }}</span>
-          </a>
-          <bio-icon symbol="chevron-right"></bio-icon>
-        </li>
-      </ul>
-      <ul class="nav-list">
-        <li class="heading">
-          <h4>Packages</h4>
-        </li>
-        <li class="none" *ngIf="noPackages">
-          <span>No packages found.</span>
+          <h4>Package Name</h4>
         </li>
         <li class="item" *ngFor="let pkg of packages">
           <a [routerLink]="['/pkgs', pkg.origin, pkg.name, 'latest']">
             <span class="column name">{{ pkg.name }}</span>
+            <bio-icon symbol="chevron-right" class="chevron-right"></bio-icon>
           </a>
-          <bio-icon symbol="chevron-right"></bio-icon>
         </li>
-      </ul>
+      </ol>
+      
       <div *ngIf="packages.size < totalCount">
         Showing {{packages.size}} of {{totalCount}} packages.
         <a (click)="fetchMorePackages()">
@@ -42,4 +35,22 @@
       </div>
     </section>
   </div>
+
+  <aside>
+    <h3>Default Package Visibility</h3>
+    <p>
+      <bio-visibility-icon [visibility]="defaultVisibility" prefix="Default Package Visibility:"></bio-visibility-icon>
+      {{ defaultVisibility | titlecase }} Packages
+    </p>
+    <h3>Manual Upload</h3>
+    <p>
+      You can upload pre-built packages to the Origin following the instruction in the
+      <a 
+      href="{{ docsUrl }}/using-builder/#upload-and-promote-packages" target="_blank">
+      Docs
+      <bio-icon symbol="open-in-new"></bio-icon>
+      </a>.
+    </p>
+  </aside>
+
 </div>
