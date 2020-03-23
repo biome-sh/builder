@@ -321,6 +321,9 @@ patterns:
   '[hab]': '[bio]'
   .hab: .bio
 
+  # Allow bio user agent
+  'hab|builder': 'hab|bio|builder'
+
 # Delete some files which safe to ignore
 deletes:
   # We're not going to support public site now
