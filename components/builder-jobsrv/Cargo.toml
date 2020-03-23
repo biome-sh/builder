@@ -23,8 +23,8 @@ diesel-derive-enum = { version = "*", features = ["postgres"] }
 diesel_migrations = "*"
 features = "*"
 futures = "0.1"
-rusoto_core = "*"
-rusoto_s3 = "*"
+rusoto_core = "=0.42.0"
+rusoto_s3 = "=0.42.0"
 env_logger = "*"
 biome_builder_db = { path = "../builder-db" }
 biome-builder-protocol = { path = "../builder-protocol" }
