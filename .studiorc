@@ -91,6 +91,12 @@ _build-builder-component() {
   echo "builder-$component build succeeded"
 
   start-builder "$component"
+  case "${component}" in
+    api | worker)
+      generate_bldr_keys && upload_github_keys;;
+    *)
+      ;;
+  esac
 }
 build-builder-component() { stop-on-failure _build-builder-component "$@"; }
 
@@ -143,10 +149,13 @@ _start-builder() {
     start-builder jobsrv
     start-builder worker
     start-builder minio
+    # Provide enough time for minio's reconfigure hook to create the bucket.
+    # Otherwise, the configure operation will error and abend this function.
+    sleep 8
     configure-minio
-    sleep 2
-    generate_bldr_keys
+
     upload_github_keys
+    generate_bldr_keys
 
     echo "Builder Started: Navigate to http://localhost/#/pkgs/core to access the web UI."
     echo "Minio login available at http://localhost:9000"
@@ -275,21 +284,53 @@ origin() {
   fi
 }
 
+status() {
+  bio svc status
+}
+
 test-builder() {
-    if bio sup status > /dev/null 2>&1; then
-      echo "Stopping supervisor"
-        bio sup term
-        sleep 8
-    fi
+  local preserve_flag logs
+  logs="/hab/sup/default/debug.log"
 
-    echo "Starting supervisor in test mode"
-    HAB_FUNC_TEST=1 sup-run
-    sleep 10
+  if [[ "$#" -gt 0 ]]; then
+    case "${1}" in
+    suplogs)
+      if [[ -f "${logs}" ]]; then
+        echo "--- TEST-BUILDER LOGS [${logs}] START"
+        cat "${logs}"
+        echo "--- TEST-BUILDER LOGS [${logs}] END"
+      else
+        echo "No logs. Run \`test-builder\` first."
+      fi
+      return;;
+    preserve)
+      echo "Setting flag to preserve data following tests."
+      preserve_flag="-p";;
+    esac
+  fi
 
-    /src/test/builder-api/test.sh
-    echo "Returning supervisor to default mode"
-    bio sup term > /dev/null 2>&1
-    sup-run
+  if bio sup status > /dev/null 2>&1; then
+     echo "Stopping supervisor"
+     bio sup term
+     sleep 8
+  fi
+
+  echo "Starting supervisor in test mode. Logs saved to ${logs}"
+  HAB_FUNC_TEST=1 RUST_LOG=debug bio sup run > ${logs} 2>&1 &
+  sleep 8
+
+  start-builder
+
+  /src/test/builder-api/test.sh "${preserve:-}"
+
+  if [[ "${preserve_flag:-}" == "-p" ]]; then
+    echo "Data has been preserved and supervisor remains running"
+    echo "To see supervisor logs from the API tests, run: test-builder suplogs"
+    echo "To inspect Postgres data, run: psql -h 127.0.0.1 builder -U bio -p 5433"
+  else
+    echo "Stopping supervisor"
+    bio sup term
+  fi
 }
 
 function psql() {
@@ -344,7 +385,11 @@ The following commands are available:
   psql                      - Open psql shell to builder DB
   origin                    - Create core origin
   origin [ORIGIN]           - Create specified origin
+  status                    - Run bio svc status
   test-builder              - Run end-to-end API tests
+  test-builder suplogs      - Display supervisor debug logs from API tests
+  test-builder preserve     - Run end-to-end API tests,
+                              preserving test data in Postgres
   sl                        - Tail the supervisor log
   help                      - Print this list
 DOCS

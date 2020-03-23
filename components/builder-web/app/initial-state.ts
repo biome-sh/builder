@@ -153,6 +153,7 @@ export default Record({
   packages: Record({
     current: Package(),
     currentChannels: [],
+    currentSettings: undefined,
     dashboard: Record({
       origin: undefined,
       recent: List()
@@ -172,6 +173,7 @@ export default Record({
     totalCount: 0,
     ui: Record({
       current: Record({
+        creating: false,
         errorMessage: undefined,
         exists: false,
         loading: true,
@@ -207,6 +209,7 @@ export default Record({
   })(),
   projects: Record({
     current: Project(),
+    currentProjects: [],
     visible: List(),
     ui: Record({
       current: Record({

@@ -2,11 +2,11 @@ use std::{fmt,
           io::Write,
           ops::Deref,
           str::{self,
-                FromStr}};
+                FromStr},
+          time::Instant};
 
 use chrono::NaiveDateTime;
 use protobuf;
-use time::PreciseTime;
 
 use diesel::{self,
              deserialize::{self,
@@ -41,7 +41,8 @@ use crate::{bio_core::{self,
             models::{channel::{Channel,
                                OriginChannelPackage,
                                OriginChannelPromote},
-                     pagination::*}};
+                     pagination::*,
+                     settings::OriginPackageSettings}};
 
 use crate::schema::{channel::{origin_channel_packages,
                               origin_channels},
@@ -50,7 +51,8 @@ use crate::schema::{channel::{origin_channel_packages,
                     package::{origin_package_versions,
                               origin_packages,
                               origin_packages_with_version_array,
-                              packages_with_channel_platform}};
+                              packages_with_channel_platform},
+                    settings::origin_package_settings};
 
 use crate::{bldr_core::metrics::{CounterMetric,
                                  HistogramMetric},
@@ -443,7 +445,7 @@ impl Package {
                       conn: &PgConnection)
                       -> QueryResult<PackageWithVersionArray> {
         Counter::DBCall.increment();
-        let start_time = PreciseTime::now();
+        let start_time = Instant::now();
 
         let result = origin_packages_with_version_array::table
             .filter(origin_packages_with_version_array::origin.eq(&req.ident.origin.clone()))
@@ -459,30 +461,29 @@ impl Package {
             .limit(1)
             .get_result(conn);
 
-        let end_time = PreciseTime::now();
-        trace!("DBCall package::get_latest time: {} ms",
-               start_time.to(end_time).num_milliseconds());
-        Histogram::DbCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
-        Histogram::GetLatestPackageCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::get_latest time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::GetLatestPackageCallTime.set(duration_millis as f64);
 
         result
     }
 
     pub fn get_all_latest(conn: &PgConnection) -> QueryResult<Vec<PackageWithVersionArray>> {
         Counter::DBCall.increment();
-        let start_time = PreciseTime::now();
+        let start_time = Instant::now();
         let result = origin_packages_with_version_array::table
-            .distinct_on((origin_packages_with_version_array::origin, origin_packages_with_version_array::name))
+            .distinct_on((origin_packages_with_version_array::origin, origin_packages_with_version_array::name, origin_packages_with_version_array::target))
             .order(sql::<PackageWithVersionArray>(
-                "origin, name, string_to_array(version_array[1],'.')::\
+                "origin, name, target, string_to_array(version_array[1],'.')::\
                 numeric[] desc, ident_array[4] desc",
             ))
             .get_results(conn);
-        let end_time = PreciseTime::now();
+        let duration_millis = start_time.elapsed().as_millis();
         trace!("DBCall package::get_all_latest time: {} ms",
-               start_time.to(end_time).num_milliseconds());
-        Histogram::DbCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
-        Histogram::GetAllLatestCallTime.set(start_time.to(end_time).num_milliseconds() as f64);
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::GetAllLatestCallTime.set(duration_millis as f64);
         result
     }
 
@@ -584,15 +585,13 @@ impl Package {
 
     pub fn distinct_for_origin(pl: ListPackages,
                                conn: &PgConnection)
-                               -> QueryResult<(Vec<BuilderPackageIdent>, i64)> {
+                               -> QueryResult<(Vec<OriginPackageSettings>, i64)> {
         Counter::DBCall.increment();
-        origin_packages::table.inner_join(origins::table)
-                              .select(sql("concat_ws('/', origins.name, origin_packages.name)"))
-                              .filter(origins::name.eq(&pl.ident.origin))
-                              .filter(origin_packages::visibility.eq(any(pl.visibility)))
-                              .filter(sql("TRUE GROUP BY origin_packages.name, origins.name"))
-                              .order(origins::name.asc())
-                              .order(origin_packages::name.asc())
+        origin_package_settings::table.select(origin_package_settings::all_columns)
+                              .filter(origin_package_settings::origin.eq(&pl.ident.origin))
+                              .filter(origin_package_settings::visibility.eq(any(pl.visibility)))
+                              .order(origin_package_settings::origin.asc())
+                              .order(origin_package_settings::name.asc())
                               .paginate(pl.page)
                               .per_page(pl.limit)
                               .load_and_count_records(conn)

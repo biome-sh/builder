@@ -28,6 +28,7 @@ use crate::{bldr_core::{error::Error::RpcError,
                                    PackageVisibility,
                                    SearchPackages},
                          settings::{GetOriginPackageSettings,
+                                    NewOriginPackageSettings,
                                     OriginPackageSettings}},
             bio_core::{package::{FromArchive,
                                  Identifiable,
@@ -74,6 +75,7 @@ use futures::{future::ok as fut_ok,
               Stream};
 use percent_encoding;
 use protobuf;
+use serde::ser::Serialize;
 use serde_json;
 use std::{fs::{self,
                remove_file,
@@ -240,7 +242,8 @@ fn get_latest_package_for_origin_package(req: HttpRequest,
     match do_get_package(&req, &qtarget, &ident) {
         Ok(json_body) => {
             HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL, headers::cache(false))
+                              .header(http::header::CACHE_CONTROL,
+                                      headers::Cache::NoCache.to_string())
                               .body(json_body)
         }
         Err(err) => {
@@ -262,7 +265,8 @@ fn get_latest_package_for_origin_package_version(req: HttpRequest,
     match do_get_package(&req, &qtarget, &ident) {
         Ok(json_body) => {
             HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL, headers::cache(false))
+                              .header(http::header::CACHE_CONTROL,
+                                      headers::Cache::NoCache.to_string())
                               .body(json_body)
         }
         Err(err) => {
@@ -284,7 +288,8 @@ fn get_package(req: HttpRequest,
     match do_get_package(&req, &qtarget, &ident) {
         Ok(json_body) => {
             HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL, headers::cache(true))
+                              .header(http::header::CACHE_CONTROL,
+                                      headers::Cache::default().to_string())
                               .body(json_body)
         }
         Err(err) => {
@@ -454,11 +459,14 @@ fn download_package(req: HttpRequest,
             let dir = tempdir_in(&state.config.api.data_path).expect("Unable to create a tempdir!");
             let file_path = dir.path().join(archive_name(&package.ident, target));
             let temp_ident = ident;
+            let is_private = package.visibility != PackageVisibility::Public;
 
             // TODO: Aggregate Artifactory/S3 into a provider model
             if feat::is_enabled(feat::Artifactory) {
                 match state.artifactory.download(&file_path, &temp_ident, target) {
-                    Ok(archive) => download_response_for_archive(&archive, &file_path),
+                    Ok(archive) => {
+                        download_response_for_archive(&archive, &file_path, is_private, &state)
+                    }
                     Err(e) => {
                         warn!("Failed to download package, ident={}, err={:?}",
                               temp_ident, e);
@@ -467,7 +475,9 @@ fn download_package(req: HttpRequest,
                 }
             } else {
                 match state.packages.download(&file_path, &temp_ident, target) {
-                    Ok(archive) => download_response_for_archive(&archive, &file_path),
+                    Ok(archive) => {
+                        download_response_for_archive(&archive, &file_path, is_private, &state)
+                    }
                     Err(e) => {
                         warn!("Failed to download package, ident={}, err={:?}",
                               temp_ident, e);
@@ -566,7 +576,8 @@ fn schedule_job_group(req: HttpRequest,
 
     match route_message::<jobsrv::JobGroupSpec, jobsrv::JobGroup>(&req, &request) {
         Ok(group) => {
-            HttpResponse::Created().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Created().header(http::header::CACHE_CONTROL,
+                                           headers::Cache::NoCache.to_string())
                                    .json(group)
         }
         Err(err) => {
@@ -846,11 +857,11 @@ fn package_privacy_toggle(req: HttpRequest,
 // Public helpers
 //
 
-pub fn postprocess_package_list(_req: &HttpRequest,
-                                packages: &[BuilderPackageIdent],
-                                count: i64,
-                                pagination: &Query<Pagination>)
-                                -> HttpResponse {
+pub fn postprocess_package_list<T: Serialize>(_req: &HttpRequest,
+                                              packages: &[T],
+                                              count: i64,
+                                              pagination: &Query<Pagination>)
+                                              -> HttpResponse {
     let (start, _) = helpers::extract_pagination(pagination);
     let pkg_count = packages.len() as isize;
     let stop = match pkg_count {
@@ -1145,7 +1156,17 @@ fn do_upload_package_finish(req: &HttpRequest,
             Ok(pkg) => pkg.visibility,
             Err(_) => {
                 match Origin::get(&ident.origin, &*conn) {
-                    Ok(o) => o.default_package_visibility,
+                    Ok(o) => {
+                        match OriginPackageSettings::create(&NewOriginPackageSettings {
+                            origin: &ident.origin,
+                            name: &ident.name,
+                            visibility: &o.default_package_visibility,
+                            owner_id: package.owner_id,
+                        }, &*conn) {
+                            Ok(pkg_settings) => pkg_settings.visibility,
+                            Err(err) => return Error::DieselError(err).into(),
+                        }
+                    },
                     Err(err) => return Error::DieselError(err).into(),
                 }
             }
@@ -1406,7 +1427,11 @@ fn archive_name(ident: &PackageIdent, target: PackageTarget) -> PathBuf {
                                                         }))
 }
 
-fn download_response_for_archive(archive: &PackageArchive, file_path: &PathBuf) -> HttpResponse {
+fn download_response_for_archive(archive: &PackageArchive,
+                                 file_path: &PathBuf,
+                                 is_private: bool,
+                                 state: &Data<AppState>)
+                                 -> HttpResponse {
     let filename = archive.file_name();
     let file = match File::open(&file_path) {
         Ok(f) => f,
@@ -1420,6 +1445,11 @@ fn download_response_for_archive(archive: &PackageArchive, file_path: &PathBuf) 
 
     let (tx, rx_body) = mpsc::unbounded();
     let _ = tx.unbounded_send(Bytes::from(bytes));
+    let cache_hdr = if is_private {
+        headers::Cache::MaxAge(state.config.api.private_max_age).to_string()
+    } else {
+        headers::Cache::default().to_string()
+    };
 
     HttpResponse::Ok().header(http::header::CONTENT_DISPOSITION,
             ContentDisposition { disposition: DispositionType::Attachment,
@@ -1427,7 +1457,7 @@ fn download_response_for_archive(archive: &PackageArchive, file_path: &PathBuf) 
     .header(http::header::HeaderName::from_static(headers::XFILENAME),
             archive.file_name())
     .set(ContentType::octet_stream())
-    .header(http::header::CACHE_CONTROL, headers::cache(true))
+    .header(http::header::CACHE_CONTROL, cache_hdr)
     .streaming(rx_body.map_err(|_| error::ErrorBadRequest("bad request")))
 }
 

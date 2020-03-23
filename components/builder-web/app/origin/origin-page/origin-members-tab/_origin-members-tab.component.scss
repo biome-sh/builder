@@ -3,4 +3,14 @@
   .action-list {
     font-size: $base-font-size; 
   }
+
+  #dfo-section {
+    text-align: right;
+
+    button {
+      margin: 1px;
+      color: $bio-red;
+      border: 1px solid $bio-red;
+    }
+  }
 }

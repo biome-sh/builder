@@ -4,16 +4,26 @@
 
 set -euo pipefail
 
+export preserve_data
+if [[ "${1:-}" == "-p" ]]; then
+  preserve_data=true
+else
+  preserve_data=false
+fi
+
+echo "Executing ${BASH_SOURCE[0]} ${*}"
+
 # make mocha happy by running from the directory it expects
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 clean_test_artifacts() {
-   local sql origins
-  origins=( neurosis xmen umbrella )
+  echo "Performing DB cleanup"
+  local sql origins
+  origins=( neurosis xmen umbrella deletemeifyoucan )
 
   # clean origins
   local origins origin_tables
-  origin_tables=( origin_integrations origin_project_integrations origin_secrets origin_private_encryption_keys origin_public_encryption_keys origin_members origin_channels origin_invitations origin_packages origin_projects origin_public_keys origin_secret_keys audit_package audit_package_group origin_package_settings)
+  origin_tables=( origin_integrations origin_project_integrations origin_secrets origin_private_encryption_keys origin_public_encryption_keys origin_members origin_channels origin_invitations origin_packages origin_projects origin_public_keys origin_secret_keys audit_package audit_package_group origin_package_settings )
   sql=
 
   for origin in "${origins[@]}"; do
@@ -51,7 +61,9 @@ clean_test_artifacts() {
 
   psql builder -q -c "$sql"
 }
-clean_test_artifacts # start with a clean slate
+
+# start with a clean slate
+clean_test_artifacts
 
 if ! command -v npm >/dev/null 2>&1; then
   bio pkg install core/node -b
@@ -66,8 +78,8 @@ if ! [ -d node_modules/mocha ]; then
 fi
 
 if npm run mocha; then
-  echo "All tests passed, performing DB cleanup"
-  clean_test_artifacts
+  echo "All tests passed"
+  [[ "${preserve_data}" == false ]] && clean_test_artifacts
 else
   mocha_exit_code=$?
   echo "Tests failed; skipping cleanup to facilitate investigation"

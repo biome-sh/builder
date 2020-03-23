@@ -77,6 +77,10 @@ export class PackageSidebarComponent {
     return this.store.getState().projects.current;
   }
 
+  get projectExists() {
+    return this.store.getState().projects.ui.current.exists;
+  }
+
   get runCommand() {
     return `bio start ${this.origin}/${this.name}`;
   }
@@ -103,5 +107,17 @@ export class PackageSidebarComponent {
 
   get isBuildable() {
     return this.isOriginMember && this.hasPlan && !this.targetIsMac && !this.building;
+  }
+
+  get packageSettings() {
+    return this.store.getState().packages.currentSettings;
+  }
+
+  get defaultVisibility() {
+    return this.store.getState().origins.current.default_package_visibility;
+  }
+
+  get visibility() {
+    return this.packageSettings ? this.packageSettings.visibility : this.defaultVisibility;
   }
 }

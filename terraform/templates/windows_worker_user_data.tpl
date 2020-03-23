@@ -36,8 +36,8 @@
   # Install bio as a Windows service
   $env:HAB_LICENSE='accept';
   SETX HAB_LICENSE accept /m;
-  bio pkg install core/windows-service
-  bio pkg exec core/windows-service install
+  bio pkg install biome/windows-service
+  bio pkg exec biome/windows-service install
 
   # Add config to HabService.dll.config
   $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
@@ -62,5 +62,5 @@
   # Load builder-worker
   mkdir c:\hab\svc\builder-worker
   Set-Content -Path "c:\hab\svc\builder-worker\user.toml" -Value 'target = "x86_64-windows"'
-  bio svc load biome/builder-worker --group ${environment} --bind jobsrv:builder-jobsrv.${environment} --bind depot:builder-api-proxy.${environment} --strategy at-once --url ${bldr_url} --channel ${channel}
+  bio svc load biome/builder-worker --group ${environment} --bind jobsrv:builder-jobsrv.${environment} --bind depot:builder-api-proxy.${environment} --strategy at-once --url ${bldr_url} --channel ${worker_release_channel}
 </powershell>

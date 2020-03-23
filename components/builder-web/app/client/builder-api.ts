@@ -89,6 +89,24 @@ export class BuilderApiClient {
     });
   }
 
+  public departFromOrigin(origin: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/depot/origins/${origin}/depart`, {
+        headers: this.headers,
+        method: 'POST',
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(true);
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public ignoreOriginInvitation(invitationId: string, originName: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations/${invitationId}/ignore`, {
@@ -165,6 +183,26 @@ export class BuilderApiClient {
     });
   }
 
+  public createEmptyPackage(packageInfo) {
+    const { origin, packageName } = packageInfo;
+
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/settings/${origin}/${packageName}`, {
+        headers: this.jsonHeaders,
+        method: 'POST',
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(response.json());
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public findFileInRepo(installationId: string, owner: string, repoId: string, path: string, page: number = 1, per_page: number = 100) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/ext/installations/${installationId}/repos/${repoId}/contents/${encodeURIComponent(path)}`, {
@@ -202,9 +240,9 @@ export class BuilderApiClient {
     });
   }
 
-  public deleteProject(projectId) {
+  public deleteProject(origin: string, name: string, target: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/projects/${projectId}`, {
+      fetch(`${this.urlPrefix}/projects/${origin}/${name}?target=${target}`, {
         method: 'DELETE',
         headers: this.headers
       })
@@ -374,7 +412,7 @@ export class BuilderApiClient {
           if (response.ok) {
             resolve(response.json());
           } else {
-            reject(new Error(response.statusText));
+            resolve(null);
           }
         })
         .catch(error => this.handleError(error, reject));
@@ -399,9 +437,9 @@ export class BuilderApiClient {
     });
   }
 
-  public getProject(origin: string, name: string) {
+  public getProject(origin: string, name: string, target: string) {
     return new Promise((resolve, reject) => {
-      fetch(`${this.urlPrefix}/projects/${origin}/${name}`, {
+      fetch(`${this.urlPrefix}/projects/${origin}/${name}?target=${target}`, {
         method: 'GET',
         headers: this.headers
       })
@@ -635,6 +673,62 @@ export class BuilderApiClient {
     });
   }
 
+  public isPackageNameAvailable(origin: string, packageName: string) {
+    return new Promise((resolve, reject) => {
+
+      fetch(`${this.urlPrefix}/settings/${origin}/${packageName}`, {
+        headers: this.headers,
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          // Getting a 200 means it exists and is already taken.
+          if (response.ok) {
+            reject(false);
+            // Getting a 404 means it does not exist and is available.
+          } else if (response.status === 404) {
+            resolve(true);
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
+  public getPackageSettings(origin: string, name: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/settings/${origin}/${name}`, {
+        headers: this.headers,
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(response.json());
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
+  public setPackageVisibility(origin: string, name: string, setting: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/settings/${origin}/${name}`, {
+        headers: this.jsonHeaders,
+        method: 'PUT',
+        body: JSON.stringify({ visibility: setting })
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve(response.json());
+          } else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
   public getIntegration(origin: string, type: string, name: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/depot/origins/${origin}/integrations/${type}/${name}`, {
@@ -748,6 +842,25 @@ export class BuilderApiClient {
   public setProjectVisibility(origin: string, name: string, setting: string) {
     return new Promise((resolve, reject) => {
       fetch(`${this.urlPrefix}/projects/${origin}/${name}/${setting}`, {
+        headers: this.headers,
+        method: 'PATCH'
+      })
+        .then(response => this.handleUnauthorized(response, reject))
+        .then(response => {
+          if (response.ok) {
+            resolve();
+          }
+          else {
+            reject(new Error(response.statusText));
+          }
+        })
+        .catch(error => this.handleError(error, reject));
+    });
+  }
+
+  public setPackageReleaseVisibility(origin: string, name: string, version: string, release: string, setting: string) {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.urlPrefix}/depot/pkgs/${origin}/${name}/${version}/${release}/${setting}`, {
         headers: this.headers,
         method: 'PATCH'
       })

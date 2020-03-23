@@ -33,17 +33,16 @@ log = "*"
 num_cpus = "*"
 protobuf = "*"
 postgres = { version = "*", features = ["with-chrono"] }
-postgres-derive = "*"
+postgres-derive = "0.3.3"
 rand = "*"
 r2d2 = "*"
 serde = "*"
 serde_derive = "*"
 sha2 = "*"
-time = "*"
 toml = { version = "*", default-features = false }
 
 [dependencies.actix-web]
-version = "*"
+version = "1.0.9"
 default-features = false
 
 [dependencies.clap]
