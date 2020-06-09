@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ use crate::{bldr_core::logger::Logger,
 use super::{publisher::Publisher,
             workspace::Workspace};
 
-pub fn post_process(archive: &mut PackageArchive,
-                    workspace: &Workspace,
-                    config: &Config,
-                    auth_token: &str,
-                    logger: &mut Logger)
-                    -> Result<()> {
+pub async fn post_process(archive: &mut PackageArchive,
+                          workspace: &Workspace,
+                          config: &Config,
+                          auth_token: &str,
+                          logger: &mut Logger)
+                          -> Result<()> {
     let channel_opt = if workspace.job.has_channel() {
         Some(ChannelIdent::from(workspace.job.get_channel()))
     } else {
@@ -40,5 +40,5 @@ pub fn post_process(archive: &mut PackageArchive,
                                     channel_opt };
 
     debug!("Starting post processing");
-    publisher.run(archive, auth_token, logger)
+    publisher.run(archive, auth_token, logger).await
 }

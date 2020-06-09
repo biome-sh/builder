@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,9 +58,11 @@ impl OAuth2Client {
                           provider })
     }
 
-    pub fn authenticate(&self, code: &str) -> Result<(String, OAuth2User)> {
+    pub async fn authenticate(&self, code: &str) -> Result<(String, OAuth2User)> {
         Counter::Authenticate(self.config.provider.clone()).increment();
         debug!("Authenticate called, config: {:?}", self.config);
-        self.provider.authenticate(&self.config, &self.inner, code)
+        self.provider
+            .authenticate(&self.config, &self.inner, code)
+            .await
     }
 }

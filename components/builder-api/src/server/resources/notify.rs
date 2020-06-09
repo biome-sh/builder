@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,4 +28,6 @@ impl Notify {
 }
 
 #[allow(clippy::needless_pass_by_value)]
-pub fn notify(req: HttpRequest, body: String) -> HttpResponse { github::handle_event(req, body) }
+pub async fn notify(req: HttpRequest, body: String) -> HttpResponse {
+    github::handle_event(req, body).await
+}

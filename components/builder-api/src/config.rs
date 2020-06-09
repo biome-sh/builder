@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ impl Default for S3Cfg {
     fn default() -> Self {
         S3Cfg { key_id:      String::from("depot"),
                 secret_key:  String::from("password"),
-                bucket_name: String::from("habitat-builder-artifact-store.default"),
+                bucket_name: String::from("biome-builder-artifact-store.default"),
                 backend:     S3Backend::Minio,
                 endpoint:    String::from("http://localhost:9000"), }
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -352,7 +352,7 @@ pub fn job_group_create(req: &RpcMessage, state: &AppState) -> Result<RpcMessage
     // Bail if auto-build is false, and the project has not been manually kicked off
     if !is_project_buildable(state, &project_name, &target) {
         match msg.get_trigger() {
-            jobsrv::JobGroupTrigger::HabClient | jobsrv::JobGroupTrigger::BuilderUI => (),
+            jobsrv::JobGroupTrigger::BioClient | jobsrv::JobGroupTrigger::BuilderUI => (),
             _ => {
                 return Err(Error::NotFound);
             }

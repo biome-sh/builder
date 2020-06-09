@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -163,7 +163,7 @@ export function createOrigin(body: object, token: string, isFirstOrigin = false,
       callback(origin);
 
       // We delay this call briefly to allow for data to propagate.
-      // Once this is resolved: https://github.com/biome-sh/builder/issues/142
+      // Once this is resolved: https://github.com/habitat-sh/bulder/issues/142
       // we should be able to remove the setTimeout and just make the
       // call immediately on successful create.
       setTimeout(() => {

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ pub enum Error {
     FromUtf8Error(string::FromUtf8Error),
     BiomeCore(bio_core::Error),
     OriginDeleteError(String),
+    OriginMemberRoleError(String),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Serialization(serde_json::Error),
@@ -67,6 +68,7 @@ impl fmt::Display for Error {
             Error::FromUtf8Error(ref e) => format!("{}", e),
             Error::BiomeCore(ref e) => format!("{}", e),
             Error::OriginDeleteError(ref e) => e.to_string(),
+            Error::OriginMemberRoleError(ref e) => e.to_string(),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Serialization(ref e) => format!("{}", e),
@@ -92,6 +94,7 @@ impl error::Error for Error {
             Error::FromUtf8Error(ref e) => e.description(),
             Error::BiomeCore(ref err) => err.description(),
             Error::OriginDeleteError(_) => "Error attempting to delete origin",
+            Error::OriginMemberRoleError(_) => "Error parsing member type",
             Error::Protobuf(ref err) => err.description(),
             Error::Protocol(ref err) => err.description(),
             Error::Serialization(ref err) => err.description(),

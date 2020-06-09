@@ -19,7 +19,7 @@ ruby project_create.rb <core-plans-dir> <projects-url> <installation-id> [<auth-
 ```
 
 The projects-url should be in this form (replace the URL appropriately):
-https://bldr.acceptance.biome.sh
+https://bldr.acceptance.habitat.sh
 
 For a development environment, the URL will be:
 http://localhost:9636

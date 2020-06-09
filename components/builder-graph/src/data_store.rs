@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{str::FromStr,
-          sync::Arc};
+use std::sync::Arc;
 
 use crate::bio_core::package::{PackageIdent,
                                PackageTarget};
@@ -28,8 +27,7 @@ use crate::{config::Config,
                                    PackageVisibility},
                  DbPool},
             error::{Error,
-                    Result},
-            protocol::originsrv};
+                    Result}};
 
 // DataStore inherits Send + Sync by virtue of having only one member, the pool itself.
 #[derive(Clone)]
@@ -37,7 +35,7 @@ pub struct DataStore {
     pool: DbPool,
 }
 
-// Sample connection_url: "postgresql://bio@127.0.0.1/builder"
+// Sample connection_url: "postgresql://hab@127.0.0.1/builder"
 
 impl DataStore {
     /// Create a new DataStore.
@@ -78,23 +76,18 @@ impl DataStore {
     }
 
     pub fn get_job_graph_package(&self,
-                                 ident: &str,
-                                 target: &str)
-                                 -> Result<originsrv::OriginPackage> {
+                                 ident: &PackageIdent,
+                                 target: PackageTarget)
+                                 -> Result<PackageWithVersionArray> {
         let conn = self.pool.get_conn()?;
 
-        let package =
-            GetLatestPackage { ident:
-                                   BuilderPackageIdent(PackageIdent::from_str(ident).unwrap()),
-                               target:
-                                   BuilderPackageTarget(PackageTarget::from_str(target).unwrap()),
-                               visibility: PackageVisibility::all(), };
+        let package = GetLatestPackage { ident:      BuilderPackageIdent(ident.clone()),
+                                         target:     BuilderPackageTarget(target),
+                                         visibility: PackageVisibility::all(), };
 
         println!("Package fetching: {:?}", package);
 
-        let rows = Package::get_latest(package, &conn).map_err(Error::DieselError)?;
-
-        let package = rows.into();
+        let package = Package::get_latest(package, &conn).map_err(Error::DieselError)?;
         Ok(package)
     }
 }

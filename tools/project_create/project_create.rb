@@ -6,7 +6,7 @@
 #                               <installation-id> [<auth-token>]
 #
 # The bldr-api-url should be in this form:
-# http://bldr.acceptance.biome.sh
+# http://bldr.acceptance.habitat.sh
 #
 # For a development environment, the URL will be:
 # http://localhost:9636

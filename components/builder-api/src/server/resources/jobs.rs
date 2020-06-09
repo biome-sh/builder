@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -99,10 +99,10 @@ impl Jobs {
 // Route handlers - these functions can return any Responder trait
 //
 #[allow(clippy::needless_pass_by_value)]
-fn get_rdeps(req: HttpRequest,
-             path: Path<(String, String)>,
-             qtarget: Query<Target>)
-             -> HttpResponse {
+async fn get_rdeps(req: HttpRequest,
+                   path: Path<(String, String)>,
+                   qtarget: Query<Target>)
+                   -> HttpResponse {
     let (origin, name) = path.into_inner();
 
     // TODO: Deprecate target from headers
@@ -123,7 +123,7 @@ fn get_rdeps(req: HttpRequest,
     rdeps_get.set_target(target.to_string());
 
     match route_message::<jobsrv::JobGraphPackageReverseDependenciesGet,
-                        jobsrv::JobGraphPackageReverseDependencies>(&req, &rdeps_get)
+                        jobsrv::JobGraphPackageReverseDependencies>(&req, &rdeps_get).await
     {
         Ok(rdeps) => {
             let filtered = match filtered_rdeps(&req, &rdeps) {
@@ -161,7 +161,9 @@ fn filtered_rdeps(req: &HttpRequest,
         } else {
             origin_map[origin_name].clone()
         };
-        if pv != PackageVisibility::Public && authorize_session(req, Some(&origin_name)).is_err() {
+        if pv != PackageVisibility::Public
+           && authorize_session(req, Some(&origin_name), Some(OriginMemberRole::Member)).is_err()
+        {
             debug!("Skipping unauthorized non-public origin package: {}", rdep);
             continue; // Skip any unauthorized origin packages
         }
@@ -174,10 +176,10 @@ fn filtered_rdeps(req: &HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn get_rdeps_group(req: HttpRequest,
-                   path: Path<(String, String)>,
-                   qtarget: Query<Target>)
-                   -> HttpResponse {
+async fn get_rdeps_group(req: HttpRequest,
+                         path: Path<(String, String)>,
+                         qtarget: Query<Target>)
+                         -> HttpResponse {
     let (origin, name) = path.into_inner();
 
     // TODO: Deprecate target from headers
@@ -198,7 +200,7 @@ fn get_rdeps_group(req: HttpRequest,
     rdeps_get.set_target(target.to_string());
 
     match route_message::<jobsrv::JobGraphPackageReverseDependenciesGroupedGet,
-                        jobsrv::JobGraphPackageReverseDependenciesGrouped>(&req, &rdeps_get)
+                        jobsrv::JobGraphPackageReverseDependenciesGrouped>(&req, &rdeps_get).await
     {
         Ok(rdeps) => {
             let filtered = match filtered_group_rdeps(&req, &rdeps) {
@@ -239,7 +241,7 @@ fn filtered_group_rdeps(req: &HttpRequest,
                 origin_map[origin_name].clone()
             };
             if pv != PackageVisibility::Public
-               && authorize_session(req, Some(&origin_name)).is_err()
+               && authorize_session(req, Some(&origin_name), None).is_err()
             {
                 debug!("Skipping unauthorized non-public origin package: {}",
                        ident_str);
@@ -283,10 +285,10 @@ fn get_job(req: HttpRequest, path: Path<String>) -> HttpResponse {
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn get_job_log(req: HttpRequest,
-               path: Path<String>,
-               pagination: Query<JobLogPagination>)
-               -> HttpResponse {
+async fn get_job_log(req: HttpRequest,
+                     path: Path<String>,
+                     pagination: Query<JobLogPagination>)
+                     -> HttpResponse {
     let id_str = path.into_inner();
 
     let job_id = match id_str.parse::<u64>() {
@@ -297,7 +299,7 @@ fn get_job_log(req: HttpRequest,
         }
     };
 
-    match do_get_job_log(&req, job_id, pagination.start) {
+    match do_get_job_log(&req, job_id, pagination.start).await {
         Ok(mut job_log) => {
             if !pagination.color {
                 job_log.strip_ansi();
@@ -312,14 +314,14 @@ fn get_job_log(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn promote_job_group(req: HttpRequest,
-                     path: Path<(String, String)>,
-                     body: Json<GroupPromoteReq>)
-                     -> HttpResponse {
+async fn promote_job_group(req: HttpRequest,
+                           path: Path<(String, String)>,
+                           body: Json<GroupPromoteReq>)
+                           -> HttpResponse {
     let (group_id, channel) = path.into_inner();
     let channel = ChannelIdent::from(channel);
 
-    match promote_or_demote_job_group(&req, &group_id, &body.idents, &channel, true) {
+    match promote_or_demote_job_group(&req, &group_id, &body.idents, &channel, true).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(err) => {
             debug!("{}", err);
@@ -329,14 +331,14 @@ fn promote_job_group(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn demote_job_group(req: HttpRequest,
-                    path: Path<(String, String)>,
-                    body: Json<GroupDemoteReq>)
-                    -> HttpResponse {
+async fn demote_job_group(req: HttpRequest,
+                          path: Path<(String, String)>,
+                          body: Json<GroupDemoteReq>)
+                          -> HttpResponse {
     let (group_id, channel) = path.into_inner();
     let channel = ChannelIdent::from(channel);
 
-    match promote_or_demote_job_group(&req, &group_id, &body.idents, &channel, false) {
+    match promote_or_demote_job_group(&req, &group_id, &body.idents, &channel, false).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(err) => {
             debug!("{}", err);
@@ -346,7 +348,7 @@ fn demote_job_group(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn cancel_job_group(req: HttpRequest, path: Path<String>) -> HttpResponse {
+async fn cancel_job_group(req: HttpRequest, path: Path<String>) -> HttpResponse {
     let id_str = path.into_inner();
 
     let group_id = match id_str.parse::<u64>() {
@@ -357,7 +359,7 @@ fn cancel_job_group(req: HttpRequest, path: Path<String>) -> HttpResponse {
         }
     };
 
-    match do_cancel_job_group(&req, group_id) {
+    match do_cancel_job_group(&req, group_id).await {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(err) => {
             debug!("{}", err);
@@ -375,7 +377,7 @@ fn do_group_promotion_or_demotion(req: &HttpRequest,
                                   target: PackageTarget,
                                   promote: bool)
                                   -> Result<Vec<i64>> {
-    let session = authorize_session(req, Some(&origin))?;
+    let session = authorize_session(req, Some(&origin), Some(OriginMemberRole::Maintainer))?;
 
     let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
@@ -401,10 +403,14 @@ fn do_group_promotion_or_demotion(req: &HttpRequest,
     let mut package_ids = Vec::new();
 
     for project in projects {
-        req_state(req).memcache
-             .borrow_mut()
-             .clear_cache_for_package(&OriginPackageIdent::from_str(project.get_ident()).unwrap()
-                                                                                        .into());
+        req_state(req)
+            .memcache
+            .borrow_mut()
+            .clear_cache_for_package(
+                &OriginPackageIdent::from_str(project.get_ident())
+                    .unwrap()
+                    .into(),
+            );
 
         let op = Package::get(
             GetPackage {
@@ -427,13 +433,13 @@ fn do_group_promotion_or_demotion(req: &HttpRequest,
     Ok(package_ids)
 }
 
-fn promote_or_demote_job_group(req: &HttpRequest,
-                               group_id_str: &str,
-                               idents: &[String],
-                               channel: &ChannelIdent,
-                               promote: bool)
-                               -> Result<()> {
-    authorize_session(&req, None)?;
+async fn promote_or_demote_job_group(req: &HttpRequest,
+                                     group_id_str: &str,
+                                     idents: &[String],
+                                     channel: &ChannelIdent,
+                                     promote: bool)
+                                     -> Result<()> {
+    authorize_session(&req, None, Some(OriginMemberRole::Maintainer))?;
 
     let group_id = match group_id_str.parse::<u64>() {
         Ok(g) => g,
@@ -446,7 +452,7 @@ fn promote_or_demote_job_group(req: &HttpRequest,
     let mut group_get = jobsrv::JobGroupGet::new();
     group_get.set_group_id(group_id);
     group_get.set_include_projects(true);
-    let group = route_message::<jobsrv::JobGroupGet, jobsrv::JobGroup>(req, &group_get)?;
+    let group = route_message::<jobsrv::JobGroupGet, jobsrv::JobGroup>(req, &group_get).await?;
     let target = PackageTarget::from_str(group.get_target()).unwrap();
 
     let mut origin_map = HashMap::new();
@@ -501,7 +507,12 @@ fn promote_or_demote_job_group(req: &HttpRequest,
                     PackageChannelOperation::Demote
                 };
 
-                let session = authorize_session(req, None).unwrap(); // Unwrap ok
+                // TODO: This feels like with the added weight of calls to authorize
+                // session, this might not be the best way to handle passing the session
+                // info in. We probably should consider a refactor here.
+
+                let session =
+                    authorize_session(req, None, Some(OriginMemberRole::Maintainer)).unwrap(); // Unwrap ok
 
                 PackageGroupChannelAudit::audit(PackageGroupChannelAudit { origin: &origin,
                                                                            channel:
@@ -537,7 +548,9 @@ fn do_get_job(req: &HttpRequest, job_id: u64) -> Result<String> {
     match Job::get(job_id as i64, &*conn) {
         Ok(job) => {
             let job: jobsrv::Job = job.into();
-            authorize_session(req, Some(&job.get_project().get_origin_name()))?;
+            authorize_session(req,
+                              Some(&job.get_project().get_origin_name()),
+                              Some(OriginMemberRole::Member))?;
 
             if job.get_package_ident().fully_qualified() {
                 let builder_package_ident = BuilderPackageIdent(job.get_package_ident().into());
@@ -566,7 +579,7 @@ fn do_get_job(req: &HttpRequest, job_id: u64) -> Result<String> {
     }
 }
 
-fn do_get_job_log(req: &HttpRequest, job_id: u64, start: u64) -> Result<jobsrv::JobLog> {
+async fn do_get_job_log(req: &HttpRequest, job_id: u64, start: u64) -> Result<jobsrv::JobLog> {
     let mut job_get = jobsrv::JobGet::new();
     let mut request = jobsrv::JobLogGet::new();
     request.set_start(start);
@@ -576,7 +589,7 @@ fn do_get_job_log(req: &HttpRequest, job_id: u64, start: u64) -> Result<jobsrv::
     // Before fetching the logs, we need to check and see if the logs we want to fetch are for
     // a job that's building a private package, and if so, do we have the right to see said
     // package.
-    match route_message::<jobsrv::JobGet, jobsrv::Job>(&req, &job_get) {
+    match route_message::<jobsrv::JobGet, jobsrv::Job>(&req, &job_get).await {
         Ok(job) => {
             // It's not sufficient to check the project that's on the job itself, since that
             // project is reconstructed from information available in the database and does
@@ -602,26 +615,28 @@ fn do_get_job_log(req: &HttpRequest, job_id: u64, start: u64) -> Result<jobsrv::
             if vec![PackageVisibility::Private, PackageVisibility::Hidden]
                 .contains(&settings.visibility)
             {
-                authorize_session(req, Some(&project.origin))?;
+                authorize_session(req, Some(&project.origin), Some(OriginMemberRole::Member))?;
             }
 
-            route_message::<jobsrv::JobLogGet, jobsrv::JobLog>(req, &request)
+            route_message::<jobsrv::JobLogGet, jobsrv::JobLog>(req, &request).await
         }
         Err(err) => Err(err),
     }
 }
 
-fn do_cancel_job_group(req: &HttpRequest, group_id: u64) -> Result<NetOk> {
+async fn do_cancel_job_group(req: &HttpRequest, group_id: u64) -> Result<NetOk> {
     let mut jgg = jobsrv::JobGroupGet::new();
     jgg.set_group_id(group_id);
     jgg.set_include_projects(true);
 
-    let group = route_message::<jobsrv::JobGroupGet, jobsrv::JobGroup>(req, &jgg)?;
+    let group = route_message::<jobsrv::JobGroupGet, jobsrv::JobGroup>(req, &jgg).await?;
 
     let name_split: Vec<&str> = group.get_project_name().split('/').collect();
     assert!(name_split.len() == 2);
 
-    let session = authorize_session(req, Some(&name_split[0]))?;
+    let session = authorize_session(req,
+                                    Some(&name_split[0]),
+                                    Some(OriginMemberRole::Maintainer))?;
 
     let mut jgc = jobsrv::JobGroupCancel::new();
     jgc.set_group_id(group_id);
@@ -629,5 +644,5 @@ fn do_cancel_job_group(req: &HttpRequest, group_id: u64) -> Result<NetOk> {
     jgc.set_requester_id(session.get_id());
     jgc.set_requester_name(session.get_name().to_string());
 
-    route_message::<jobsrv::JobGroupCancel, NetOk>(req, &jgc)
+    route_message::<jobsrv::JobGroupCancel, NetOk>(req, &jgc).await
 }

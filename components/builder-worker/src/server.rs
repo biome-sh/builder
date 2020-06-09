@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,14 +48,14 @@ impl Default for State {
 }
 
 pub struct Server {
-    config: Arc<Config>,
+    config:     Arc<Config>,
     /// Dealer Socket connected to JobSrv
-    fe_sock: zmq::Socket,
-    hb_cli: HeartbeatCli,
+    fe_sock:    zmq::Socket,
+    hb_cli:     HeartbeatCli,
     runner_cli: RunnerCli,
-    state: State,
-    msg: zmq::Message,
-    net_ident: Arc<String>,
+    state:      State,
+    msg:        zmq::Message,
+    net_ident:  Arc<String>,
 }
 
 impl Server {

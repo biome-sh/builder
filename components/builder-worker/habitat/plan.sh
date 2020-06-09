@@ -6,7 +6,7 @@ pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium
-  core/libarchive core/zlib biome/bio biome/bio-studio biome/bio-pkg-export-docker
+  core/libarchive core/zlib biome/bio biome/bio-studio biome/bio-pkg-export-container
   core/docker core/curl)
 pkg_build_deps=(core/make core/cmake core/protobuf-cpp core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
@@ -37,9 +37,9 @@ do_prepare() {
   build_line "Setting PLAN_STUDIO_PKG_IDENT=$PLAN_STUDIO_PKG_IDENT"
 
   # Compile the fully-qualified Docker exporter package identifier into the binary
-  PLAN_DOCKER_EXPORTER_PKG_IDENT=$(pkg_path_for bio-pkg-export-docker | sed "s,^$HAB_PKG_PATH/,,")
-  export PLAN_DOCKER_EXPORTER_PKG_IDENT
-  build_line "Setting PLAN_DOCKER_EXPORTER_PKG_IDENT=$PLAN_DOCKER_EXPORTER_PKG_IDENT"
+  PLAN_CONTAINER_EXPORTER_PKG_IDENT=$(pkg_path_for bio-pkg-export-container | sed "s,^$HAB_PKG_PATH/,,")
+  export PLAN_CONTAINER_EXPORTER_PKG_IDENT
+  build_line "Setting PLAN_CONTAINER_EXPORTER_PKG_IDENT=$PLAN_CONTAINER_EXPORTER_PKG_IDENT"
 
   # Compile the fully-qualified Docker package identifier into the binary
   PLAN_DOCKER_PKG_IDENT=$(pkg_path_for docker | sed "s,^$HAB_PKG_PATH/,,")

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,14 @@ pub enum Counter {
     DownloadRequests,
     UploadFailures,
     AtomicChannelRequests,
+    MemcacheMemberRoleHit,
+    MemcacheMemberRoleMiss,
+    MemcachePackageHit,
+    MemcachePackageMiss,
+    MemcachePackage404,
+    MemcacheChannelPackageHit,
+    MemcacheChannelPackageMiss,
+    MemcacheChannelPackage404,
 }
 
 impl metrics::CounterMetric for Counter {}
@@ -48,6 +56,14 @@ impl metrics::Metric for Counter {
             Counter::DownloadRequests => "download-packages".into(),
             Counter::UploadFailures => "upload-failures".into(),
             Counter::AtomicChannelRequests => "channel-to-channel".into(),
+            Counter::MemcacheMemberRoleHit => "memcache-session.hit".into(),
+            Counter::MemcacheMemberRoleMiss => "memcache-session.miss".into(),
+            Counter::MemcachePackageHit => "memcache-package.hit".into(),
+            Counter::MemcachePackageMiss => "memcache-package.miss".into(),
+            Counter::MemcachePackage404 => "memcache-package.404".into(),
+            Counter::MemcacheChannelPackageHit => "memcache-channel-package.hit".into(),
+            Counter::MemcacheChannelPackageMiss => "memcache-channel-package.miss".into(),
+            Counter::MemcacheChannelPackage404 => "memcache-channel-package.404".into(),
         }
     }
 }

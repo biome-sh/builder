@@ -4,7 +4,7 @@ package originsrv;
 enum PackageChannelTrigger {
   Unknown = 0;
   BuilderUI = 1;
-  HabClient = 2;
+  BioClient = 2;
 }
 
 enum PackageChannelOperation {

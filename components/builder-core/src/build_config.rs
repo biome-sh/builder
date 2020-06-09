@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -136,11 +136,11 @@ impl Serialize for Pattern {
 pub struct ProjectCfg {
     /// Relative filepath to the project's Biome Plan (default: "biome").
     #[serde(default = "ProjectCfg::default_plan_path")]
-    pub plan_path: PathBuf,
+    pub plan_path:     PathBuf,
     /// Unix style file globs which are matched against changed files from a GitHub push
     /// notification to determine if an automatic rebuild should occur.
     #[serde(default)]
-    pub paths: Vec<Pattern>,
+    pub paths:         Vec<Pattern>,
     /// Package targets to build when changes detected
     #[serde(default = "ProjectCfg::default_build_targets")]
     pub build_targets: HashSet<PackageTarget>,
@@ -156,8 +156,8 @@ impl ProjectCfg {
     }
 
     // Enumerate all the possible candidates for plan file locations.
-    // For example, given a plan_path of "foo/bar/biome", the possible
-    // valid paths for a plan file would be "foo/bar" and "foo/bar/biome".
+    // For example, given a plan_path of "foo/bar/habitat", the possible
+    // valid paths for a plan file would be "foo/bar" and "foo/bar/habitat".
     // The same possible valid paths would be returned if the plan_path was
     // "foo/bar", or "foo/bar/plan.sh", or "foo/bar/plan.ps1", or even
     // "foo/bar/habitat/plan.sh" or "foo/bar/habitat/plan.ps1".

@@ -72,25 +72,25 @@ use crate::{bldr_core::metrics::{CounterMetric,
 #[table_name = "origin_packages"]
 pub struct Package {
     #[serde(with = "db_id_format")]
-    pub id: i64,
+    pub id:          i64,
     #[serde(with = "db_id_format")]
-    pub owner_id: i64,
-    pub name: String,
-    pub ident: BuilderPackageIdent,
+    pub owner_id:    i64,
+    pub name:        String,
+    pub ident:       BuilderPackageIdent,
     pub ident_array: Vec<String>,
-    pub checksum: String,
-    pub manifest: String,
-    pub config: String,
-    pub target: BuilderPackageTarget,
-    pub deps: Vec<BuilderPackageIdent>,
-    pub tdeps: Vec<BuilderPackageIdent>,
-    pub build_deps: Vec<BuilderPackageIdent>,
+    pub checksum:    String,
+    pub manifest:    String,
+    pub config:      String,
+    pub target:      BuilderPackageTarget,
+    pub deps:        Vec<BuilderPackageIdent>,
+    pub tdeps:       Vec<BuilderPackageIdent>,
+    pub build_deps:  Vec<BuilderPackageIdent>,
     pub build_tdeps: Vec<BuilderPackageIdent>,
-    pub exposes: Vec<i32>,
-    pub visibility: PackageVisibility,
-    pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
-    pub origin: String,
+    pub exposes:     Vec<i32>,
+    pub visibility:  PackageVisibility,
+    pub created_at:  Option<NaiveDateTime>,
+    pub updated_at:  Option<NaiveDateTime>,
+    pub origin:      String,
 }
 
 #[derive(Debug,
@@ -103,25 +103,25 @@ pub struct Package {
 #[table_name = "origin_packages_with_version_array"]
 pub struct PackageWithVersionArray {
     #[serde(with = "db_id_format")]
-    pub id: i64,
+    pub id:            i64,
     #[serde(with = "db_id_format")]
-    pub owner_id: i64,
-    pub name: String,
-    pub ident: BuilderPackageIdent,
-    pub ident_array: Vec<String>,
-    pub checksum: String,
-    pub manifest: String,
-    pub config: String,
-    pub target: BuilderPackageTarget,
-    pub deps: Vec<BuilderPackageIdent>,
-    pub tdeps: Vec<BuilderPackageIdent>,
-    pub exposes: Vec<i32>,
-    pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
-    pub visibility: PackageVisibility,
-    pub origin: String,
-    pub build_deps: Vec<BuilderPackageIdent>,
-    pub build_tdeps: Vec<BuilderPackageIdent>,
+    pub owner_id:      i64,
+    pub name:          String,
+    pub ident:         BuilderPackageIdent,
+    pub ident_array:   Vec<String>,
+    pub checksum:      String,
+    pub manifest:      String,
+    pub config:        String,
+    pub target:        BuilderPackageTarget,
+    pub deps:          Vec<BuilderPackageIdent>,
+    pub tdeps:         Vec<BuilderPackageIdent>,
+    pub exposes:       Vec<i32>,
+    pub created_at:    Option<NaiveDateTime>,
+    pub updated_at:    Option<NaiveDateTime>,
+    pub visibility:    PackageVisibility,
+    pub origin:        String,
+    pub build_deps:    Vec<BuilderPackageIdent>,
+    pub build_tdeps:   Vec<BuilderPackageIdent>,
     pub version_array: Vec<Option<String>>,
 }
 
@@ -136,27 +136,27 @@ pub struct PackageWithVersionArray {
 #[table_name = "packages_with_channel_platform"]
 pub struct PackageWithChannelPlatform {
     #[serde(with = "db_id_format")]
-    pub id: i64,
+    pub id:          i64,
     #[serde(with = "db_id_format")]
-    pub owner_id: i64,
-    pub name: String,
-    pub ident: BuilderPackageIdent,
+    pub owner_id:    i64,
+    pub name:        String,
+    pub ident:       BuilderPackageIdent,
     pub ident_array: Vec<String>,
-    pub checksum: String,
-    pub manifest: String,
-    pub config: String,
-    pub target: BuilderPackageTarget,
-    pub deps: Vec<BuilderPackageIdent>,
-    pub tdeps: Vec<BuilderPackageIdent>,
-    pub build_deps: Vec<BuilderPackageIdent>,
+    pub checksum:    String,
+    pub manifest:    String,
+    pub config:      String,
+    pub target:      BuilderPackageTarget,
+    pub deps:        Vec<BuilderPackageIdent>,
+    pub tdeps:       Vec<BuilderPackageIdent>,
+    pub build_deps:  Vec<BuilderPackageIdent>,
     pub build_tdeps: Vec<BuilderPackageIdent>,
-    pub exposes: Vec<i32>,
-    pub visibility: PackageVisibility,
-    pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
-    pub origin: String,
-    pub channels: Vec<String>,
-    pub platforms: Vec<String>,
+    pub exposes:     Vec<i32>,
+    pub visibility:  PackageVisibility,
+    pub created_at:  Option<NaiveDateTime>,
+    pub updated_at:  Option<NaiveDateTime>,
+    pub origin:      String,
+    pub channels:    Vec<String>,
+    pub platforms:   Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -259,22 +259,22 @@ type AllWithVersion =
 #[derive(Debug, Serialize, Deserialize, Clone, Insertable)]
 #[table_name = "origin_packages"]
 pub struct NewPackage {
-    pub origin: String,
+    pub origin:      String,
     #[serde(with = "db_id_format")]
-    pub owner_id: i64,
-    pub name: String,
-    pub ident: BuilderPackageIdent,
+    pub owner_id:    i64,
+    pub name:        String,
+    pub ident:       BuilderPackageIdent,
     pub ident_array: Vec<String>,
-    pub checksum: String,
-    pub manifest: String,
-    pub config: String,
-    pub target: BuilderPackageTarget,
-    pub deps: Vec<BuilderPackageIdent>,
-    pub tdeps: Vec<BuilderPackageIdent>,
-    pub build_deps: Vec<BuilderPackageIdent>,
+    pub checksum:    String,
+    pub manifest:    String,
+    pub config:      String,
+    pub target:      BuilderPackageTarget,
+    pub deps:        Vec<BuilderPackageIdent>,
+    pub tdeps:       Vec<BuilderPackageIdent>,
+    pub build_deps:  Vec<BuilderPackageIdent>,
     pub build_tdeps: Vec<BuilderPackageIdent>,
-    pub exposes: Vec<i32>,
-    pub visibility: PackageVisibility,
+    pub exposes:     Vec<i32>,
+    pub visibility:  PackageVisibility,
 }
 
 #[derive(Debug)]
@@ -324,14 +324,14 @@ pub struct SearchPackages {
 }
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct OriginPackageVersions {
-    pub origin: String,
-    pub name: String,
-    pub version: String,
+    pub origin:        String,
+    pub name:          String,
+    pub version:       String,
     #[serde(with = "db_id_format")]
     pub release_count: i64,
-    pub latest: String,
-    pub platforms: Vec<String>,
-    pub visibility: PackageVisibility,
+    pub latest:        String,
+    pub platforms:     Vec<String>,
+    pub visibility:    PackageVisibility,
 }
 
 #[derive(DbEnum,
@@ -404,17 +404,34 @@ impl Package {
                               conn: &PgConnection)
                               -> QueryResult<Package> {
         Counter::DBCall.increment();
-        Self::all().filter(origin_packages::ident.eq(ident))
-                   .filter(origin_packages::visibility.eq(any(visibility)))
-                   .get_result(conn)
+        let start_time = Instant::now();
+
+        let result = Self::all().filter(origin_packages::ident.eq(ident))
+                                .filter(origin_packages::visibility.eq(any(visibility)))
+                                .get_result(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::get_without_target time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageGetWithoutTargetCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn get(req: GetPackage, conn: &PgConnection) -> QueryResult<Package> {
         Counter::DBCall.increment();
-        Self::all().filter(origin_packages::ident.eq(req.ident))
-                   .filter(origin_packages::visibility.eq(any(req.visibility)))
-                   .filter(origin_packages::target.eq(req.target))
-                   .get_result(conn)
+        let start_time = Instant::now();
+
+        let result = Self::all().filter(origin_packages::ident.eq(req.ident))
+                                .filter(origin_packages::visibility.eq(any(req.visibility)))
+                                .filter(origin_packages::target.eq(req.target))
+                                .get_result(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::get time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageGetCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn delete(req: DeletePackage, conn: &PgConnection) -> QueryResult<usize> {
@@ -428,17 +445,37 @@ impl Package {
     }
 
     pub fn get_group(req: GetPackageGroup, conn: &PgConnection) -> QueryResult<Vec<Package>> {
-        Self::all().filter(origin_packages::ident.eq(any(req.pkgs)))
-                   .filter(origin_packages::visibility.eq(any(req.visibility)))
-                   .get_results(conn)
+        Counter::DBCall.increment();
+        let start_time = Instant::now();
+
+        let result = Self::all().filter(origin_packages::ident.eq(any(req.pkgs)))
+                                .filter(origin_packages::visibility.eq(any(req.visibility)))
+                                .get_results(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::get_group time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageGetGroupCallTime.set(duration_millis as f64);
+        result
     }
 
-    pub fn get_all(req_ident: BuilderPackageIdent,
+    pub fn get_all(req_ident: &BuilderPackageIdent,
                    conn: &PgConnection)
                    -> QueryResult<Vec<Package>> {
         Counter::DBCall.increment();
-        Self::all().filter(origin_packages::ident_array.contains(req_ident.parts()))
-                   .get_results(conn)
+        let start_time = Instant::now();
+
+        let result =
+            Self::all().filter(origin_packages::origin.eq(&req_ident.origin))
+                       .filter(origin_packages::name.eq(&req_ident.name))
+                       .filter(origin_packages::ident_array.contains(req_ident.clone().parts()))
+                       .get_results(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::get_all time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageGetAllCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn get_latest(req: GetLatestPackage,
@@ -464,7 +501,7 @@ impl Package {
         let duration_millis = start_time.elapsed().as_millis();
         trace!("DBCall package::get_latest time: {} ms", duration_millis);
         Histogram::DbCallTime.set(duration_millis as f64);
-        Histogram::GetLatestPackageCallTime.set(duration_millis as f64);
+        Histogram::PackageGetLatestCallTime.set(duration_millis as f64);
 
         result
     }
@@ -473,7 +510,11 @@ impl Package {
         Counter::DBCall.increment();
         let start_time = Instant::now();
         let result = origin_packages_with_version_array::table
-            .distinct_on((origin_packages_with_version_array::origin, origin_packages_with_version_array::name, origin_packages_with_version_array::target))
+            .distinct_on((
+                origin_packages_with_version_array::origin,
+                origin_packages_with_version_array::name,
+                origin_packages_with_version_array::target,
+            ))
             .order(sql::<PackageWithVersionArray>(
                 "origin, name, target, string_to_array(version_array[1],'.')::\
                 numeric[] desc, ident_array[4] desc",
@@ -483,7 +524,7 @@ impl Package {
         trace!("DBCall package::get_all_latest time: {} ms",
                duration_millis);
         Histogram::DbCallTime.set(duration_millis as f64);
-        Histogram::GetAllLatestCallTime.set(duration_millis as f64);
+        Histogram::PackageGetAllLatestCallTime.set(duration_millis as f64);
         result
     }
 
@@ -543,14 +584,41 @@ impl Package {
                 conn: &PgConnection)
                 -> QueryResult<(Vec<PackageWithChannelPlatform>, i64)> {
         Counter::DBCall.increment();
+        let start_time = Instant::now();
 
-        let (mut pkgs, _) : (std::vec::Vec<PackageWithChannelPlatform>, i64) = packages_with_channel_platform::table
-            .filter(packages_with_channel_platform::ident_array.contains(pl.ident.clone().parts()))
-            .filter(packages_with_channel_platform::visibility.eq(any(pl.visibility)))
-            .order(packages_with_channel_platform::ident.desc())
-            .paginate(pl.page)
-            .per_page(pl.limit)
-            .load_and_count_records(conn)?;
+        let mut query = packages_with_channel_platform::table
+            .filter(packages_with_channel_platform::origin.eq(&pl.ident.origin))
+            .into_boxed();
+        // We need the into_boxed above to be able to conditionally filter and not break the
+        // typesystem.
+        if pl.ident.name != "" {
+            query = query.filter(packages_with_channel_platform::name.eq(&pl.ident.name))
+        };
+        let query = query.filter(packages_with_channel_platform::ident_array.contains(pl.ident
+                                                                                        .clone()
+                                                                                        .parts()))
+                         .filter(packages_with_channel_platform::visibility.eq(any(pl.visibility)))
+                         .order(packages_with_channel_platform::ident.desc())
+                         .paginate(pl.page)
+                         .per_page(pl.limit);
+
+        // helpful trick when debugging queries, this has Debug trait:
+        // diesel::query_builder::debug_query::<diesel::pg::Pg, _>(&query)
+
+        let (mut pkgs, _): (std::vec::Vec<PackageWithChannelPlatform>, i64) =
+            query.load_and_count_records(conn)?;
+
+        let duration_millis = start_time.elapsed().as_millis();
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListCallTime.set(duration_millis as f64);
+
+        // Package list for a whole origin is still not very
+        // performant, and we want to track that
+        if pl.ident.name != "" {
+            Histogram::PackageListOriginOnlyCallTime.set(duration_millis as f64);
+        } else {
+            Histogram::PackageListOriginNameCallTime.set(duration_millis as f64);
+        }
 
         trace!(target: "biome_builder_api::server::resources::pkgs::versions", "Package::list for {:?}, returned {} items", pl.ident, pkgs.len());
 
@@ -568,33 +636,69 @@ impl Package {
                          conn: &PgConnection)
                          -> QueryResult<(Vec<BuilderPackageIdent>, i64)> {
         Counter::DBCall.increment();
-        origin_packages::table
-            .select(sql(
-                "concat_ws('/', ident_array[1], ident_array[2]) as ident",
-            ))
-            .filter(origin_packages::ident_array.contains(pl.ident.parts()))
+        let start_time = Instant::now();
+
+        let mut query = origin_packages::table.select(sql("concat_ws('/', ident_array[1], \
+                                                           ident_array[2]) as ident"))
+                                              .filter(origin_packages::origin.eq(&pl.ident.origin))
+                                              .into_boxed();
+        // We need the into_boxed above to be able to conditionally filter and not break the
+        // typesystem.
+        if pl.ident.name != "" {
+            query = query.filter(origin_packages::name.eq(&pl.ident.name))
+        };
+        let query = query
+            .filter(origin_packages::ident_array.contains(pl.ident.clone().parts()))
             .filter(origin_packages::visibility.eq(any(pl.visibility)))
             // This is because diesel doesn't yet support group_by
             // see: https://github.com/diesel-rs/diesel/issues/210
             .filter(sql("TRUE GROUP BY ident_array[2], ident_array[1]"))
             .order(sql::<BuilderPackageIdent>("ident ASC"))
             .paginate(pl.page)
-            .per_page(pl.limit)
-            .load_and_count_records(conn)
+            .per_page(pl.limit);
+
+        // helpful trick when debugging queries, this has Debug trait:
+        // diesel::query_builder::debug_query::<diesel::pg::Pg, _>(&query)
+
+        let result = query.load_and_count_records(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::list_distinct time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListDistinctCallTime.set(duration_millis as f64);
+        // Package list for a whole origin is still not very
+        // performant, and we want to track that
+        if pl.ident.name != "" {
+            Histogram::PackageListDistinctOriginOnlyCallTime.set(duration_millis as f64);
+        } else {
+            Histogram::PackageListDistinctOriginNameCallTime.set(duration_millis as f64);
+        }
+
+        result
     }
 
     pub fn distinct_for_origin(pl: ListPackages,
                                conn: &PgConnection)
                                -> QueryResult<(Vec<OriginPackageSettings>, i64)> {
         Counter::DBCall.increment();
-        origin_package_settings::table.select(origin_package_settings::all_columns)
-                              .filter(origin_package_settings::origin.eq(&pl.ident.origin))
-                              .filter(origin_package_settings::visibility.eq(any(pl.visibility)))
-                              .order(origin_package_settings::origin.asc())
-                              .order(origin_package_settings::name.asc())
-                              .paginate(pl.page)
-                              .per_page(pl.limit)
-                              .load_and_count_records(conn)
+        let start_time = Instant::now();
+
+        let result = origin_package_settings::table
+            .select(origin_package_settings::all_columns)
+            .filter(origin_package_settings::origin.eq(&pl.ident.origin))
+            .filter(origin_package_settings::visibility.eq(any(pl.visibility)))
+            .order(origin_package_settings::origin.asc())
+            .order(origin_package_settings::name.asc())
+            .paginate(pl.page)
+            .per_page(pl.limit)
+            .load_and_count_records(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::list_distinct_for_origin time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListDistinctForOriginCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn list_package_channels(ident: &BuilderPackageIdent,
@@ -603,14 +707,23 @@ impl Package {
                                  conn: &PgConnection)
                                  -> QueryResult<Vec<Channel>> {
         Counter::DBCall.increment();
-        origin_packages::table
+        let start_time = Instant::now();
+
+        let result = origin_packages::table
             .inner_join(origin_channel_packages::table.inner_join(origin_channels::table))
             .select(origin_channels::table::all_columns())
             .filter(origin_packages::ident.eq(ident))
             .filter(origin_packages::target.eq(target.to_string()))
             .filter(origin_packages::visibility.eq(any(visibility)))
             .order(origin_channels::name.desc())
-            .get_results(conn)
+            .get_results(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::list_package_channels time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListPackageChannelsCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn list_package_versions(ident: &BuilderPackageIdent,
@@ -618,27 +731,47 @@ impl Package {
                                  conn: &PgConnection)
                                  -> QueryResult<Vec<OriginPackageVersions>> {
         Counter::DBCall.increment();
-        origin_package_versions::table
+        let start_time = Instant::now();
+
+        let result = origin_package_versions::table
             .filter(origin_package_versions::origin.eq(ident.origin()))
             .filter(origin_package_versions::name.eq(ident.name()))
             .filter(origin_package_versions::visibility.eq(any(visibility)))
             .order(sql::<OriginPackageVersions>(
                 "string_to_array(version_array[1],'.')::numeric[]desc, version_array[2] desc",
             ))
-            .get_results(conn)
+            .get_results(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::list_package_versions time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListPackageVersionsCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn count_origin_packages(origin: &str, conn: &PgConnection) -> QueryResult<i64> {
         Counter::DBCall.increment();
-        origin_packages::table.select(count(origin_packages::id))
-                              .filter(origin_packages::origin.eq(&origin))
-                              .first(conn)
+        let start_time = Instant::now();
+
+        let result = origin_packages::table.select(count(origin_packages::id))
+                                           .filter(origin_packages::origin.eq(&origin))
+                                           .first(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::count_origin_packages time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageCountOriginPackages.set(duration_millis as f64);
+        result
     }
 
     pub fn search(sp: SearchPackages,
                   conn: &PgConnection)
                   -> QueryResult<(Vec<BuilderPackageIdent>, i64)> {
         Counter::DBCall.increment();
+        let start_time = Instant::now();
+
         let mut query = origin_packages::table
             .select(origin_packages::ident)
             .filter(to_tsquery(sp.query).matches(origin_packages::ident_vector))
@@ -658,9 +791,15 @@ impl Package {
             query = query.filter(origin_packages::visibility.eq(PackageVisibility::Public));
         }
 
-        query.paginate(sp.page)
-             .per_page(sp.limit)
-             .load_and_count_records(conn)
+        let result = query.paginate(sp.page)
+                          .per_page(sp.limit)
+                          .load_and_count_records(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::search time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageSearchCallTime.set(duration_millis as f64);
+        result
     }
 
     // This is me giving up on fighting the typechecker and just duplicating a bunch of code
@@ -668,6 +807,7 @@ impl Package {
                            conn: &PgConnection)
                            -> QueryResult<(Vec<BuilderPackageIdent>, i64)> {
         Counter::DBCall.increment();
+        let start_time = Instant::now();
 
         let mut query = origin_packages::table
             .inner_join(origins::table)
@@ -689,9 +829,16 @@ impl Package {
 
         // Because of the filter hack it is very important that this be the last filter
         query = query.filter(sql("TRUE GROUP BY origin_packages.name, origins.name"));
-        query.paginate(sp.page)
-             .per_page(sp.limit)
-             .load_and_count_records(conn)
+
+        let result = query.paginate(sp.page)
+                          .per_page(sp.limit)
+                          .load_and_count_records(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::search time: {} ms", duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageSearchDistinctCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn all() -> All { origin_packages::table.select(ALL_COLUMNS) }
@@ -700,11 +847,23 @@ impl Package {
                                   visibilities: Vec<PackageVisibility>,
                                   conn: &PgConnection)
                                   -> QueryResult<Vec<BuilderPackageTarget>> {
-        origin_packages::table
+        Counter::DBCall.increment();
+        let start_time = Instant::now();
+
+        let result = origin_packages::table
             .select(origin_packages::target)
+            .filter(origin_packages::origin.eq(&ident.origin))
+            .filter(origin_packages::name.eq(&ident.name))
             .filter(origin_packages::ident_array.contains(&searchable_ident(&ident)))
             .filter(origin_packages::visibility.eq(any(visibilities)))
-            .get_results(conn)
+            .get_results(conn);
+
+        let duration_millis = start_time.elapsed().as_millis();
+        trace!("DBCall package::list_package_platforms time: {} ms",
+               duration_millis);
+        Histogram::DbCallTime.set(duration_millis as f64);
+        Histogram::PackageListPackagePlatformsCallTime.set(duration_millis as f64);
+        result
     }
 
     pub fn is_a_service(&self) -> bool {

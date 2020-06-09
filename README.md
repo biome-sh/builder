@@ -1,19 +1,19 @@
-# Habitat Builder
+# Biome Builder
 
-[![Build Status](https://api.travis-ci.org/habitat-sh/builder.svg?branch=master)](https://travis-ci.org/habitat-sh/builder)
+[![Build Status](https://api.travis-ci.org/biome-sh/builder.svg?branch=master)](https://travis-ci.org/biome-sh/builder)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 
-Want to try Habitat? [Get started here](https://www.habitat.sh/tutorials/get-started/demo/).
+Want to try Biome? [Get started here](https://www.habitat.sh/tutorials/get-started/demo/).
 
-Habitat Builder is the public SaaS infrastructure for users of the Habitat automation framework.
+Biome Builder is the public SaaS infrastructure for users of the Biome automation framework.
 
-It provides the web UI for end users, as well as REST APIs that the `hab` client can use to perform various tasks.
+It provides the web UI for end users, as well as REST APIs that the `bio` client can use to perform various tasks.
 
-If you are looking for on-premise installation, please visit [On-Premise Builder Depot](https://github.com/habitat-sh/on-prem-builder)
+If you are looking for on-premise installation, please visit [On-Premise Builder Depot](https://github.com/biome-sh/on-prem-builder)
 
-To learn more about Habitat, please visit the [Habitat website](https://www.habitat.sh).
+To learn more about Biome, please visit the [Biome website](https://www.habitat.sh).
 
-**Umbrella Project**: [Habitat](https://github.com/habitat-sh/habitat)
+**Umbrella Project**: [Biome](https://github.com/biome-sh/biome)
 
 **Project State**: [Active](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md#active)
 
@@ -31,7 +31,7 @@ We are always looking for more opportunities for community involvement. Interest
 
 ## License
 
-Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ pub fn do_get_access_tokens(req: &HttpRequest, account_id: u64) -> Result<Vec<Ac
 //
 #[allow(clippy::needless_pass_by_value)]
 fn get_account(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
-    let account_id = match authorize_session(&req, None) {
+    let account_id = match authorize_session(&req, None, None) {
         Ok(session) => session.get_id() as i64,
         Err(_err) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
@@ -89,7 +89,7 @@ fn get_account(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
 
 #[allow(clippy::needless_pass_by_value)]
 fn get_access_tokens(req: HttpRequest) -> HttpResponse {
-    let account_id = match authorize_session(&req, None) {
+    let account_id = match authorize_session(&req, None, None) {
         Ok(session) => session.get_id(),
         Err(err) => return err.into(),
     };
@@ -112,7 +112,7 @@ fn get_access_tokens(req: HttpRequest) -> HttpResponse {
 
 #[allow(clippy::needless_pass_by_value)]
 fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
-    let account_id = match authorize_session(&req, None) {
+    let account_id = match authorize_session(&req, None, None) {
         Ok(session) => session.get_id(),
         Err(err) => return err.into(),
     };
@@ -172,7 +172,7 @@ fn revoke_access_token(req: HttpRequest,
         Err(_) => return HttpResponse::new(StatusCode::UNPROCESSABLE_ENTITY),
     };
 
-    let account_id = match authorize_session(&req, None) {
+    let account_id = match authorize_session(&req, None, None) {
         Ok(session) => session.get_id(),
         Err(err) => return err.into(),
     };
@@ -210,7 +210,7 @@ fn update_account(req: HttpRequest,
                   body: Json<UserUpdateReq>,
                   state: Data<AppState>)
                   -> HttpResponse {
-    let account_id = match authorize_session(&req, None) {
+    let account_id = match authorize_session(&req, None, None) {
         Ok(session) => session.get_id(),
         Err(_err) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };

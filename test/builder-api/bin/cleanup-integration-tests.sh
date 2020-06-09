@@ -26,7 +26,7 @@ set -eu
 # base_dir is the root of the biome project.
 base_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 dir="$base_dir/target/debug"
-depot=/root/biome/tmp/depot
+depot=/root/habitat/tmp/depot
 origins=( neurosis xmen )
 users=( bobo mystique )
 
