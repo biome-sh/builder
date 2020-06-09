@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,34 +13,49 @@
 // limitations under the License.
 
 use num_cpus;
+use percent_encoding::{utf8_percent_encode,
+                       AsciiSet,
+                       CONTROLS};
 use postgres_shared::params::{ConnectParams,
                               Host,
                               IntoConnectParams};
 use std::{error::Error,
           fmt};
-use url::percent_encoding::{utf8_percent_encode,
-                            PATH_SEGMENT_ENCODE_SET};
+
+// The characters in this set are copied from
+// https://docs.rs/percent-encoding/1.0.1/percent_encoding/struct.PATH_SEGMENT_ENCODE_SET.html
+const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ')
+                                                    .add(b'"')
+                                                    .add(b'#')
+                                                    .add(b'<')
+                                                    .add(b'>')
+                                                    .add(b'`')
+                                                    .add(b'?')
+                                                    .add(b'{')
+                                                    .add(b'}')
+                                                    .add(b'%')
+                                                    .add(b'/');
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct DataStoreCfg {
-    pub host: String,
-    pub port: u16,
-    pub user: String,
-    pub password: Option<String>,
-    pub database: String,
+    pub host:                   String,
+    pub port:                   u16,
+    pub user:                   String,
+    pub password:               Option<String>,
+    pub database:               String,
     /// Timing to retry the connection to the data store if it cannot be established
-    pub connection_retry_ms: u64,
+    pub connection_retry_ms:    u64,
     /// How often to cycle a connection from the pool
     pub connection_timeout_sec: u64,
     /// If the datastore connection is under test
-    pub connection_test: bool,
+    pub connection_test:        bool,
     /// Number of database connections to start in pool.
-    pub pool_size: u32,
-    pub ssl_mode: Option<String>,
-    pub ssl_cert: Option<String>,
-    pub ssl_key: Option<String>,
-    pub ssl_root_cert: Option<String>,
+    pub pool_size:              u32,
+    pub ssl_mode:               Option<String>,
+    pub ssl_cert:               Option<String>,
+    pub ssl_key:                Option<String>,
+    pub ssl_root_cert:          Option<String>,
 }
 
 impl Default for DataStoreCfg {

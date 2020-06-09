@@ -87,7 +87,7 @@ _build-builder-component() {
   stop-builder "$component"
 
   NO_INSTALL_DEPS=$(no_install_deps "builder-$component") \
-    build "/src/components/builder-$component/habitat-dev"
+    build "/src/components/builder-$component/biome-dev"
   echo "builder-$component build succeeded"
 
   start-builder "$component"
@@ -129,7 +129,7 @@ upload_github_keys() {
       bio file upload "builder-${svc}.default" "$(date +%s)" "/src/.secrets/builder-github-app.pem"
     done
   else
-    echo "Missing GitHub key file. Please follow instructions here: https://github.com/biome-sh/builder/blob/master/DEVELOPING.md"
+    echo "Missing GitHub key file. Please follow instructions here: https://github.com/habitat-sh/builder/blob/master/DEVELOPING.md"
     sleep 10
   fi
 }
@@ -203,11 +203,11 @@ start-datastore() {
 configure-minio() {
    export AWS_ACCESS_KEY_ID="depot"
    export AWS_SECRET_ACCESS_KEY="password"
-   if aws --endpoint-url http://localhost:9000 s3api list-buckets | grep "habitat-builder-artifact-store.default" > /dev/null; then
+   if aws --endpoint-url http://localhost:9000 s3api list-buckets | grep "biome-builder-artifact-store.default" > /dev/null; then
      echo "Minio already configured"
    else
      echo "Creating bucket in Minio"
-     aws --endpoint-url http://localhost:9000 s3api create-bucket --bucket "habitat-builder-artifact-store.default"
+     aws --endpoint-url http://localhost:9000 s3api create-bucket --bucket "biome-builder-artifact-store.default"
    fi
 }
 
@@ -316,12 +316,12 @@ test-builder() {
   fi
 
   echo "Starting supervisor in test mode. Logs saved to ${logs}"
-  HAB_FUNC_TEST=1 RUST_LOG=debug bio sup run > ${logs} 2>&1 &
+  HAB_FUNC_TEST=1 RUST_LOG=debug HAB_NONINTERACTIVE=true HAB_NOCOLORING=true bio sup run --no-color > ${logs} 2>&1 &
   sleep 8
 
   start-builder
 
-  /src/test/builder-api/test.sh "${preserve:-}"
+  /src/test/builder-api/test.sh "${preserve_flag:-}"
 
   if [[ "${preserve_flag:-}" == "-p" ]]; then
     echo "Data has been preserved and supervisor remains running"

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ fn enable_features(config: &Config) {
 /// Returns a status 200 on success. Any non-200 responses are an outage or a partial outage.
 pub fn status() -> HttpResponse { HttpResponse::new(StatusCode::OK) }
 
-pub fn run(config: Config) -> error::Result<()> {
+pub async fn run(config: Config) -> error::Result<()> {
     enable_features(&config);
 
     let cfg = Arc::new(config.clone());
@@ -219,9 +219,9 @@ pub fn run(config: Config) -> error::Result<()> {
                 }
             }
 
-            srv.bind_ssl(cfg.http.clone(), builder)?
+            srv.bind_openssl(cfg.http.clone(), builder)?
         }
         None => srv.bind(cfg.http.clone())?,
     };
-    srv.run().map_err(error::Error::from)
+    Ok(srv.run().await?)
 }

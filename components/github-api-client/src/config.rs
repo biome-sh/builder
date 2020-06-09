@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ pub const DEV_GITHUB_WEBHOOK_SECRET: &str = "58d4afaf5e5617ab0f8c39e505605e78a05
 #[serde(default)]
 pub struct GitHubCfg {
     /// URL to GitHub API
-    pub api_url: String,
+    pub api_url:         String,
     /// Path to GitHub App private key
     pub app_private_key: String,
     /// App Id used for builder integration
-    pub app_id: u32,
+    pub app_id:          u32,
     /// Secret key for validating payloads sent by a GitHub WebHook
-    pub webhook_secret: String,
+    pub webhook_secret:  String,
 }
 
 impl Default for GitHubCfg {

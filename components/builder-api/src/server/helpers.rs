@@ -1,4 +1,5 @@
 use crate::{db::models::{channel::PackageChannelTrigger as PCT,
+                         origin::OriginMemberRole,
                          package::PackageVisibility},
             bio_core::package::PackageTarget,
             protocol::jobsrv,
@@ -25,7 +26,7 @@ pub struct Target {
 #[derive(Deserialize)]
 pub struct Pagination {
     #[serde(default)]
-    pub range: isize,
+    pub range:    isize,
     #[serde(default)]
     pub distinct: bool,
 }
@@ -42,6 +43,17 @@ pub struct PaginatedResults<'a, T: 'a> {
 pub struct ToChannel {
     #[serde(default)]
     pub channel: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Role {
+    #[serde(default)]
+    pub role: String,
+}
+
+pub fn role_results_json(role: OriginMemberRole) -> String {
+    let resp = Role { role: role.to_string(), };
+    serde_json::to_string(&resp).unwrap()
 }
 
 pub fn package_results_json<T: Serialize>(packages: &[T],
@@ -134,7 +146,9 @@ pub fn visibility_for_optional_session(req: &HttpRequest,
     let mut v = Vec::new();
     v.push(PackageVisibility::Public);
 
-    if optional_session_id.is_some() && authorize_session(req, Some(&origin)).is_ok() {
+    if optional_session_id.is_some()
+       && authorize_session(req, Some(&origin), Some(OriginMemberRole::Member)).is_ok()
+    {
         v.push(PackageVisibility::Hidden);
         v.push(PackageVisibility::Private);
     }
@@ -153,7 +167,7 @@ pub fn trigger_from_request(req: &HttpRequest) -> jobsrv::JobGroupTrigger {
     if let Some(ref agent) = req.headers().get(header::USER_AGENT) {
         if let Ok(s) = agent.to_str() {
             if s.starts_with("bio/") {
-                return jobsrv::JobGroupTrigger::HabClient;
+                return jobsrv::JobGroupTrigger::BioClient;
             }
         }
     }
@@ -177,7 +191,7 @@ pub fn trigger_from_request_model(req: &HttpRequest) -> PCT {
     if let Some(ref agent) = req.headers().get(header::USER_AGENT) {
         if let Ok(s) = agent.to_str() {
             if s.starts_with("bio/") {
-                return PCT::HabClient;
+                return PCT::BioClient;
             }
         }
     }
@@ -195,4 +209,7 @@ pub fn trigger_from_request_model(req: &HttpRequest) -> PCT {
     PCT::Unknown
 }
 
-pub fn req_state(req: &HttpRequest) -> &AppState { req.app_data().expect("request state") }
+pub fn req_state(req: &HttpRequest) -> &AppState {
+    req.app_data::<actix_web::web::Data<AppState>>()
+       .expect("request state")
+}

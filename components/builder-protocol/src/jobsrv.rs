@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ impl fmt::Display for JobGroupTrigger {
             JobGroupTrigger::Unknown => "Unknown",
             JobGroupTrigger::Webhook => "Webhook",
             JobGroupTrigger::Upload => "Upload",
-            JobGroupTrigger::HabClient => "HabClient",
+            JobGroupTrigger::BioClient => "BioClient",
             JobGroupTrigger::BuilderUI => "BuilderUI",
         };
         write!(f, "{}", value)
@@ -219,7 +219,7 @@ impl FromStr for JobGroupTrigger {
             "unknown" => Ok(JobGroupTrigger::Unknown),
             "webhook" => Ok(JobGroupTrigger::Webhook),
             "upload" => Ok(JobGroupTrigger::Upload),
-            "habclient" => Ok(JobGroupTrigger::HabClient),
+            "bioclient" => Ok(JobGroupTrigger::BioClient),
             "builderui" => Ok(JobGroupTrigger::BuilderUI),
             _ => Err(ProtocolError::BadJobGroupState(value.to_string())),
         }

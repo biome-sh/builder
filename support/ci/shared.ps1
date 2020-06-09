@@ -61,7 +61,7 @@ function Install-Biome {
     }
 }
 
-function Install-HabPkg([string[]]$idents) {
+function Install-BioPkg([string[]]$idents) {
   $idents | % {
       $id = $_
       $installedPkgs=bio pkg list $id | ? { $_.StartsWith($id)}
@@ -95,7 +95,7 @@ function Setup-Environment {
     $env:HAB_LICENSE = "accept-no-persist"
     Install-Biome
 
-    Install-HabPkg @(
+    Install-BioPkg @(
         "core/cacerts",
         "core/libarchive",
         "core/libsodium",

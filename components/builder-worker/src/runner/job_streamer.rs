@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,17 +44,17 @@ use crate::error::{Error,
 
 /// Streams the contents of a Builder job to a remote target. The contents of the stream consist of
 /// consuming the output streams of child processes (such as `bio-studio`,
-/// `bio-pkg-export-docker`, etc.), section start/end delimiters, and any user-facing error
+/// `bio-pkg-export-container`, etc.), section start/end delimiters, and any user-facing error
 /// messaging (usually written to a stderr output stream).
 ///
 /// A `JobStreamer` is associated with a Builder job identifer and should be used for the duration
 /// of that job.
 pub struct JobStreamer {
     /// The job identifer associated with this build log
-    id: u64,
+    id:       u64,
     /// The underlying target for this log when streaming lines. This target may be written to by
     /// multiple concurrent threads, therefore it is managed with a `Mutex`.
-    target: Arc<Mutex<StreamTarget>>,
+    target:   Arc<Mutex<StreamTarget>>,
     /// Whether or not the stream has been marked as finished
     finished: bool,
 }
@@ -192,9 +192,9 @@ impl Drop for JobStreamer {
 /// line aware.
 struct StreamTarget {
     /// A zeromq socket which represents the log stream target
-    pub sock: zmq::Socket,
+    pub sock:         zmq::Socket,
     /// The current line count of submitted log lines
-    pub line_count: u64,
+    pub line_count:   u64,
     /// A local file logger that writes a copy of each line written to the remote socket
     pub local_logger: Logger,
 }
@@ -309,13 +309,13 @@ impl fmt::Display for Section {
 /// package in the Studio, etc.
 pub struct LogSection {
     /// The job identifer associated with this build log
-    id: u64,
+    id:     u64,
     /// The section name
-    name: Section,
+    name:   Section,
     /// The underlying target for this log when streaming lines
     target: Arc<Mutex<StreamTarget>>,
     /// Whether or not the section has been marked as ended
-    ended: bool,
+    ended:  bool,
 }
 
 impl LogSection {

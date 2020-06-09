@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ use crate::{bldr_core::metrics::CounterMetric,
                        ChannelIdent}};
 
 use crate::db::models::{channel::*,
+                        origin::*,
                         package::{BuilderPackageIdent,
                                   GetPackageGroup,
                                   Package}};
@@ -137,10 +138,11 @@ fn create_channel(req: HttpRequest,
                   -> HttpResponse {
     let (origin, channel) = path.into_inner();
 
-    let session_id = match authorize_session(&req, Some(&origin)) {
-        Ok(session) => session.get_id(),
-        Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
-    };
+    let session_id =
+        match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
+            Ok(session) => session.get_id(),
+            Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
+        };
 
     let conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
@@ -171,7 +173,7 @@ fn delete_channel(req: HttpRequest,
     let (origin, channel) = path.into_inner();
     let channel = ChannelIdent::from(channel);
 
-    if let Err(_err) = authorize_session(&req, Some(&origin)) {
+    if let Err(_err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         return HttpResponse::new(StatusCode::UNAUTHORIZED);
     }
 
@@ -205,7 +207,7 @@ fn promote_channel_packages(req: HttpRequest,
                             -> HttpResponse {
     let (origin, channel) = path.into_inner();
 
-    let session = match authorize_session(&req, Some(&origin)) {
+    let session = match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         Ok(session) => session,
         Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
@@ -263,7 +265,7 @@ fn demote_channel_packages(req: HttpRequest,
         Err(err) => return err.into(),
     };
 
-    let session = match authorize_session(&req, Some(&origin)) {
+    let session = match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         Ok(session) => session,
         Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
@@ -386,7 +388,7 @@ fn promote_package(req: HttpRequest,
     let (origin, channel, pkg, version, release) = path.into_inner();
     let channel = ChannelIdent::from(channel);
 
-    let session = match authorize_session(&req, Some(&origin)) {
+    let session = match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         Ok(session) => session,
         Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
@@ -466,7 +468,7 @@ fn demote_package(req: HttpRequest,
         return HttpResponse::new(StatusCode::FORBIDDEN);
     }
 
-    let session = match authorize_session(&req, Some(&origin)) {
+    let session = match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         Ok(session) => session,
         Err(_) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
@@ -684,7 +686,7 @@ fn do_get_channel_packages(req: &HttpRequest,
                            ident: &PackageIdent,
                            channel: &ChannelIdent)
                            -> Result<(Vec<BuilderPackageIdent>, i64)> {
-    let opt_session_id = match authorize_session(&req, None) {
+    let opt_session_id = match authorize_session(&req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
     };
@@ -727,7 +729,7 @@ fn do_get_channel_package(req: &HttpRequest,
                           ident: &PackageIdent,
                           channel: &ChannelIdent)
                           -> Result<String> {
-    let opt_session_id = match authorize_session(req, None) {
+    let opt_session_id = match authorize_session(req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
     };
@@ -764,6 +766,7 @@ fn do_get_channel_package(req: &HttpRequest,
                         return Err(Error::SerdeJson(e));
                     }
                 };
+                Counter::MemcacheChannelPackageHit.increment();
                 return Ok(pkg_json);
             }
             (true, None) => {
@@ -772,6 +775,7 @@ fn do_get_channel_package(req: &HttpRequest,
                        ident,
                        target,
                        opt_session_id);
+                Counter::MemcacheChannelPackage404.increment();
                 return Err(Error::NotFound);
             }
             (false, _) => {
@@ -780,6 +784,7 @@ fn do_get_channel_package(req: &HttpRequest,
                        ident,
                        target,
                        opt_session_id);
+                Counter::MemcacheChannelPackageMiss.increment();
             }
         };
     }
@@ -836,7 +841,7 @@ pub fn channels_for_package_ident(req: &HttpRequest,
                                   target: PackageTarget,
                                   conn: &PgConnection)
                                   -> Result<Option<Vec<String>>> {
-    let opt_session_id = match authorize_session(req, None) {
+    let opt_session_id = match authorize_session(req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
     };

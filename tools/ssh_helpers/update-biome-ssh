@@ -11,8 +11,8 @@
 set -euo pipefail
 
 environment=${1}
-start_pattern="###HABITAT-${environment}-START###"
-stop_pattern="###HABITAT-${environment}-STOP###"
+start_pattern="###BIOME-${environment}-START###"
+stop_pattern="###BIOME-${environment}-STOP###"
 script_dir=$(dirname "$0")
 
 # Remove the entries from the config file

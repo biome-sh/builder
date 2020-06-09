@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ use actix_web::{dev::Body,
                 middleware::Logger,
                 web::{self,
                       Data,
-                      Json},
+                      Json,
+                      JsonConfig},
                 App,
                 HttpResponse,
                 HttpServer};
@@ -53,6 +54,9 @@ use std::{collections::{HashMap,
           sync::{Arc,
                  RwLock},
           time::Instant};
+
+// Set a max size for JsonConfig payload. Default is 32Kb
+const MAX_JSON_PAYLOAD: usize = 262_144;
 
 features! {
     pub mod feat {
@@ -145,7 +149,7 @@ fn enable_features_from_config(cfg: &Config) {
     }
 }
 
-pub fn run(config: Config) -> Result<()> {
+pub async fn run(config: Config) -> Result<()> {
     // Set custom panic hook - a panic on the scheduler thread will
     // cause the builder-jobsrv process to exit (and be re-started
     // by the supervisor when running under bio)
@@ -195,7 +199,8 @@ pub fn run(config: Config) -> Result<()> {
     HttpServer::new(move || {
         let app_state = AppState::new(&config, &datastore, db_pool.clone(), &graph_arc);
 
-        App::new().data(app_state)
+        App::new().data(JsonConfig::default().limit(MAX_JSON_PAYLOAD))
+                  .data(app_state)
                   .wrap(Logger::default().exclude("/status"))
                   .service(web::resource("/status").route(web::get().to(status))
                                                    .route(web::head().to(status)))
@@ -205,6 +210,7 @@ pub fn run(config: Config) -> Result<()> {
       .bind(cfg.http.clone())
       .unwrap()
       .run()
+      .await
       .map_err(Error::from)
 }
 

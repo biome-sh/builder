@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -83,4 +83,8 @@ impl From<serde_json::Error> for HubError {
 
 impl From<builder_core::Error> for HubError {
     fn from(err: builder_core::Error) -> Self { HubError::BuilderCore(err) }
+}
+
+impl From<reqwest::Error> for HubError {
+    fn from(err: reqwest::Error) -> Self { HubError::HttpClient(err) }
 }

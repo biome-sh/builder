@@ -62,6 +62,6 @@ command>
 ## Studio usage
 
 ### Building
-build /src/components/builder-graph/biome
+build /src/components/builder-graph/habitat
 
 ### 

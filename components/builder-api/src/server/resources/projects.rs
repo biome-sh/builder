@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,31 +49,31 @@ use crate::server::{authorize::authorize_session,
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ProjectCreateReq {
     #[serde(default)]
-    pub origin: String,
+    pub origin:          String,
     #[serde(default)]
-    pub plan_path: String,
+    pub plan_path:       String,
     #[serde(default = "default_target")]
-    pub target: String,
+    pub target:          String,
     #[serde(default)]
     pub installation_id: u32,
     #[serde(default)]
-    pub repo_id: u32,
+    pub repo_id:         u32,
     #[serde(default)]
-    pub auto_build: bool,
+    pub auto_build:      bool,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ProjectUpdateReq {
     #[serde(default)]
-    pub plan_path: String,
+    pub plan_path:       String,
     #[serde(default = "default_target")]
-    pub target: String,
+    pub target:          String,
     #[serde(default)]
     pub installation_id: u32,
     #[serde(default)]
-    pub repo_id: u32,
+    pub repo_id:         u32,
     #[serde(default)]
-    pub auto_build: bool,
+    pub auto_build:      bool,
 }
 
 fn default_target() -> String { "x86_64-linux".to_string() }
@@ -107,18 +107,19 @@ impl Projects {
 
 // TODO: the project creation API needs to be simplified
 #[allow(clippy::needless_pass_by_value)]
-fn create_project(req: HttpRequest,
-                  body: Json<ProjectCreateReq>,
-                  state: Data<AppState>)
-                  -> HttpResponse {
+async fn create_project(req: HttpRequest,
+                        body: Json<ProjectCreateReq>,
+                        state: Data<AppState>)
+                        -> HttpResponse {
     if body.origin.is_empty() || body.plan_path.is_empty() {
         return HttpResponse::new(StatusCode::UNPROCESSABLE_ENTITY);
     }
 
-    let account_id = match authorize_session(&req, Some(&body.origin)) {
-        Ok(session) => session.get_id(),
-        Err(err) => return err.into(),
-    };
+    let account_id =
+        match authorize_session(&req, Some(&body.origin), Some(OriginMemberRole::Maintainer)) {
+            Ok(session) => session.get_id(),
+            Err(err) => return err.into(),
+        };
 
     let conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
@@ -165,7 +166,10 @@ fn create_project(req: HttpRequest,
         }
     };
 
-    let token = match state.github.app_installation_token(body.installation_id) {
+    let token = match state.github
+                           .app_installation_token(body.installation_id)
+                           .await
+    {
         Ok(token) => token,
         Err(err) => {
             warn!("Error authenticating github app installation, {}", err);
@@ -173,7 +177,7 @@ fn create_project(req: HttpRequest,
         }
     };
 
-    let vcs_data = match state.github.repo(&token, body.repo_id) {
+    let vcs_data = match state.github.repo(&token, body.repo_id).await {
         Ok(Some(repo)) => repo.clone_url,
         Ok(None) => return HttpResponse::new(StatusCode::NOT_FOUND),
         Err(e) => {
@@ -182,7 +186,10 @@ fn create_project(req: HttpRequest,
         }
     };
 
-    let plan = match state.github.contents(&token, body.repo_id, &body.plan_path) {
+    let plan = match state.github
+                          .contents(&token, body.repo_id, &body.plan_path)
+                          .await
+    {
         Ok(Some(contents)) => {
             match contents.decode() {
                 Ok(bytes) => {
@@ -236,7 +243,7 @@ fn get_project(req: HttpRequest,
                -> HttpResponse {
     let (origin, name) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), None) {
         return err.into();
     }
 
@@ -265,7 +272,7 @@ fn delete_project(req: HttpRequest,
                   -> HttpResponse {
     let (origin, name) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         return err.into();
     }
 
@@ -287,17 +294,18 @@ fn delete_project(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn update_project(req: HttpRequest,
-                  path: Path<(String, String)>,
-                  body: Json<ProjectUpdateReq>,
-                  state: Data<AppState>)
-                  -> HttpResponse {
+async fn update_project(req: HttpRequest,
+                        path: Path<(String, String)>,
+                        body: Json<ProjectUpdateReq>,
+                        state: Data<AppState>)
+                        -> HttpResponse {
     let (origin, name) = path.into_inner();
 
-    let account_id = match authorize_session(&req, Some(&origin)) {
-        Ok(session) => session.get_id(),
-        Err(err) => return err.into(),
-    };
+    let account_id =
+        match authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
+            Ok(session) => session.get_id(),
+            Err(err) => return err.into(),
+        };
 
     if body.plan_path.is_empty() {
         return HttpResponse::new(StatusCode::UNPROCESSABLE_ENTITY);
@@ -352,7 +360,10 @@ fn update_project(req: HttpRequest,
         }
     };
 
-    let token = match state.github.app_installation_token(body.installation_id) {
+    let token = match state.github
+                           .app_installation_token(body.installation_id)
+                           .await
+    {
         Ok(token) => token,
         Err(err) => {
             debug!("Error authenticating github app installation, {}", err);
@@ -360,7 +371,7 @@ fn update_project(req: HttpRequest,
         }
     };
 
-    let vcs_data = match state.github.repo(&token, body.repo_id) {
+    let vcs_data = match state.github.repo(&token, body.repo_id).await {
         Ok(Some(repo)) => repo.clone_url,
         Ok(None) => return HttpResponse::new(StatusCode::NOT_FOUND),
         Err(e) => {
@@ -369,7 +380,10 @@ fn update_project(req: HttpRequest,
         }
     };
 
-    let plan = match state.github.contents(&token, body.repo_id, &body.plan_path) {
+    let plan = match state.github
+                          .contents(&token, body.repo_id, &body.plan_path)
+                          .await
+    {
         Ok(Some(contents)) => {
             match contents.decode() {
                 Ok(bytes) => {
@@ -424,7 +438,7 @@ fn update_project(req: HttpRequest,
 fn get_projects(req: HttpRequest, path: Path<String>, state: Data<AppState>) -> HttpResponse {
     let origin = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), None) {
         return err.into();
     }
 
@@ -455,7 +469,7 @@ fn get_jobs(req: HttpRequest,
             -> HttpResponse {
     let (origin, name) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), None) {
         return err.into();
     }
 
@@ -516,7 +530,7 @@ fn create_integration(req: HttpRequest,
                       -> HttpResponse {
     let (origin, name, integration) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         return err.into();
     }
 
@@ -558,7 +572,7 @@ fn delete_integration(req: HttpRequest,
                       -> HttpResponse {
     let (origin, name, integration) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
         return err.into();
     }
 
@@ -585,7 +599,7 @@ fn get_integration(req: HttpRequest,
                    -> HttpResponse {
     let (origin, name, integration) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), None) {
         return err.into();
     }
 

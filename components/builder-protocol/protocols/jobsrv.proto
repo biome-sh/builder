@@ -107,7 +107,7 @@ enum JobGroupTrigger {
   Unknown = 0;
   Webhook = 1;
   Upload = 2;
-  HabClient = 3;
+  BioClient = 3;
   BuilderUI = 4;
 }
 

@@ -116,7 +116,7 @@ class AzureADProvider extends OAuthProvider {
 }
 
 class ChefAutomateProvider extends OAuthProvider {
-  name: string = 'Chef Automate';
+  name: string = 'Cinc Automate';
 
   constructor(clientID: string, authorizeUrl: string, redirectUrl: string, signupUrl: string, state: string) {
     super(

@@ -48,4 +48,4 @@ use_ssl = false
 ssl_cert_pw = ""
 
 # Default bucket name to create
-bucket_name = "habitat-builder-artifact-store.default"
+bucket_name = "biome-builder-artifact-store.default"

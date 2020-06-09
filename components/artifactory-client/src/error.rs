@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,4 +62,7 @@ impl From<io::Error> for ArtifactoryError {
 
 impl From<builder_core::Error> for ArtifactoryError {
     fn from(err: builder_core::Error) -> Self { ArtifactoryError::BuilderCore(err) }
+}
+impl From<reqwest::Error> for ArtifactoryError {
+    fn from(err: reqwest::Error) -> Self { ArtifactoryError::HttpClient(err) }
 }

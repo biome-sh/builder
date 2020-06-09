@@ -103,7 +103,7 @@ getHarts() {
 }
 
 downloadHarts() {
-    download_path="/bio/tmp/harts/"
+    download_path="/hab/tmp/harts/"
     mkdir -p "${download_path}"
 
     aws "${region_option}" "${AWS_REGION}" s3 cp --recursive "s3://${S3_BUCKET}/${1}" "${download_path}"
@@ -114,7 +114,7 @@ checkBucket() {
 }
 
 installDeps() (
-    pdeps=("core/aws-cli" "core/jq-static" "biome/s3-bulk-uploader")
+    pdeps=("core/aws-cli" "core/jq-static" "habitat/s3-bulk-uploader")
     unset HAB_AUTH_TOKEN
 
     configMsg
@@ -213,7 +213,7 @@ putArtifacts() {
         if ! bio pkg upload --url "${bldr_url}" "${file}" --force; then
             failed_uploads+=("${file}")
         fi
-    done < <(find /bio/tmp/harts/ -name '*.hart' -print0)
+    done < <(find /hab/tmp/harts/ -name '*.hart' -print0)
 }
 
 genS3Config() {

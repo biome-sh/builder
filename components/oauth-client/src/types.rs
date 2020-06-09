@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,18 +15,19 @@
 use crate::{config::OAuth2Cfg,
             error::Result};
 
+use async_trait::async_trait;
 use builder_core::http_client::HttpClient;
-
 pub struct OAuth2User {
     pub id:       String,
     pub username: String,
     pub email:    Option<String>,
 }
 
+#[async_trait]
 pub trait OAuth2Provider: Sync + Send {
-    fn authenticate(&self,
-                    config: &OAuth2Cfg,
-                    client: &HttpClient,
-                    code: &str)
-                    -> Result<(String, OAuth2User)>;
+    async fn authenticate(&self,
+                          config: &OAuth2Cfg,
+                          client: &HttpClient,
+                          code: &str)
+                          -> Result<(String, OAuth2User)>;
 }

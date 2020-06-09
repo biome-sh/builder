@@ -14,7 +14,7 @@ do_dev_prepare() {
   export SCCACHE_START_SERVER=0
   do_builder_prepare
   export CARGO_TARGET_DIR="/tmp/target"
-  PLAN_CONTEXT="../biome"
+  PLAN_CONTEXT="../bioitat"
   export RUST_BACKTRACE=1
 }
 

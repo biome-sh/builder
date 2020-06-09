@@ -153,7 +153,7 @@ impl<'a> Studio<'a> {
 
         if self.target == target::X86_64_WINDOWS {
             cmd.arg("-R"); // Work around a bug so studio does not get removed
-                           // Remove when we fix this (bio 0.75.0 or later)
+                           // Remove when we fix this (hab 0.75.0 or later)
             cmd.arg("-k"); // Origin key
             cmd.arg(self.workspace.job.origin());
         }
@@ -202,7 +202,7 @@ pub fn build_path(plan_path: &str) -> String {
     if parts.last().map_or("", |p| *p) == "plan.ps1" {
         parts.pop();
     }
-    if parts.last().map_or("", |p| *p) == "biome" {
+    if parts.last().map_or("", |p| *p) == "habitat" {
         parts.pop();
     }
 
