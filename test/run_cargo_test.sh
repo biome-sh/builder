@@ -33,7 +33,6 @@ sudo bio pkg install core/xz
 sudo bio pkg install core/zeromq
 sudo bio pkg install core/libpq
 sudo bio pkg install core/protobuf --binlink
-export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
 OPENSSL_DIR="$(bio pkg path core/openssl)"

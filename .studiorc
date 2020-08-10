@@ -87,7 +87,7 @@ _build-builder-component() {
   stop-builder "$component"
 
   NO_INSTALL_DEPS=$(no_install_deps "builder-$component") \
-    build "/src/components/builder-$component/biome-dev"
+    build "/src/components/builder-$component/habitat-dev"
   echo "builder-$component build succeeded"
 
   start-builder "$component"

@@ -28,6 +28,7 @@ rusoto_core = "0.42"
 rusoto_s3 = "0.42"
 env_logger = "*"
 biome_builder_db = { path = "../builder-db" }
+biome_builder_graph = { path = "../builder-graph" }
 biome-builder-protocol = { path = "../builder-protocol" }
 linked-hash-map = "*"
 log = "*"
@@ -39,7 +40,7 @@ rand = "*"
 r2d2 = "*"
 serde = "*"
 serde_derive = "*"
-sha2 = "*"
+sha2 = "= 0.8.2"
 toml = { version = "*", default-features = false }
 
 [dependencies.actix-web]

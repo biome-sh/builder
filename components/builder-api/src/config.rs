@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,9 +86,7 @@ impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", *self) }
 }
 
-impl error::Error for ConfigError {
-    fn description(&self) -> &str { "Error reading config file" }
-}
+impl error::Error for ConfigError {}
 
 impl ConfigFile for Config {
     type Error = ConfigError;

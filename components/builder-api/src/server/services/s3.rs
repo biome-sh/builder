@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -360,7 +360,7 @@ async fn write_archive(filename: &PathBuf,
             return Err(Error::IO(e));
         }
     }
-    Ok(PackageArchive::new(filename))
+    Ok(PackageArchive::new(filename)?)
 }
 
 #[cfg(test)]

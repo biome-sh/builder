@@ -1,4 +1,4 @@
-# Copyright:: Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+# Copyright:: Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 #
 # The terms of the Evaluation Agreement (Biome) between Chef Software Inc.
 # and the party accessing this file ("Licensee") apply to Licensee's use of

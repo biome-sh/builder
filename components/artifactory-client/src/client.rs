@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ impl ArtifactoryClient {
             while let Some(chunk) = stream.next().await {
                 file.write_all(&chunk?).await?;
             }
-            Ok(PackageArchive::new(destination_path))
+            Ok(PackageArchive::new(destination_path)?)
         } else {
             error!("Artifactory download non-success status: {:?}",
                    resp.status());

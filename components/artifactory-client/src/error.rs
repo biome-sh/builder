@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use std::{collections::HashMap,
-          error,
           fmt,
           io};
 
@@ -28,6 +27,7 @@ pub enum ArtifactoryError {
     ApiError(reqwest::StatusCode, HashMap<String, String>),
     BuilderCore(builder_core::Error),
     IO(io::Error),
+    BiomeCore(biome_core::error::Error),
 }
 
 impl fmt::Display for ArtifactoryError {
@@ -40,19 +40,9 @@ impl fmt::Display for ArtifactoryError {
             }
             ArtifactoryError::BuilderCore(ref e) => format!("{}", e),
             ArtifactoryError::IO(ref e) => format!("{}", e),
+            ArtifactoryError::BiomeCore(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
-    }
-}
-
-impl error::Error for ArtifactoryError {
-    fn description(&self) -> &str {
-        match *self {
-            ArtifactoryError::HttpClient(ref err) => err.description(),
-            ArtifactoryError::ApiError(..) => "Response returned a non-200 status code.",
-            ArtifactoryError::BuilderCore(ref err) => err.description(),
-            ArtifactoryError::IO(ref err) => err.description(),
-        }
     }
 }
 
@@ -63,6 +53,11 @@ impl From<io::Error> for ArtifactoryError {
 impl From<builder_core::Error> for ArtifactoryError {
     fn from(err: builder_core::Error) -> Self { ArtifactoryError::BuilderCore(err) }
 }
+
 impl From<reqwest::Error> for ArtifactoryError {
     fn from(err: reqwest::Error) -> Self { ArtifactoryError::HttpClient(err) }
+}
+
+impl From<biome_core::error::Error> for ArtifactoryError {
+    fn from(err: biome_core::error::Error) -> Self { ArtifactoryError::BiomeCore(err) }
 }

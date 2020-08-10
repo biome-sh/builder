@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Copyright (c) 2016-2020 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ extern crate serde_derive;
 
 use builder_core as bldr_core;
 use biome_builder_db as db;
+use biome_builder_graph as builder_graph;
 use biome_builder_protocol as protocol;
 use biome_core as bio_core;
 use rusoto_core as rusoto;
