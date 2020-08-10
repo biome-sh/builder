@@ -8,6 +8,8 @@ source "{{ pkg.svc_config_path }}/hook-helper.sh"
 # This is helps to restart service instead of reload
 checksum_restart_hook
 
+remove_old_hooks
+
 if [ "$standalone" == "true" ]; then
     echo "Starting in standalone mode ..."
     exec minio server --config-dir "{{pkg.svc_config_path}}" "{{pkg.svc_data_path}}"

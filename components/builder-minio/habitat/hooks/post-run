@@ -13,3 +13,8 @@ if [ "$standalone" != "true" ] && [ ! -f "$run_good_hook" ]; then
 fi
 
 create_bucket
+
+if [ "$use_ssl" == "true" ]; then
+    copy_certs
+fi
+

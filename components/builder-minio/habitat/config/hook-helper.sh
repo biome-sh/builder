@@ -44,6 +44,14 @@ explicit_count=$(echo "$explicit_members" | wc -w)
 
 # Helper methods
 
+# Delete deprecated hooks
+remove_old_hooks() {
+    rm -f "{{pkg.svc_path}}/hooks/init"
+    rm -f "{{pkg.svc_path}}/hooks/reload"
+
+    return 0
+}
+
 # Can't calculate PID on the early stage, so defer it by method
 minio_pid() {
     cat "{{pkg.svc_pid_file}}"
