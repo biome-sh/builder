@@ -20,10 +20,6 @@ use std::{error,
 use crate::{db,
             bio_core};
 
-use postgres;
-use protobuf;
-use r2d2;
-
 #[derive(Debug)]
 pub enum Error {
     Db(db::error::Error),
@@ -33,6 +29,7 @@ pub enum Error {
     BiomeCore(bio_core::Error),
     IO(io::Error),
     JobGraphPackagesGet(postgres::error::Error),
+    Misc(String),
     Protobuf(protobuf::ProtobufError),
     Serde(serde_json::Error),
     UnknownJobGraphPackage,
@@ -54,6 +51,7 @@ impl fmt::Display for Error {
             Error::JobGraphPackagesGet(ref e) => {
                 format!("Database error retrieving packages, {}", e)
             }
+            Error::Misc(ref e) => format!("Misc error {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Serde(ref e) => format!("{}", e),
             Error::UnknownJobGraphPackage => "Unknown Package".to_string(),
