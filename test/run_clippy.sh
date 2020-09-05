@@ -7,39 +7,49 @@ set -euo pipefail
 # shellcheck disable=SC1094
 source ./support/ci/shared.sh
 
+export RUSTFLAGS="-D warnings"
+
 # Because sadness
 if ${BUILDKITE:-false}; then
   sudo chown buildkite-agent /home/buildkite-agent
 fi
 
 toolchain="${1:-"$(get_toolchain)"}"
-install_rustup
-install_rust_toolchain "$toolchain"
 
-# TODO: these should be in a shared script?
-sudo bio license accept
-install_bio_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/libpq
-sudo bio pkg install core/protobuf --binlink
+# If we're in Buildkite, then install Rust, set up Biome library
+# dependencies, etc.
+#
+# If we're NOT in Buildkite, we'll just run clippy, assuming that
+# the developer has already set up their environment as they like.
+if ${BUILDKITE:-false}; then
+    install_rustup
+    install_rust_toolchain "$toolchain"
 
-export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
-export OPENSSL_DIR # so the openssl crate knows what to build against
-OPENSSL_DIR="$(bio pkg path core/openssl)"
-export OPENSSL_STATIC=true # so the openssl crate builds statically
-export LIBZMQ_PREFIX
-LIBZMQ_PREFIX=$(bio pkg path core/zeromq)
-# now include openssl and zeromq so thney exists in the runtime library path when cargo test is run
-export LD_LIBRARY_PATH
-LD_LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/zeromq)/lib"
-# include these so that the cargo tests can bind to libarchive (which dynamically binds to xz, bzip, etc), openssl, and sodium at *runtime*
-export LIBRARY_PATH
-LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/bzip2)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/openssl)/lib:$(bio pkg path core/xz)/lib"
-# setup pkgconfig so the libarchive crate can use pkg-config to fine bzip2 and xz at *build* time
-export PKG_CONFIG_PATH
-PKG_CONFIG_PATH="$(bio pkg path core/libpq)/lib/pkgconfig:$(bio pkg path core/libarchive)/lib/pkgconfig:$(bio pkg path core/libsodium)/lib/pkgconfig:$(bio pkg path core/openssl)/lib/pkgconfig"
+    # TODO: these should be in a shared script?
+    sudo bio license accept
+    install_bio_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/libpq
+    sudo bio pkg install core/protobuf --binlink
 
-# Install clippy
-echo "--- :rust: Installing clippy"
-rustup component add clippy
+    export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
+    export OPENSSL_DIR # so the openssl crate knows what to build against
+    OPENSSL_DIR="$(bio pkg path core/openssl)"
+    export OPENSSL_STATIC=true # so the openssl crate builds statically
+    export LIBZMQ_PREFIX
+    LIBZMQ_PREFIX=$(bio pkg path core/zeromq)
+    # now include openssl and zeromq so thney exists in the runtime library path when cargo test is run
+    export LD_LIBRARY_PATH
+    LD_LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/zeromq)/lib"
+    # include these so that the cargo tests can bind to libarchive (which dynamically binds to xz, bzip, etc), openssl, and sodium at *runtime*
+    export LIBRARY_PATH
+    LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/bzip2)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/openssl)/lib:$(bio pkg path core/xz)/lib"
+    # setup pkgconfig so the libarchive crate can use pkg-config to fine bzip2 and xz at *build* time
+    export PKG_CONFIG_PATH
+    PKG_CONFIG_PATH="$(bio pkg path core/libpq)/lib/pkgconfig:$(bio pkg path core/libarchive)/lib/pkgconfig:$(bio pkg path core/libsodium)/lib/pkgconfig:$(bio pkg path core/openssl)/lib/pkgconfig"
+
+    # Install clippy
+    echo "--- :rust: Installing clippy"
+    rustup component add clippy
+fi
 
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints < "$2"

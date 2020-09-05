@@ -18,7 +18,6 @@ doc = false
 
 [dependencies]
 bitflags = "*"
-clippy = {version = "*", optional = true}
 features = "*"
 biome-builder-protocol = { path = "../builder-protocol" }
 log = "*"
