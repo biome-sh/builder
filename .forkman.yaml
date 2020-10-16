@@ -12,6 +12,7 @@ patterns:
   'Copyright (c) 2016-2018 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2017-2020 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2016-2019 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
+  'Copyright (c) 2016-2020 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2015-2016 The Habitat Maintainers': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2016 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2017 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
@@ -22,7 +23,6 @@ patterns:
   'Copyright:: Copyright (c) 2015-2016 Chef Software, Inc': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright 2015-2019 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2020-2020 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
-
   'Chef license agreement': 'Biome license agreement'
   'Chef License Acceptance': 'Biome License Acceptance'
   'Chef products': 'Biome products'
@@ -242,6 +242,7 @@ patterns:
   hab\\studios: hab\\\\studios
 
   # Core variables
+  core/habitat-builder-web: biome/biome-builder-web
   # Linux
   core/hab-: biome/bio-
   habitat/hab-: biome/bio-
@@ -380,6 +381,9 @@ patterns:
   'ctx.bin_path().join("hab")': 'ctx.bin_path().join("bio")'
   hab.exe: bio.exe
   bin/hab: bin/bio
+
+  ../habitat: ../habitat
+  ' /habitat': ' /habitat'
 
   ../hab: ../bio
   ' /hab': ' /hab'
