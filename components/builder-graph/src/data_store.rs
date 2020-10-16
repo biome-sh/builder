@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -372,7 +372,7 @@ lazy_static! {
                           ident_intern!("biome/bio-director"),
                           ident_intern!("biome/bio-dynamic"),
                           ident_intern!("biome/bio-eventsrv"),
-                          ident_intern!("biome/bioitat-builder-web"),
+                          ident_intern!("biome/biome-builder-web"),
                           ident_intern!("biome/bio-launcher"),
                           ident_intern!("biome/bio-pkg-export-helm"),
                           ident_intern!("biome/bio-pkg-export-kubernetes"),
