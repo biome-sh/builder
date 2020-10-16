@@ -1,0 +1,20 @@
+{
+    "cfg": {},
+    "sys": {},
+    "pkg": {
+        "path": "/hab/pkgs/biome/builder-api-proxy/1/20190101200000",
+        "svc_path": "/hab/svc/builder-api-proxy",
+        "svc_files_path": "/hab/svc/builder-api-proxy/files",
+        "svc_config_path": "/hab/svc/builder-api-proxy/config",
+        "svc_data_path": "/hab/svc/builder-api-proxy/data",
+        "svc_var_path": "/hab/svc/builder-api-proxy/var",
+        "deps": [
+            {
+                "name": "curl",
+                "origin": "core",
+                "version": "1",
+                "release": "20000000000000"
+            }
+        ]
+    }
+}

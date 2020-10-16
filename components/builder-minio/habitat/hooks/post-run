@@ -12,6 +12,7 @@ sleep 2
 
 create_bucket
 
+# shellcheck disable=SC2154
 if [ "$use_ssl" == "true" ]; then
     copy_certs
 fi
