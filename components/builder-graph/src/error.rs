@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@ use std::{error,
 use crate::{db,
             bio_core};
 
-use postgres;
-use protobuf;
-use r2d2;
-
 #[derive(Debug)]
 pub enum Error {
     Db(db::error::Error),
@@ -33,7 +29,9 @@ pub enum Error {
     BiomeCore(bio_core::Error),
     IO(io::Error),
     JobGraphPackagesGet(postgres::error::Error),
+    Misc(String),
     Protobuf(protobuf::ProtobufError),
+    Serde(serde_json::Error),
     UnknownJobGraphPackage,
 }
 
@@ -53,28 +51,16 @@ impl fmt::Display for Error {
             Error::JobGraphPackagesGet(ref e) => {
                 format!("Database error retrieving packages, {}", e)
             }
+            Error::Misc(ref e) => format!("Misc error {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::Serde(ref e) => format!("{}", e),
             Error::UnknownJobGraphPackage => "Unknown Package".to_string(),
         };
         write!(f, "{}", msg)
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Db(ref err) => err.description(),
-            Error::DbPoolTimeout(ref err) => err.description(),
-            Error::DbTransaction(ref err) => err.description(),
-            Error::DieselError(ref err) => err.description(),
-            Error::BiomeCore(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::JobGraphPackagesGet(ref err) => err.description(),
-            Error::Protobuf(ref err) => err.description(),
-            Error::UnknownJobGraphPackage => "Unknown Package",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<bio_core::Error> for Error {
     fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
@@ -90,4 +76,8 @@ impl From<io::Error> for Error {
 
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error { Error::Protobuf(err) }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error { Error::Serde(err) }
 }

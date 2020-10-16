@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,10 +54,7 @@ pub fn authorize_session(req: &HttpRequest,
         let minimum_req_role = match min_role {
             Some(r) => r,
             None => {
-                let r = OriginMemberRole::Maintainer;
-                // TODO: When we have finalized implementation of the various member roles,
-                // we should turn this into a warn level message.
-                // see: https://github.com/habitat-sh/bulder/issues/1403
+                let r = OriginMemberRole::ReadonlyMember;
                 debug!("authorize_session: minimum role parameter not set! Assuming {}",
                        r);
                 r

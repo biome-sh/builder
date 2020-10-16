@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use memcache;
 use protobuf::{self,
                Message};
 use rand::{self,
@@ -137,7 +136,7 @@ impl MemcacheClient {
     }
 
     pub fn clear_cache_for_member_role(&mut self, origin: &str, account_id: u64) {
-        self.delete_session_key(&member_role_ns_key(origin, account_id));
+        self.delete_role_key(&member_role_ns_key(origin, account_id));
     }
 
     pub fn clear_cache_for_channel(&mut self, origin: &str, channel: &ChannelIdent) {
@@ -159,10 +158,23 @@ impl MemcacheClient {
         }
     }
 
+    pub fn delete_role_key(&mut self, key: &str) {
+        match self.cli.delete(key) {
+            Ok(b) => {
+                if b {
+                    debug!("Deleted key {}, {:?}", key, b)
+                } else {
+                    debug!("Could not find key {}: {}", key, b)
+                }
+            }
+            Err(e) => debug!("Failed to delete key {}: {}", key, e),
+        };
+    }
+
     pub fn delete_session_key(&mut self, key: &str) {
         match self.cli.delete(&hash_key(key)) {
-            Ok(b) => trace!("Deleted key {}, {:?}", key, b),
-            Err(e) => warn!("Failed to delete key {}: {}", key, e),
+            Ok(b) => debug!("Deleted key {}, {:?}", key, b),
+            Err(e) => debug!("Failed to delete key {}: {}", key, e),
         };
     }
 
@@ -230,10 +242,8 @@ impl MemcacheClient {
         let key = member_role_ns_key(origin, account_id);
         match self.cli.set(&key, role, self.ttl * 60) {
             Ok(_) => {
-                trace!("Saved origin role membership {}/{}/{} to memcached!",
-                       origin,
-                       account_id,
-                       role);
+                debug!("Saved origin role membership {}/{}/{} to memcached!",
+                       origin, account_id, role);
             }
             Err(e) => warn!("Failed to save origin role membership to memcached: {}", e),
         }
@@ -311,6 +321,24 @@ fn member_role_ns_key(origin: &str, account_id: u64) -> String {
 
 fn hash_key(key: &str) -> String {
     let mut hasher = Sha512::new();
-    hasher.input(key);
-    format!("{:02x}", hasher.result())
+    hasher.update(key);
+    format!("{:02x}", hasher.finalize())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn hash_key_with_empty_input() {
+        let expected = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e".to_string();
+        assert_eq!(hash_key(""), expected);
+    }
+
+    #[test]
+    fn hash_key_with_session_token() {
+        let token =
+            "CIyAhviVt/aAChIFMYz4NYETACIoZDM2NDg9ZjEzOWY0MTQ5YzZiNmNjDMBkYTA4NTAzODkaMzdiNGZlNQ==";
+        let expected = "33a8f10726b1ada86d9f60e4abbb1cb8726798a2303395cecace82225236cfc3d5a82815d1017a1dd6f8d34e8b77a51c30d972ba2031e1207679fb2a4db925ea".to_string();
+        assert_eq!(hash_key(token), expected)
+    }
 }

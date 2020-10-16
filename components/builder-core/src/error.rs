@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,6 @@ use std::{error,
           result,
           string};
 
-use base64;
-use chrono;
-use protobuf;
-use reqwest;
-use serde_json;
-
 use crate::{bio_core,
             protocol};
 
@@ -41,6 +35,7 @@ pub enum Error {
     BiomeCore(bio_core::Error),
     OriginDeleteError(String),
     OriginMemberRoleError(String),
+    PackageSettingDeleteError(String),
     Protobuf(protobuf::ProtobufError),
     Protocol(protocol::ProtocolError),
     Serialization(serde_json::Error),
@@ -69,6 +64,7 @@ impl fmt::Display for Error {
             Error::BiomeCore(ref e) => format!("{}", e),
             Error::OriginDeleteError(ref e) => e.to_string(),
             Error::OriginMemberRoleError(ref e) => e.to_string(),
+            Error::PackageSettingDeleteError(ref e) => e.to_string(),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Serialization(ref e) => format!("{}", e),
@@ -80,30 +76,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::ApiError(..) => "Response returned a non-200 status code.",
-            Error::RpcError(..) => "Response returned a non-200 status code.",
-            Error::HttpClient(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::Base64Error(ref e) => e.description(),
-            Error::ChronoError(ref e) => e.description(),
-            Error::DecryptError(_) => "Error decrypting integration",
-            Error::EncryptError(_) => "Error encrypting integration",
-            Error::FromUtf8Error(ref e) => e.description(),
-            Error::BiomeCore(ref err) => err.description(),
-            Error::OriginDeleteError(_) => "Error attempting to delete origin",
-            Error::OriginMemberRoleError(_) => "Error parsing member type",
-            Error::Protobuf(ref err) => err.description(),
-            Error::Protocol(ref err) => err.description(),
-            Error::Serialization(ref err) => err.description(),
-            Error::TokenInvalid => "Token is invalid",
-            Error::TokenExpired => "Token is expired",
-            Error::BadResponse => "Response missing required fields",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<bio_core::Error> for Error {
     fn from(err: bio_core::Error) -> Error { Error::BiomeCore(err) }
@@ -119,4 +92,12 @@ impl From<reqwest::Error> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Error { Error::Serialization(err) }
+}
+
+impl From<string::FromUtf8Error> for Error {
+    fn from(err: string::FromUtf8Error) -> Error { Error::FromUtf8Error(err) }
+}
+
+impl From<base64::DecodeError> for Error {
+    fn from(err: base64::DecodeError) -> Error { Error::Base64Error(err) }
 }

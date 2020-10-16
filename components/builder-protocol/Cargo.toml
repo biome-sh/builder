@@ -8,9 +8,9 @@ workspace = "../../"
 edition = "2018"
 
 [dependencies]
-clippy = { version = "*", optional = true }
 fnv = "*"
-protobuf = "*"
+# Pin until we are on Rust >= 1.44.0
+protobuf = "= 2.14.0"
 serde = "*"
 serde_derive = "*"
 regex = "*"
@@ -22,5 +22,6 @@ git = "https://github.com/biome-sh/biome.git"
 [build-dependencies]
 pkg-config = "0.3"
 protoc = "*"
-protoc-rust = "*"
+# Pin until we are on Rust >= 1.44.0
+protoc-rust = "= 2.14.0"
 protobuf-codegen = "*"

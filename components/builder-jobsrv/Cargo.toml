@@ -12,12 +12,14 @@ name = "bldr-jobsrv"
 path = "src/main.rs"
 doc = false
 
+[features]
+postgres_tests = []
+
 [dependencies]
 actix-rt = "*"
 backtrace = "*"
 bitflags = "*"
 builder_core = { path = "../builder-core" }
-clippy = {version = "*", optional = true}
 chrono = { version = "*", features = ["serde"] }
 diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
 diesel-derive-enum = { version = "*", features = ["postgres"] }
@@ -28,6 +30,7 @@ rusoto_core = "0.42"
 rusoto_s3 = "0.42"
 env_logger = "*"
 biome_builder_db = { path = "../builder-db" }
+biome_builder_graph = { path = "../builder-graph" }
 biome-builder-protocol = { path = "../builder-protocol" }
 linked-hash-map = "*"
 log = "*"

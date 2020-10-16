@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,13 +22,11 @@ use std::{collections::{HashMap,
           str::FromStr,
           string::ToString};
 
-use glob;
 use serde::{de,
             Deserialize,
             Deserializer,
             Serialize,
             Serializer};
-use toml;
 
 use crate::{error::{Error,
                     Result},

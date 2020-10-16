@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,11 +90,11 @@ impl Logger {
 
             let offset = start.signed_duration_since(group_start)
                               .to_std()
-                              .unwrap_or(Duration::from_secs(0))
+                              .unwrap_or_else(|_| Duration::from_secs(0))
                               .as_secs_f64();
             let duration = stop.signed_duration_since(start)
                                .to_std()
-                               .unwrap_or(Duration::from_secs(0))
+                               .unwrap_or_else(|_| Duration::from_secs(0))
                                .as_secs_f64();
 
             format!("{},{},{},{}",

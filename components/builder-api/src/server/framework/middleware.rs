@@ -1,19 +1,15 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-use std::env;
-
+use crate::{bldr_core::{access_token::{AccessToken,
+                                       BUILDER_ACCOUNT_ID,
+                                       BUILDER_ACCOUNT_NAME},
+                        metrics::CounterMetric,
+                        privilege::FeatureFlags},
+            db::models::account::*,
+            protocol::{self,
+                       originsrv},
+            server::{error,
+                     helpers::req_state,
+                     services::metrics::Counter,
+                     AppState}};
 use actix_web::{dev::{Body,
                       Service,
                       ServiceRequest,
@@ -25,25 +21,8 @@ use actix_web::{dev::{Body,
 use futures::future::{ok,
                       Either,
                       Future};
-
-use base64;
 use oauth_client::types::OAuth2User;
-use protobuf;
-
-use crate::bldr_core::{self,
-                       access_token::{BUILDER_ACCOUNT_ID,
-                                      BUILDER_ACCOUNT_NAME},
-                       metrics::CounterMetric,
-                       privilege::FeatureFlags};
-
-use crate::{db::models::account::*,
-            protocol::{self,
-                       originsrv}};
-
-use crate::server::{error,
-                    helpers::req_state,
-                    services::metrics::Counter,
-                    AppState};
+use std::env;
 
 lazy_static! {
     static ref SESSION_DURATION: u32 = 3 * 24 * 60 * 60;
@@ -108,17 +87,13 @@ fn authenticate(token: &str, state: &AppState) -> error::Result<originsrv::Sessi
         }
         None => {
             trace!("Session {} Cache Miss!", token);
-            if !bldr_core::access_token::is_access_token(token) {
-                // No token in cache and not a PAT - bail
-                return Err(error::Error::Authorization);
-            }
+
             // Pull the session out of the current token provided so we can validate
             // it against the db's tokens
-            let mut session =
-                bldr_core::access_token::validate_access_token(&state.config.api.key_path,
-                                                               token).map_err(|_| {
-                                                                         error::Error::Authorization
-                                                                     })?;
+            let mut session = AccessToken::validate_access_token(token, &state.config.api.key_path)
+                .map_err(|_| {
+                    error::Error::Authorization
+                })?;
 
             if session.get_id() == BUILDER_ACCOUNT_ID {
                 trace!("Builder token identified");

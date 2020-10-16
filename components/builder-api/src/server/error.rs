@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,12 @@ use actix_web::{self,
                 HttpResponse,
                 ResponseError};
 use artifactory_client::error::ArtifactoryError;
-use diesel;
 use github_api_client::HubError;
 use oauth_client::error::Error as OAuthError;
-use protobuf;
-use reqwest;
+
 use rusoto_core::RusotoError;
-use rusoto_s3;
-use serde_json;
-use std::{error,
-          fmt,
+
+use std::{fmt,
           fs,
           io,
           result,
@@ -107,43 +103,6 @@ impl fmt::Display for Error {
             Error::Utf8(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
-    }
-}
-
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Artifactory(ref err) => err.description(),
-            Error::Authentication => "User is not authenticated",
-            Error::Authorization => "User is not authorized to perform operation",
-            Error::BadRequest => "Http request formation error",
-            Error::BuilderCore(ref err) => err.description(),
-            Error::Conflict => "Entity conflict",
-            Error::CreateBucketError(ref err) => err.description(),
-            Error::DbError(ref err) => err.description(),
-            Error::DieselError(ref err) => err.description(),
-            Error::Github(ref err) => err.description(),
-            Error::BiomeCore(ref err) => err.description(),
-            Error::HeadObject(ref err) => err.description(),
-            Error::HttpClient(ref err) => err.description(),
-            Error::InnerError(ref err) => err.error().description(),
-            Error::IO(ref err) => err.description(),
-            Error::ListBuckets(ref err) => err.description(),
-            Error::MultipartCompletion(ref err) => err.description(),
-            Error::MultipartUploadReq(ref err) => err.description(),
-            Error::NotFound => "Entity not found",
-            Error::OAuth(ref err) => err.description(),
-            Error::PackageDownload(ref err) => err.description(),
-            Error::PackageUpload(ref err) => err.description(),
-            Error::PartialUpload(ref err) => err.description(),
-            Error::PayloadError(_) => "Http request stream error",
-            Error::Protobuf(ref err) => err.description(),
-            Error::SerdeJson(ref err) => err.description(),
-            Error::System => "Internal error",
-            Error::TLSError(ref err) => err.description(),
-            Error::Unprocessable => "Unprocessable entity",
-            Error::Utf8(ref err) => err.description(),
-        }
     }
 }
 

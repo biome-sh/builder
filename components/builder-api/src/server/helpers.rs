@@ -10,7 +10,6 @@ use actix_web::{http::header,
                 HttpRequest};
 use regex::Regex;
 use serde::Serialize;
-use serde_json;
 use std::str::FromStr;
 
 // TODO - this module should not just be a grab bag of stuff
@@ -37,6 +36,13 @@ pub struct PaginatedResults<'a, T: 'a> {
     range_end:   isize,
     total_count: isize,
     data:        &'a [T],
+}
+
+#[derive(Serialize)]
+pub struct ChannelListingResults<'a, T: 'a> {
+    channel: String,
+    target:  String,
+    data:    &'a [T],
 }
 
 #[derive(Deserialize)]
@@ -66,6 +72,16 @@ pub fn package_results_json<T: Serialize>(packages: &[T],
                                      total_count: count,
                                      data:        packages, };
 
+    serde_json::to_string(&results).unwrap()
+}
+
+pub fn channel_listing_results_json<T: Serialize>(channel: &str,
+                                                  target: &str,
+                                                  packages: &[T])
+                                                  -> String {
+    let results = ChannelListingResults { channel: channel.to_string(),
+                                          target:  target.to_string(),
+                                          data:    packages, };
     serde_json::to_string(&results).unwrap()
 }
 
@@ -147,7 +163,7 @@ pub fn visibility_for_optional_session(req: &HttpRequest,
     v.push(PackageVisibility::Public);
 
     if optional_session_id.is_some()
-       && authorize_session(req, Some(&origin), Some(OriginMemberRole::Member)).is_ok()
+       && authorize_session(req, Some(&origin), Some(OriginMemberRole::ReadonlyMember)).is_ok()
     {
         v.push(PackageVisibility::Hidden);
         v.push(PackageVisibility::Private);

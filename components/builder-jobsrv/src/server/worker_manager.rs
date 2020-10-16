@@ -1,61 +1,37 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+use super::{metrics::Gauge,
+            scheduler::ScheduleClient};
+use crate::{bldr_core::{self,
+                        job::Job,
+                        metrics::GaugeMetric,
+                        socket::DEFAULT_CONTEXT},
+            config::Config,
+            data_store::DataStore,
+            db::{models::{integration::*,
+                          jobs::*,
+                          keys::*,
+                          project_integration::*,
+                          secrets::*},
+                 DbPool},
+            error::{Error,
+                    Result},
+            protocol::{jobsrv,
+                       originsrv}};
+use biome_core::{crypto::keys::{AnonymousBox,
+                                  KeyCache,
+                                  OriginSecretEncryptionKey},
+                   package::{target,
+                             PackageTarget}};
+use linked_hash_map::LinkedHashMap;
+use protobuf::{parse_from_bytes,
+               Message,
+               RepeatedField};
 use std::{collections::HashSet,
-          path::PathBuf,
-          str::{from_utf8,
-                FromStr},
+          str::FromStr,
           sync::mpsc,
           thread::{self,
                    JoinHandle},
           time::{Duration,
                  Instant}};
-
-use crate::{bldr_core::{self,
-                        job::Job,
-                        metrics::GaugeMetric,
-                        socket::DEFAULT_CONTEXT},
-            db::DbPool,
-            bio_core::{crypto::{keys::{box_key_pair::WrappedSealedBox,
-                                       parse_key_str,
-                                       parse_name_with_rev},
-                                BoxKeyPair},
-                       package::{target,
-                                 PackageTarget}}};
-use linked_hash_map::LinkedHashMap;
-use protobuf::{parse_from_bytes,
-               Message,
-               RepeatedField};
-
-use crate::db::models::{integration::*,
-                        jobs::*,
-                        keys::*,
-                        project_integration::*,
-                        secrets::*};
-
-use crate::protocol::{jobsrv,
-                      originsrv};
-
-use zmq;
-
-use crate::{config::Config,
-            data_store::DataStore,
-            error::{Error,
-                    Result}};
-
-use super::{metrics::Gauge,
-            scheduler::ScheduleClient};
 
 const WORKER_MGR_ADDR: &str = "inproc://work-manager";
 const WORKER_TIMEOUT_MS: u64 = 33_000; // 33 sec
@@ -152,7 +128,8 @@ impl Worker {
 pub struct WorkerMgr {
     datastore:        DataStore,
     db:               DbPool,
-    key_dir:          PathBuf,
+    /// Location of Builder encryption keys
+    key_cache:        KeyCache,
     hb_sock:          zmq::Socket,
     rq_sock:          zmq::Socket,
     work_mgr_sock:    zmq::Socket,
@@ -178,7 +155,12 @@ impl WorkerMgr {
 
         WorkerMgr { datastore: datastore.clone(),
                     db,
-                    key_dir: cfg.key_dir.clone(),
+                    // cfg is hydrated from a TOML file, and the
+                    // `key_dir` name is currently part of that
+                    // interface. `WorkerMgr` is fully private,
+                    // though, so we can actually freely name this
+                    // `key_cache`.
+                    key_cache: cfg.key_dir.clone(),
                     hb_sock,
                     rq_sock,
                     work_mgr_sock,
@@ -513,7 +495,7 @@ impl WorkerMgr {
             Ok(oir) => {
                 for i in oir {
                     let mut oi = originsrv::OriginIntegration::new();
-                    let plaintext = match bldr_core::integrations::decrypt(&self.key_dir, &i.body) {
+                    let plaintext = match bldr_core::crypto::decrypt(&self.key_cache, &i.body) {
                         Ok(b) => {
                             match String::from_utf8(b) {
                                 Ok(s) => s,
@@ -580,40 +562,21 @@ impl WorkerMgr {
                         .map_err(Error::DieselError)
                     {
                         Ok(key) => {
-                            let key_str = from_utf8(&key.body)?;
-                            BoxKeyPair::secret_key_from_str(key_str)?
+                            key.body.parse::<OriginSecretEncryptionKey>()?
                         }
                         Err(err) => return Err(err),
                     };
 
-                    // fetch the public origin encryption key from the database
-                    let (name, rev, pub_key) =
-                        match OriginPublicEncryptionKey::latest(&origin, &*conn)
-                            .map_err(Error::DieselError)
-                        {
-                            Ok(key) => {
-                                let key_str = from_utf8(&key.body)?;
-                                let (name, rev) = match parse_key_str(key_str) {
-                                    Ok((_, name_with_rev, _)) => {
-                                        parse_name_with_rev(name_with_rev)?
-                                    }
-                                    Err(e) => return Err(Error::BiomeCore(e)),
-                                };
-                                (name, rev, BoxKeyPair::public_key_from_str(key_str)?)
-                            }
-                            Err(err) => return Err(err),
-                        };
-
-                    let box_key_pair = BoxKeyPair::new(name, rev, Some(pub_key), Some(priv_key));
                     for secret in secrets_list {
                         debug!("Adding secret to job: {:?}", secret);
-                        let mut secret_decrypted = originsrv::OriginSecret::new();
-                        let mut secret_decrypted_wrapper = originsrv::OriginSecretDecrypted::new();
-                        match BoxKeyPair::secret_metadata(&WrappedSealedBox::from(secret.value)) {
-                            Ok(secret_metadata) => {
-                                match box_key_pair.decrypt(&secret_metadata.ciphertext, None, None)
-                                {
+                        match secret.value.parse::<AnonymousBox>() {
+                            Ok(anonymous_box) => {
+                                match priv_key.decrypt(&anonymous_box) {
                                     Ok(decrypted_secret) => {
+                                        let mut secret_decrypted = originsrv::OriginSecret::new();
+                                        let mut secret_decrypted_wrapper =
+                                            originsrv::OriginSecretDecrypted::new();
+
                                         secret_decrypted.set_id(secret.id as u64);
                                         secret_decrypted.set_origin(secret.origin);
                                         secret_decrypted.set_name(secret.name.to_string());
@@ -631,7 +594,7 @@ impl WorkerMgr {
                                 };
                             }
                             Err(e) => {
-                                warn!("Failed to get metadata from secret: {}", e);
+                                warn!("Failed to decrypt secret: {}", e);
                                 continue;
                             }
                         };
@@ -655,8 +618,10 @@ impl WorkerMgr {
             }
 
             let worker = self.workers.pop_front().unwrap().1;
-            debug!("Expiring worker due to missed heartbeat: {:?}", worker);
+            warn!("Expiring worker due to missed heartbeat: {:?}", worker);
 
+            // TODO: There may be a possible corner case here that
+            // a worker can have work assigned, but not be Busy.
             if worker.state == jobsrv::WorkerState::Busy {
                 self.requeue_job(worker.job_id.unwrap())?; // unwrap Ok
                 self.delete_worker(&worker)?;
@@ -764,7 +729,7 @@ impl WorkerMgr {
         let mut worker = match self.workers.remove(&worker_ident) {
             Some(worker) => worker,
             None => {
-                debug!("New worker detected, heartbeat: {:?}", heartbeat);
+                info!("New worker detected, heartbeat: {:?}", heartbeat);
                 let worker_target = match PackageTarget::from_str(heartbeat.get_target()) {
                     Ok(t) => t,
                     Err(_) => target::X86_64_LINUX,
@@ -773,7 +738,7 @@ impl WorkerMgr {
                 if heartbeat.get_state() == jobsrv::WorkerState::Ready {
                     Worker::new(&worker_ident, worker_target)
                 } else {
-                    warn!("Unexpacted Busy heartbeat from unknown worker {}",
+                    warn!("Unexpected Busy heartbeat from unknown worker {}",
                           worker_ident);
                     return Ok(()); // Something went wrong, don't process this HB
                 }
@@ -789,7 +754,7 @@ impl WorkerMgr {
             (jobsrv::WorkerState::Busy, jobsrv::WorkerState::Busy) => {
                 let job_id = worker.job_id.unwrap(); // unwrap Ok
                 if worker.is_job_expired() && !worker.is_canceling() {
-                    debug!("Canceling job due to timeout: {}", job_id);
+                    warn!("Canceling job due to timeout: {}, {:?}", job_id, worker);
                     self.cancel_job(job_id, &worker_ident)?;
                     worker.cancel();
                 };
@@ -799,8 +764,9 @@ impl WorkerMgr {
                 if !self.is_job_complete(worker.job_id.unwrap())? {
                     // Handle potential race condition where a Ready heartbeat
                     // is received right *after* the job has been dispatched
-                    warn!("Unexpected Ready heartbeat from incomplete job: {}",
-                          worker.job_id.unwrap());
+                    warn!("Unexpected Ready heartbeat from incomplete job: {}, {:?}",
+                          worker.job_id.unwrap(),
+                          worker);
                     worker.refresh();
                 } else {
                     self.delete_worker(&worker)?;

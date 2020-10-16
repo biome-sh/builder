@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import { Title } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppStore } from '../../app.store';
+import { requestRoute } from '../../actions/index';
 
 @Component({
   template: require('./package-release.component.html')
@@ -33,6 +34,14 @@ export class PackageReleaseComponent implements OnDestroy {
       .pipe(takeUntil(this.isDestroyed$))
       .subscribe(({ origin, name, version, release }) => {
         this.title.setTitle(`Packages › ${origin}/${name}/${version}/${release} | ${store.getState().app.name}`);
+      });
+
+    this.store.observe('packages.ui.current.errorMessage')
+      .pipe(takeUntil(this.isDestroyed$))
+      .subscribe(errorMessage => {
+        if (errorMessage) {
+          this.store.dispatch(requestRoute(['/pkgs']));
+        }
       });
   }
 

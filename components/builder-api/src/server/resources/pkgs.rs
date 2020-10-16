@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -70,10 +70,7 @@ use bytes::Bytes;
 use diesel::result::Error::NotFound;
 use futures::{channel::mpsc,
               StreamExt};
-use percent_encoding;
-use protobuf;
 use serde::ser::Serialize;
-use serde_json;
 use std::{fs::{self,
                remove_file,
                File},
@@ -304,7 +301,7 @@ async fn delete_package(req: HttpRequest,
                         -> HttpResponse {
     let (origin, pkg, version, release) = path.into_inner();
 
-    if let Err(err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Maintainer)) {
+    if let Err(err) = authorize_session(&req, Some(&origin), Some(OriginMemberRole::Member)) {
         return err.into();
     }
 
@@ -536,11 +533,11 @@ async fn schedule_job_group(req: HttpRequest,
                             -> HttpResponse {
     let (origin_name, package) = path.into_inner();
 
-    let session =
-        match authorize_session(&req, Some(&origin_name), Some(OriginMemberRole::Maintainer)) {
-            Ok(session) => session,
-            Err(err) => return err.into(),
-        };
+    let session = match authorize_session(&req, Some(&origin_name), Some(OriginMemberRole::Member))
+    {
+        Ok(session) => session,
+        Err(err) => return err.into(),
+    };
 
     let target = match PackageTarget::from_str(&qschedule.target) {
         Ok(t) => t,
@@ -971,7 +968,7 @@ fn do_upload_package_start(req: &HttpRequest,
                            qupload: &Query<Upload>,
                            ident: &PackageIdent)
                            -> Result<(PathBuf, BufWriter<File>)> {
-    authorize_session(req, Some(&ident.origin), Some(OriginMemberRole::Maintainer))?;
+    authorize_session(req, Some(&ident.origin), Some(OriginMemberRole::Member))?;
 
     let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
@@ -1020,7 +1017,14 @@ async fn do_upload_package_finish(req: &HttpRequest,
                                   ident: &PackageIdent,
                                   temp_path: &PathBuf)
                                   -> HttpResponse {
-    let mut archive = PackageArchive::new(&temp_path);
+    let mut archive = match PackageArchive::new(&temp_path) {
+        Ok(archive) => archive,
+        Err(e) => {
+            info!("Could not read the package at {:#?}: {:#?}", temp_path, e);
+            return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY,
+                                           Body::from_message(format!("ds:up:0, err={:?}", e)));
+        }
+    };
 
     debug!("Package Archive: {:#?}", archive);
 
@@ -1131,7 +1135,14 @@ async fn do_upload_package_finish(req: &HttpRequest,
 
     debug!("File added to Depot: {:?}", &filename);
 
-    let mut archive = PackageArchive::new(filename.clone());
+    let mut archive = match PackageArchive::new(filename.clone()) {
+        Ok(archive) => archive,
+        Err(e) => {
+            debug!("Could not read the package at {:#?}: {:#?}", filename, e);
+            return Error::BiomeCore(e).into();
+        }
+    };
+
     let mut package = match NewPackage::from_archive(&mut archive) {
         Ok(package) => package,
         Err(e) => {
@@ -1399,7 +1410,7 @@ fn do_get_package(req: &HttpRequest,
     };
 
     let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
-    let channels = channels_for_package_ident(req, &pkg.ident.clone(), target, &*conn)?;
+    let channels = channels_for_package_ident(req, &pkg.ident, target, &*conn)?;
 
     pkg_json["channels"] = json!(channels);
     pkg_json["is_a_service"] = json!(pkg.is_a_service());

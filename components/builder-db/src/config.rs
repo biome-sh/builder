@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use num_cpus;
 use percent_encoding::{utf8_percent_encode,
                        AsciiSet,
                        CONTROLS};
@@ -118,7 +117,7 @@ impl<'a> IntoConnectParams for &'a DataStoreCfg {
     fn into_connect_params(self) -> Result<ConnectParams, Box<dyn Error + Sync + Send>> {
         let mut builder = ConnectParams::builder();
         builder.port(self.port);
-        builder.user(&self.user, self.password.as_ref().map(|p| &**p));
+        builder.user(&self.user, self.password.as_deref());
         builder.database(&self.database);
         Ok(builder.build(Host::Tcp(self.host.to_string())))
     }

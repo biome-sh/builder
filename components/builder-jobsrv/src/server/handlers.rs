@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -287,7 +287,7 @@ fn populate_build_projects(msg: &jobsrv::JobGroupSpec,
             continue;
         };
 
-        let origin = s.0.split('/').nth(0).unwrap();
+        let origin = s.0.split('/').next().unwrap();
 
         // If the origin_only flag is true, make sure the origin matches
         if !msg.get_origin_only() || origin == msg.get_origin() {

@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ use std::{fmt,
           thread};
 
 use protobuf::Message;
-use zmq;
 
 use crate::{bldr_core::{logger::Logger,
                         socket::DEFAULT_CONTEXT},

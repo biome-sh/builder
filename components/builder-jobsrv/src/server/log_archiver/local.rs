@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016–2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@ impl LocalArchiver {
     /// as not to run afoul of directory limits.
     pub fn archive_path(&self, job_id: u64) -> PathBuf {
         let mut hasher = Sha256::default();
-        hasher.input(job_id.to_string().as_bytes());
-        let checksum = hasher.result();
+        hasher.update(job_id.to_string().as_bytes());
+        let checksum = hasher.finalize();
 
         let mut new_path = self.0.clone();
         for byte in checksum.iter().take(4) {

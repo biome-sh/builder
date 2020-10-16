@@ -14,7 +14,7 @@ use self::{docker::DockerExporter,
            studio::Studio,
            workspace::Workspace};
 pub use crate::protocol::jobsrv::JobState;
-use crate::{bldr_core::{self,
+use crate::{bldr_core::{access_token::AccessToken,
                         api_client::ApiClient,
                         job::Job,
                         logger::Logger,
@@ -22,10 +22,6 @@ use crate::{bldr_core::{self,
             config::Config,
             error::{Error,
                     Result},
-            bio_core::{env,
-                       package::{archive::PackageArchive,
-                                 target::{self,
-                                          PackageTarget}}},
             protocol::{jobsrv,
                        message,
                        net::{self,
@@ -35,6 +31,10 @@ use crate::{bldr_core::{self,
 use chrono::Utc;
 use futures::{channel::mpsc as async_mpsc,
               sink::SinkExt};
+use biome_core::{env,
+                   package::{archive::PackageArchive,
+                             target::{self,
+                                      PackageTarget}}};
 use retry::delay;
 use std::{fs,
           process::Command,
@@ -46,7 +46,6 @@ use std::{fs,
           thread::{self,
                    JoinHandle},
           time::Duration};
-use zmq;
 
 // TODO fn: copied from `components/common/src/ui.rs`. As this component doesn't currently depend
 // on biome_common it didnt' seem worth it to add a dependency for only this constant. Probably
@@ -100,13 +99,14 @@ impl Runner {
         let log_path = config.log_path.clone();
         let mut logger = Logger::init(log_path, "builder-worker.log");
         logger.log_ident(net_ident);
-        let bldr_token = bldr_core::access_token::generate_bldr_token(&config.key_dir).unwrap();
+
+        let bldr_token = AccessToken::bldr_token(&config.key_dir)?;
 
         Ok(Runner { workspace: Workspace::new(&config.data_path, job),
                     config,
                     depot_cli,
                     logger,
-                    bldr_token,
+                    bldr_token: bldr_token.to_string(),
                     cancel })
     }
 
@@ -731,11 +731,13 @@ impl RunnerMgr {
 
                 match &op[..] {
                     WORK_START => {
+                        info!("Worker recieved WORK_START: {:?}", &job);
                         self.cancel.store(false, Ordering::SeqCst);
                         self.send_ack(&job)?;
                         self.spawn_job(job, tx.clone())?;
                     }
                     WORK_CANCEL => {
+                        info!("Worker recieved WORK_CANCEL: {:?}", &job);
                         self.cancel.store(true, Ordering::SeqCst);
                         job.set_state(jobsrv::JobState::CancelProcessing);
                         self.send_ack(&job)?;

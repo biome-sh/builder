@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code © 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,9 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 #[macro_use]
 extern crate bitflags;
@@ -33,18 +30,15 @@ use biome_core as bio_core;
 pub mod access_token;
 pub mod api_client;
 pub mod build_config;
+pub mod crypto;
 pub mod error;
 pub mod http_client;
-pub mod integrations;
 pub mod job;
 pub mod keys;
 pub mod logger;
 pub mod metrics;
-pub mod package_graph;
 pub mod privilege;
-pub mod rdeps;
 pub mod rpc;
 pub mod socket;
-pub mod target_graph;
 
 pub use crate::error::Error;

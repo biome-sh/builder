@@ -9,7 +9,6 @@ edition = "2018"
 base64 = "*"
 bitflags = "*"
 chrono = { version = "*", features = ["serde"] }
-clippy = { version = "*", optional = true }
 dogstatsd = "*"
 env_proxy = "*"
 futures = "*"
@@ -20,7 +19,8 @@ lazy_static = "*"
 libarchive = "*"
 log = "*"
 petgraph = "*"
-protobuf = "*"
+# Pin until we are on Rust >= 1.44.0
+protobuf = "= 2.14.0"
 rand = "*"
 serde = "*"
 serde_derive = "*"
@@ -41,3 +41,5 @@ features = ["stream"]
 version = "*"
 features = ["fs"]
 
+[dev-dependencies]
+tempfile = "*"
