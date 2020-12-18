@@ -18,14 +18,16 @@ use self::{framework::middleware::authentication_middleware,
                        projects::Projects,
                        settings::Settings,
                        user::User},
-           services::{events::KafkaProducer,
-                      memcache::MemcacheClient,
+           services::{memcache::MemcacheClient,
                       s3::S3Handler}};
 use crate::{bldr_core::rpc::RpcClient,
+            bldr_events::connection::{create_producer,
+                                      EventPublisher},
             config::{Config,
                      GatewayCfg},
             db::{migration,
-                 DbPool}};
+                 DbPool},
+            bio_core::ok_warn};
 use actix_web::{http::StatusCode,
                 middleware::Logger,
                 web,
@@ -43,10 +45,8 @@ use rand::{self,
            Rng};
 use std::{cell::RefCell,
           collections::HashMap,
-          convert::TryFrom,
           iter::FromIterator,
-          sync::Arc,
-          thread};
+          sync::Arc};
 
 // This cipher list corresponds to the "intermediate" configuration
 // recommended by Mozilla:
@@ -75,15 +75,15 @@ features! {
 
 // Application state
 pub struct AppState {
-    config:      Config,
-    packages:    S3Handler,
-    github:      GitHubClient,
-    jobsrv:      RpcClient,
-    oauth:       OAuth2Client,
-    memcache:    RefCell<MemcacheClient>,
-    artifactory: ArtifactoryClient,
-    db:          DbPool,
-    kafka:       Option<KafkaProducer>,
+    config:         Config,
+    packages:       S3Handler,
+    github:         GitHubClient,
+    jobsrv:         RpcClient,
+    oauth:          OAuth2Client,
+    memcache:       RefCell<MemcacheClient>,
+    artifactory:    ArtifactoryClient,
+    db:             DbPool,
+    event_producer: Option<Box<dyn EventPublisher>>,
 }
 
 impl AppState {
@@ -97,23 +97,10 @@ impl AppState {
                        memcache: RefCell::new(MemcacheClient::new(&config.memcache.clone())),
                        artifactory: ArtifactoryClient::new(config.artifactory.clone())?,
                        db,
-                       kafka: None };
+                       event_producer: None };
 
         if feat::is_enabled(feat::EventBus) {
-            loop {
-                match KafkaProducer::try_from(&config.kafka.clone()) {
-                    Ok(producer) => {
-                        app_state.kafka = Some(producer);
-                        info!("EventBus ready to go.");
-                        break;
-                    }
-                    Err(e) => {
-                        warn!("Unable to load EventBus: {}", e);
-                        thread::sleep(config.kafka.connection_retry_delay);
-                        continue;
-                    }
-                }
-            }
+            app_state.event_producer = ok_warn!(create_producer(&config.eventbus));
         };
 
         Ok(app_state)

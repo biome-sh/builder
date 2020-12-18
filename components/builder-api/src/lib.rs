@@ -27,6 +27,7 @@ extern crate serde_json;
 
 use builder_core as bldr_core;
 use biome_builder_db as db;
+use biome_builder_events as bldr_events;
 use biome_builder_protocol as protocol;
 use biome_core as bio_core;
 use rusoto_core as rusoto;
