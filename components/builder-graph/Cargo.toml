@@ -39,6 +39,9 @@ lazy_static = "*"
 itertools = "*"
 tempfile = "*"
 internment = "*"
+tracing = "*"
+tracing-subscriber = "*"
+tracing-futures = "*"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"
