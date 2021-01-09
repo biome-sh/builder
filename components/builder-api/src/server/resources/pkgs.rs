@@ -70,6 +70,7 @@ use bytes::Bytes;
 use diesel::result::Error::NotFound;
 use futures::{channel::mpsc,
               StreamExt};
+use protobuf::Message;
 use serde::ser::Serialize;
 use std::{fs::{self,
                remove_file,
@@ -330,7 +331,7 @@ async fn delete_package(req: HttpRequest,
     // Check whether package is in stable channel
     match Package::list_package_channels(&BuilderPackageIdent(ident.clone()),
                                          target,
-                                         helpers::all_visibilities(),
+                                         PackageVisibility::all(),
                                          &*conn)
     {
         Ok(channels) => {
@@ -373,7 +374,7 @@ async fn delete_package(req: HttpRequest,
     // TODO (SA): Wrap in transaction, or better yet, eliminate need to do
     // channel package deletion
     let pkg = match Package::get(GetPackage { ident:      BuilderPackageIdent(ident.clone()),
-                                              visibility: helpers::all_visibilities(),
+                                              visibility: PackageVisibility::all(),
                                               target:     BuilderPackageTarget(target), },
                                  &*conn).map_err(Error::DieselError)
     {
@@ -987,7 +988,7 @@ fn do_upload_package_start(req: &HttpRequest,
         match Package::get(
             GetPackage {
                 ident: BuilderPackageIdent(ident.clone()),
-                visibility: helpers::all_visibilities(),
+                visibility: PackageVisibility::all() ,
                 target: BuilderPackageTarget(PackageTarget::from_str(&target).unwrap()), // Unwrap OK
             },
             &*conn,
@@ -1074,7 +1075,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
         match Package::get(
             GetPackage {
                 ident: BuilderPackageIdent(ident.clone()),
-                visibility: helpers::all_visibilities(),
+                visibility: PackageVisibility::all(),
                 target: BuilderPackageTarget(PackageTarget::from_str(&target_from_artifact).unwrap()), // Unwrap OK
             },
             &*conn,
@@ -1196,6 +1197,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
                 let mut job_graph_package = jobsrv::JobGraphPackageCreate::new();
                 job_graph_package.set_package(pkg.into());
 
+                let msg_size = job_graph_package.compute_size();
                 match route_message::<jobsrv::JobGraphPackageCreate, originsrv::OriginPackage>(
                     &req,
                     &job_graph_package,
@@ -1210,7 +1212,8 @@ async fn do_upload_package_finish(req: &HttpRequest,
                         );
                     }
                     Err(err) => {
-                        warn!("Failed to create job graph package, err={:?}", err);
+                        warn!("Failed to create job graph package, (msg_size {}) err={:?}", msg_size, err);
+                        debug!("Message: {:?}", job_graph_package);
                         return err.into();
                     }
                 }
