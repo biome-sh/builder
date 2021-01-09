@@ -58,8 +58,12 @@ do_builder_prepare() {
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
-  # Used by Cargo to use a pristine, isolated directory for all compilation
-  export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  if [ -z "$HAB_CARGO_TARGET_DIR" ]; then
+      # Used by Cargo to use a pristine, isolated directory for all compilation
+      export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  else
+      export CARGO_TARGET_DIR="$HAB_CARGO_TARGET_DIR"
+  fi
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 
   # Used to set the active package target for the binaries at build time
@@ -69,9 +73,9 @@ do_builder_prepare() {
   # Used to allow librdkafka build scripts to execute successfully
 
   if test -f /usr/bin/env; then
-    build_line "/usr/bin/env exists skipping symlink"
+      build_line "/usr/bin/env exists skipping symlink"
   else
-    ln -s "$(bio pkg path core/coreutils)/bin/env" /usr/bin/env
-    build_line "Setting symlink to binary env for librdkafka"
+      ln -s "$(bio pkg path core/coreutils)/bin/env" /usr/bin/env
+      build_line "Setting symlink to binary env for librdkafka"
   fi
 }
