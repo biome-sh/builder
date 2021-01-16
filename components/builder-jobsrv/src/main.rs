@@ -17,15 +17,14 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
+use builder_core::config::ConfigFile;
 use biome_builder_jobsrv as jobsrv;
-use biome_core as bio_core;
 
 use std::{error,
           process};
 
-use crate::{bio_core::config::ConfigFile,
-            jobsrv::{Config,
-                     Result}};
+use crate::jobsrv::{Config,
+                    Result};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &str = "/hab/svc/builder-jobsrv/config/config.toml";

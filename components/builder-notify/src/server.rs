@@ -1,9 +1,9 @@
 use crate::{config::Config,
             error::Error};
+use builder_core::config::ConfigFile;
 use biome_builder_events::connection::{create_consumer,
                                          EventConsumer};
-use biome_core::{config::ConfigFile,
-                   ok_warn};
+use biome_core::ok_warn;
 use std::{path::PathBuf,
           thread::{self},
           time::Duration};

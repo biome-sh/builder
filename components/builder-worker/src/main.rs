@@ -19,14 +19,13 @@ extern crate log;
 
 use std::process;
 
+use builder_core::config::ConfigFile;
 use biome_builder_worker as worker;
-use biome_core as bio_core;
 
-use crate::{bio_core::config::ConfigFile,
-            worker::{server,
-                     Config,
-                     Error,
-                     Result}};
+use crate::worker::{server,
+                    Config,
+                    Error,
+                    Result};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &str = "/hab/svc/builder-worker/config/config.toml";

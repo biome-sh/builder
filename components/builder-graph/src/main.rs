@@ -56,6 +56,7 @@ use std::{collections::HashMap,
           str::FromStr,
           time::Instant};
 
+use builder_core::config::ConfigFile;
 use clap::{App,
            AppSettings,
            Arg,
@@ -66,9 +67,8 @@ use crate::{config::Config,
             data_store::{DataStore,
                          DataStoreTrait,
                          SerializedDatabase},
-            bio_core::{config::ConfigFile,
-                       package::{PackageIdent,
-                                 PackageTarget}},
+            bio_core::package::{PackageIdent,
+                                PackageTarget},
             package_graph::PackageGraph,
             package_ident_intern::PackageIdentIntern};
 

@@ -15,8 +15,8 @@
 //! Configuration for a Biome Scheduler service
 
 use crate::{db::config::DataStoreCfg,
-            error::Error,
-            bio_core::config::ConfigFile};
+            error::Error};
+use builder_core::config::ConfigFile;
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]

@@ -1,9 +1,9 @@
 //! Configuration for a Biome JobSrv Worker
 
 use crate::error::Error;
+use builder_core::config::ConfigFile;
 use github_api_client::config::GitHubCfg;
-use biome_core::{config::ConfigFile,
-                   crypto::keys::KeyCache,
+use biome_core::{crypto::keys::KeyCache,
                    package::PackageTarget,
                    url,
                    ChannelIdent};

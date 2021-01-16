@@ -5,7 +5,7 @@ pkg_origin=biome
 pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=('Apache-2.0')
 pkg_bin_dirs=(bin)
-pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium
+pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq
   core/libarchive core/zlib biome/bio biome/bio-studio core/curl)
 pkg_build_deps=(core/make core/cmake core/protobuf-cpp core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/git core/pkg-config)
