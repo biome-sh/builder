@@ -30,9 +30,8 @@ use serde::{de,
 
 use crate::{error::{Error,
                     Result},
-            bio_core::{config::ConfigFile,
-                       package::target::{self,
-                                         PackageTarget}}};
+            bio_core::package::target::{self,
+                                        PackageTarget}};
 
 /// Postprocessing config file name
 pub const BLDR_CFG: &str = ".bldr.toml";
@@ -60,10 +59,6 @@ impl BuildCfg {
             .filter(|p| p.triggered_by(branch, paths))
             .collect()
     }
-}
-
-impl ConfigFile for BuildCfg {
-    type Error = Error;
 }
 
 impl Default for BuildCfg {

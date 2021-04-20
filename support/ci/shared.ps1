@@ -30,6 +30,20 @@ function Install-Rustup($Toolchain) {
     }
 }
 
+function Get-RustfmtToolchain {
+    # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
+    # This means that if we're always using the latest version, then we're going to have enormous
+    # churn. Even PRs that don't touch rust code will likely fail CI, since master will have been
+    # formatted with a different version than is running in CI. Because of this, we're going to pin
+    # the version of nightly that's used to run rustfmt and bump it when we do a new release.
+    #
+    # Note that not every nightly version of rust includes rustfmt. Sometimes changes are made that
+    # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
+    # that the nightly version you're going to update it to includes rustfmt. You can do that
+    # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
+    "$(Get-Content $PSScriptRoot\..\..\RUSTFMT_VERSION)-x86_64-pc-windows-msvc"
+}
+
 function Get-Toolchain {
     "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)"
 }
@@ -98,42 +112,47 @@ function Setup-Environment {
     Install-BioPkg @(
         "core/cacerts",
         "core/libarchive",
-        "core/libsodium",
-        "core/openssl",
         "core/protobuf",
         "core/visual-cpp-build-tools-2015",
         "core/xz",
         "core/zeromq",
-        "core/zlib"
+        "core/zlib",
+        "core/perl"
     )
-    # we always want the latest rust
-    bio pkg install core/rust
 
     # Set up some path variables for ease of use later
     $cacertsDir     = & bio pkg path core/cacerts
     $libarchiveDir  = & bio pkg path core/libarchive
-    $libsodiumDir   = & bio pkg path core/libsodium
-    $opensslDir     = & bio pkg path core/openssl
     $protobufDir    = & bio pkg path core/protobuf
     $xzDir          = & bio pkg path core/xz
     $zeromqDir      = & bio pkg path core/zeromq
     $zlibDir        = & bio pkg path core/zlib
+    $perl           = & bio pkg path core/perl
 
     # Set some required variables
-    $env:SODIUM_LIB_DIR             = "$libsodiumDir\lib"
     $env:LIBARCHIVE_INCLUDE_DIR     = "$libarchiveDir\include"
     $env:LIBARCHIVE_LIB_DIR         = "$libarchiveDir\lib"
-    $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
-    $env:OPENSSL_LIB_DIR            = "$opensslDir\lib"
-    $env:OPENSSL_INCLUDE_DIR        = "$opensslDir\include"
     $env:LIBZMQ_PREFIX              = "$zeromqDir"
     $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
-    $env:OPENSSL_STATIC             = "true"
-    $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
-    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
+    $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$zlibDir\lib;$xzDir\lib"
+    $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$zlibDir\bin;$xzDir\bin;$perl\bin"
 
     $vsDir = & bio pkg path core/visual-cpp-build-tools-2015
-    $env:LIB = (Get-Content "$vsDir\LIB_DIRS")
+    $env:DisableRegistryUse="true"
+    $env:UseEnv="true"
+    $env:VisualStudioVersion = "14.0"
+    $env:WindowsSdkDir_81="$vsDir\Windows Kits\8.1"
+    $env:VCTargetsPath="$vsDir\Program Files\MSBuild\Microsoft.Cpp\v4.0\v140"
+    $env:VcInstallDir="$vsDir\Program Files\Microsoft Visual Studio 14.0\VC"
+    $env:CLTrackerSdkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:CLTrackerFrameworkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:LinkTrackerSdkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:LinkTrackerFrameworkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:LibTrackerSdkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:LibTrackerFrameworkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:RCTrackerSdkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:RCTrackerFrameworkPath="$vsDir\Program Files\MSBuild\14.0\bin\amd64"
+    $env:LIB = "$(Get-Content "$vsDir\LIB_DIRS")"
     $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
     $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")
 }

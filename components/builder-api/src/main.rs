@@ -22,12 +22,11 @@ use std::{fmt,
           process,
           str::FromStr};
 
+use builder_core::config::ConfigFile;
 use biome_builder_api as bldr_api;
-use biome_core as bio_core;
 
-use crate::{bldr_api::{config::Config,
-                       server},
-            bio_core::config::ConfigFile};
+use crate::bldr_api::{config::Config,
+                      server};
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &str = "/hab/svc/builder-api/config/config.toml";

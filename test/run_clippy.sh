@@ -27,24 +27,21 @@ if ${BUILDKITE:-false}; then
 
     # TODO: these should be in a shared script?
     sudo bio license accept
-    install_bio_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/libpq
+    install_bio_pkg core/bzip2 core/libarchive core/xz core/zeromq core/libpq
     sudo bio pkg install core/protobuf --binlink
 
     export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
-    export OPENSSL_DIR # so the openssl crate knows what to build against
-    OPENSSL_DIR="$(bio pkg path core/openssl)"
-    export OPENSSL_STATIC=true # so the openssl crate builds statically
     export LIBZMQ_PREFIX
     LIBZMQ_PREFIX=$(bio pkg path core/zeromq)
     # now include openssl and zeromq so thney exists in the runtime library path when cargo test is run
     export LD_LIBRARY_PATH
-    LD_LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/zeromq)/lib"
+    LD_LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/zeromq)/lib"
     # include these so that the cargo tests can bind to libarchive (which dynamically binds to xz, bzip, etc), openssl, and sodium at *runtime*
     export LIBRARY_PATH
-    LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/bzip2)/lib:$(bio pkg path core/libsodium)/lib:$(bio pkg path core/openssl)/lib:$(bio pkg path core/xz)/lib"
+    LIBRARY_PATH="$(bio pkg path core/libpq)/lib:$(bio pkg path core/bzip2)/lib:$(bio pkg path core/xz)/lib"
     # setup pkgconfig so the libarchive crate can use pkg-config to fine bzip2 and xz at *build* time
     export PKG_CONFIG_PATH
-    PKG_CONFIG_PATH="$(bio pkg path core/libpq)/lib/pkgconfig:$(bio pkg path core/libarchive)/lib/pkgconfig:$(bio pkg path core/libsodium)/lib/pkgconfig:$(bio pkg path core/openssl)/lib/pkgconfig"
+    PKG_CONFIG_PATH="$(bio pkg path core/libpq)/lib/pkgconfig:$(bio pkg path core/libarchive)/lib/pkgconfig"
 
     # Install clippy
     echo "--- :rust: Installing clippy"

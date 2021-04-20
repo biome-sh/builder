@@ -30,6 +30,7 @@ use biome_core as bio_core;
 pub mod access_token;
 pub mod api_client;
 pub mod build_config;
+pub mod config;
 pub mod crypto;
 pub mod error;
 pub mod http_client;
