@@ -108,6 +108,7 @@ pub struct ApiCfg {
     pub features_enabled: Vec<String>,
     pub build_on_upload:  bool,
     pub private_max_age:  usize,
+    pub saas_bldr_url:    String,
 }
 
 mod deserialize_into_vec {
@@ -134,7 +135,8 @@ impl Default for ApiCfg {
                  build_targets:    vec![target::X86_64_LINUX, target::X86_64_WINDOWS],
                  features_enabled: vec!["jobsrv".to_string()],
                  build_on_upload:  true,
-                 private_max_age:  300, }
+                 private_max_age:  300,
+                 saas_bldr_url:    "https://bldr.habitat.sh".to_string(), }
     }
 }
 
@@ -395,7 +397,7 @@ mod tests {
         client_id = "http://myhost"
         "#;
 
-        let config = Config::from_raw(&content).unwrap();
+        let config = Config::from_raw(content).unwrap();
         assert_eq!(config.api.data_path,
                    PathBuf::from("/hab/svc/bio-depot/data"));
         assert_eq!(config.api.log_path,
@@ -413,7 +415,7 @@ mod tests {
 
         assert_eq!(&config.api.features_enabled,
                    &["FOO".to_string(), "BAR".to_string()]);
-        assert_eq!(config.api.build_on_upload, false);
+        assert!(!config.api.build_on_upload);
         assert_eq!(config.api.private_max_age, 400);
 
         assert_eq!(&format!("{}", config.http.listen), "::1");
@@ -452,7 +454,7 @@ mod tests {
         assert_eq!(config.datastore.database, "test");
         assert_eq!(config.datastore.connection_retry_ms, 500);
         assert_eq!(config.datastore.connection_timeout_sec, 4800);
-        assert_eq!(config.datastore.connection_test, true);
+        assert!(config.datastore.connection_test);
         assert_eq!(config.datastore.pool_size, 1);
         assert_eq!(config.datastore.ssl_mode, Some("verify_ca".to_string()));
         assert_eq!(config.datastore.ssl_root_cert,
@@ -474,7 +476,7 @@ mod tests {
         port = 9000
         "#;
 
-        let config = Config::from_raw(&content).unwrap();
+        let config = Config::from_raw(content).unwrap();
         assert_eq!(config.http.port, 9000);
     }
 }

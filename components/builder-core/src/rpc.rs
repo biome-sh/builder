@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::iter::FromIterator;
-
 use reqwest::{header::HeaderMap,
               Client,
               StatusCode};
@@ -48,7 +46,7 @@ impl RpcMessage {
     pub fn parse<T>(&self) -> Result<T>
         where T: protobuf::Message
     {
-        protobuf::parse_from_bytes::<T>(&self.body).map_err(Error::Protobuf)
+        protobuf::Message::parse_from_bytes(&self.body).map_err(Error::Protobuf)
     }
 }
 
@@ -65,7 +63,7 @@ impl RpcClient {
         let header_values = vec![USER_AGENT_BLDR.clone(),
                                  ACCEPT_APPLICATION_JSON.clone(),
                                  CONTENT_TYPE_APPLICATION_JSON.clone()];
-        let headers = HeaderMap::from_iter(header_values.into_iter());
+        let headers = header_values.into_iter().collect::<HeaderMap<_>>();
 
         let cli = match Client::builder().default_headers(headers).build() {
             Ok(client) => client,
@@ -104,7 +102,7 @@ impl RpcClient {
                 let resp_json: RpcMessage = serde_json::from_str(&body)?;
                 trace!("Got RPC JSON: {:?}", resp_json);
 
-                let resp_msg = protobuf::parse_from_bytes::<T>(&resp_json.body)?;
+                let resp_msg = protobuf::Message::parse_from_bytes(&resp_json.body)?;
                 Ok(resp_msg)
             }
             status => Err(Error::RpcError(status.as_u16(), body)),
