@@ -18,18 +18,19 @@ postgres_scheduler_tests = []
 
 [dependencies]
 actix-rt = "*"
+async-trait = "*"
 backtrace = "*"
 bitflags = "*"
+bytes = "*"
 builder_core = { path = "../builder-core" }
 chrono = { version = "*", features = ["serde"] }
 diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
 diesel-derive-enum = { version = "*", features = ["postgres"] }
 diesel_migrations = "*"
 features = "*"
-futures = "0.1"
-futures03 = { package = "futures", version = "0.3"}
-rusoto_core = "0.42"
-rusoto_s3 = "0.42"
+futures = "*"
+rusoto_core = "*"
+rusoto_s3 = "*"
 env_logger = "*"
 biome_builder_db = { path = "../builder-db" }
 biome_builder_graph = { path = "../builder-graph" }
@@ -40,7 +41,7 @@ log = "*"
 num_cpus = "*"
 protobuf = "*"
 postgres = { version = "*", features = ["with-chrono"] }
-postgres-derive = "0.3.3"
+postgres-types = { version = "*", features = ["derive"] }
 rand = "*"
 r2d2 = "*"
 serde = "*"
@@ -48,13 +49,13 @@ serde_derive = "*"
 sha2 = "*"
 toml = { version = "*", default-features = false }
 
-tokio = {version = "*", features = [ "rt-threaded", "macros"]}
+tokio = {version = "*", features = [ "rt-multi-thread", "macros"]}
 tracing = "*"
 tracing-subscriber = "*"
 tracing-futures = "*"
 
 [dependencies.actix-web]
-version = "*"
+version = "4.0.0-beta.8"
 default-features = false
 
 [dependencies.clap]

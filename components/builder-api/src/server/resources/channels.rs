@@ -124,8 +124,8 @@ fn get_channels(path: Path<String>,
             let ident_list: Vec<Temp> = list.iter()
                                             .map(|channel| Temp { name: channel.name.clone(), })
                                             .collect();
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .json(ident_list)
         }
         Err(Error::NotFound) => HttpResponse::new(StatusCode::NOT_FOUND),
@@ -236,13 +236,13 @@ fn promote_channel_packages(req: HttpRequest,
             match PackageGroupChannelAudit::audit(
                 PackageGroupChannelAudit {
                     origin: &origin,
-                    channel: &ch_target.as_str(),
+                    channel: ch_target.as_str(),
                     package_ids: pkg_ids,
                     operation: PackageChannelOperation::Promote,
                     trigger: helpers::trigger_from_request_model(&req),
                     requester_id: session.get_id() as i64,
                     requester_name: session.get_name(),
-                    group_id: 0 as i64,
+                    group_id: 0_i64,
                 },
                 &*conn,
             ) {
@@ -289,13 +289,13 @@ fn demote_channel_packages(req: HttpRequest,
             match PackageGroupChannelAudit::audit(
                 PackageGroupChannelAudit {
                     origin: &origin,
-                    channel: &ch_target.as_str(),
+                    channel: ch_target.as_str(),
                     package_ids: pkg_ids,
                     operation: PackageChannelOperation::Demote,
                     trigger: helpers::trigger_from_request_model(&req),
                     requester_id: session.get_id() as i64,
                     requester_name: session.get_name(),
-                    group_id: 0 as i64,
+                    group_id: 0_i64,
                 },
                 &*conn,
             ) {
@@ -337,17 +337,17 @@ fn do_promote_or_demote_channel_packages(req: &HttpRequest,
         return Err(Error::BadRequest);
     }
 
-    let pkgs = do_get_all_channel_packages(&req, &origin, &ch_source)?;
+    let pkgs = do_get_all_channel_packages(req, origin, ch_source)?;
 
     #[rustfmt::skip]
-    let channel = match Channel::get(&origin, &ch_target, &*conn) {
+    let channel = match Channel::get(origin, ch_target, &*conn) {
         Ok(channel) => channel,
         Err(NotFound) => {
             if (ch_target != &ChannelIdent::stable()) && (ch_target != &ChannelIdent::unstable()) {
                 Channel::create(
                     &CreateChannel {
-                        name:     &ch_target.as_str(),
-                        origin:   &origin,
+                        name:     ch_target.as_str(),
+                        origin,
                         owner_id: session_id,
                     },
                 &*conn)?
@@ -426,7 +426,7 @@ async fn promote_package(req: HttpRequest,
                                            trigger:
                                                helpers::trigger_from_request_model(&req),
                                            requester_id:   session.get_id() as i64,
-                                           requester_name: &session.get_name(),
+                                           requester_name: session.get_name(),
                                            origin:         &origin, };
 
     match OriginChannelPackage::promote(
@@ -440,13 +440,16 @@ async fn promote_package(req: HttpRequest,
     )
     .map_err(Error::DieselError)
     {
-        Ok(_) => {
-            if let Err(e) = PackageChannelAudit::audit(&auditevent, &*conn) {
-                 debug!("Failed to save rank change to audit log: {}", e);
-            };
+        Ok(promoted_count) => {
+            // Note: promoted_count is 0 when attempting to promote a package to a channel where it already exists
+            if promoted_count != 0 {
+                if let Err(e) = PackageChannelAudit::audit(&auditevent, &*conn) {
+                     debug!("Failed to save rank change to audit log: {}", e);
+                };
 
-            BuilderEvent::new(EventType::PackageChannelMotion, NoAffinity, "builder_events".to_string(), &auditevent)
-                .publish(&state.event_producer).await;
+                BuilderEvent::new(EventType::PackageChannelMotion, NoAffinity, "builder_events".to_string(), &auditevent)
+                    .publish(&state.event_producer).await;
+            }
 
             state
                 .memcache
@@ -521,7 +524,7 @@ fn demote_package(req: HttpRequest,
                     operation: PackageChannelOperation::Demote,
                     trigger: helpers::trigger_from_request_model(&req),
                     requester_id: session.get_id() as i64,
-                    requester_name: &session.get_name(),
+                    requester_name: session.get_name(),
                     origin: &origin,
                 },
                 &*conn,
@@ -618,9 +621,10 @@ fn get_latest_package_for_origin_channel_package(req: HttpRequest,
 
     match do_get_channel_package(&req, &qtarget, &ident, &channel) {
         Ok(json_body) => {
-            HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
+                                              headers::APPLICATION_JSON))
+                              .append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .body(json_body)
         }
         Err(Error::NotFound) => HttpResponse::new(StatusCode::NOT_FOUND),
@@ -646,9 +650,10 @@ fn get_latest_package_for_origin_channel_package_version(req: HttpRequest,
 
     match do_get_channel_package(&req, &qtarget, &ident, &channel) {
         Ok(json_body) => {
-            HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
+                                              headers::APPLICATION_JSON))
+                              .append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .body(json_body)
         }
         Err(Error::NotFound) => HttpResponse::new(StatusCode::NOT_FOUND),
@@ -671,9 +676,10 @@ fn get_package_fully_qualified(req: HttpRequest,
 
     match do_get_channel_package(&req, &qtarget, &ident, &channel) {
         Ok(json_body) => {
-            HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
+                                              headers::APPLICATION_JSON))
+                              .append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .body(json_body)
         }
         Err(Error::NotFound) => HttpResponse::new(StatusCode::NOT_FOUND),
@@ -695,9 +701,10 @@ fn get_latest_packages_for_origin_channel(req: HttpRequest,
     match do_get_latest_channel_packages(&req, &qtarget, &origin, &channel) {
         Ok((channel, target, data)) => {
             let json_body = helpers::channel_listing_results_json(&channel, &target, &data);
-            HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
+                                              headers::APPLICATION_JSON))
+                              .append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .body(json_body)
         }
         Err(Error::NotFound) => HttpResponse::new(StatusCode::NOT_FOUND),
@@ -717,7 +724,7 @@ fn do_get_latest_channel_packages(req: &HttpRequest,
                                   origin: &str,
                                   channel: &ChannelIdent)
                                   -> Result<(String, String, Vec<BuilderPackageIdent>)> {
-    let opt_session_id = match authorize_session(&req, None, None) {
+    let opt_session_id = match authorize_session(req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
     };
@@ -735,7 +742,7 @@ fn do_get_latest_channel_packages(req: &HttpRequest,
 
     Channel::list_latest_packages(
         &ListAllChannelPackagesForTarget {
-            visibility: &helpers::visibility_for_optional_session(&req, opt_session_id, &origin),
+            visibility: &helpers::visibility_for_optional_session(req, opt_session_id, origin),
             channel,
             origin,
             target,
@@ -750,7 +757,7 @@ fn do_get_channel_packages(req: &HttpRequest,
                            ident: &PackageIdent,
                            channel: &ChannelIdent)
                            -> Result<(Vec<BuilderPackageIdent>, i64)> {
-    let opt_session_id = match authorize_session(&req, None, None) {
+    let opt_session_id = match authorize_session(req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
     };
@@ -762,7 +769,7 @@ fn do_get_channel_packages(req: &HttpRequest,
         &ListChannelPackages {
             ident: &BuilderPackageIdent(ident.clone()),
             visibility: &helpers::visibility_for_optional_session(
-                &req,
+                req,
                 opt_session_id,
                 &ident.origin,
             ),
@@ -783,7 +790,7 @@ fn do_get_all_channel_packages(req: &HttpRequest,
     let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
     Channel::list_all_packages(&ListAllChannelPackages { visibility: &PackageVisibility::all(),
-                                                         origin: &origin,
+                                                         origin,
                                                          channel },
                                &*conn).map_err(Error::DieselError)
 }
@@ -954,8 +961,7 @@ fn postprocess_channel_package_list(_req: &HttpRequest,
         HttpResponse::Ok()
     };
 
-    response.header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-            .header(http::header::CACHE_CONTROL,
-                    headers::Cache::NoCache.to_string())
+    response.append_header((http::header::CONTENT_TYPE, headers::APPLICATION_JSON))
+            .append_header((http::header::CACHE_CONTROL, headers::Cache::NoCache.to_string()))
             .body(body)
 }

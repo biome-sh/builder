@@ -116,12 +116,12 @@ pub struct OriginTarget {
 fn status() -> HttpResponse { HttpResponse::new(StatusCode::OK) }
 
 #[allow(clippy::needless_pass_by_value)]
-fn handle_rpc(msg: Json<RpcMessage>, state: Data<AppState>) -> HttpResponse {
+async fn handle_rpc(msg: Json<RpcMessage>, state: Data<AppState>) -> HttpResponse {
     debug!("Got RPC message, id {} body =\n{:?}", msg.id.as_str(), msg);
 
     let result = match msg.id.as_str() {
         "JobGet" => handlers::job_get(&msg, &state),
-        "JobLogGet" => handlers::job_log_get(&msg, &state),
+        "JobLogGet" => handlers::job_log_get(&msg, &state).await,
         "JobGroupSpec" => handlers::job_group_create(&msg, &state),
         "JobGroupRebuildFromSpec" => handlers::job_group_rebuild(&msg, &state),
         "JobGroupCancel" => handlers::job_group_cancel(&msg, &state),
@@ -155,7 +155,7 @@ fn handle_graph(state: Data<AppState>, query: Query<OriginTarget>) -> HttpRespon
     let origin_filter = query.origin.as_deref(); //
     let target = query.target.as_deref().unwrap_or("x86_64-linux");
 
-    match fetch_graph_for_target(state, &target, origin_filter) {
+    match fetch_graph_for_target(state, target, origin_filter) {
         Ok(body) => HttpResponse::with_body(StatusCode::OK, Body::from(body)),
         Err(err) => {
             HttpResponse::with_body(StatusCode::INTERNAL_SERVER_ERROR,
@@ -219,7 +219,7 @@ pub async fn run(config: Config) -> Result<()> {
     let db_pool = DbPool::new(&config.datastore.clone());
     let mut graph = TargetGraph::new(feat::is_enabled(feat::UseCyclicGraph));
     let pkg_conn = &db_pool.get_conn()?;
-    let packages = Package::get_all_latest(&pkg_conn)?;
+    let packages = Package::get_all_latest(pkg_conn)?;
     let origin_packages: Vec<OriginPackage> = packages.iter().map(|p| p.clone().into()).collect();
     let start_time = Instant::now();
 
@@ -247,7 +247,7 @@ pub async fn run(config: Config) -> Result<()> {
         let (scheduler, scheduler_handle) = Scheduler::start(Box::new(scheduler_datastore), 1);
         let scheduler_for_http = scheduler.clone();
 
-        WorkerMgr::start(&config, &datastore, db_pool.clone(), Some(scheduler))?;
+        WorkerMgr::start(&config, &datastore, Some(scheduler))?;
 
         let http_serv = HttpServer::new(move || {
                             let app_state = AppState::new(&config,
@@ -257,7 +257,7 @@ pub async fn run(config: Config) -> Result<()> {
                                                           Some(&scheduler_for_http));
 
                             App::new().app_data(JsonConfig::default().limit(MAX_JSON_PAYLOAD))
-                    .data(app_state)
+                    .app_data(Data::new(app_state))
                     .wrap(Logger::default().exclude("/status"))
                     .service(web::resource("/status").route(web::get().to(status))
                                                     .route(web::head().to(status)))
@@ -277,13 +277,13 @@ pub async fn run(config: Config) -> Result<()> {
 
         http_res.map_err(Error::from)
     } else {
-        WorkerMgr::start(&config, &datastore, db_pool.clone(), None)?;
+        WorkerMgr::start(&config, &datastore, None)?;
         ScheduleMgr::start(&config, &datastore, db_pool.clone())?;
         HttpServer::new(move || {
             let app_state = AppState::new(&config, &datastore, db_pool.clone(), &graph_arc, None);
 
             App::new().app_data(JsonConfig::default().limit(MAX_JSON_PAYLOAD))
-                      .data(app_state)
+                      .app_data(Data::new(app_state))
                       .wrap(Logger::default().exclude("/status"))
                       .service(web::resource("/status").route(web::get().to(status))
                                                        .route(web::head().to(status)))

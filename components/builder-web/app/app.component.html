@@ -7,7 +7,11 @@
 <div class="app {{ layout }}">
   <div class="wrapper">
     <nav class="menu" [class.open]="menuOpen">
-      <bio-side-nav [isSignedIn]="isSignedIn"></bio-side-nav>
+      <bio-side-nav
+        [isSignedIn]="isSignedIn"
+        [enabledEvents]="enabledEvents"
+        [enabledSaasEvents]="enabledSaasEvents">
+      </bio-side-nav>
     </nav>
     <main>
       <div class="menu-toggle" (click)="toggleMenu()"></div>

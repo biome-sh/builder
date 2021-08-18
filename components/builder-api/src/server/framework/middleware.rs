@@ -44,9 +44,9 @@ pub async fn route_message<R, T>(req: &HttpRequest, msg: &R) -> error::Result<T>
 // Optional Authentication - this middleware does not enforce authentication,
 // but will insert a Session if a valid Bearer token is received
 pub fn authentication_middleware<S>(mut req: ServiceRequest,
-                                    srv: &mut S)
+                                    srv: &S)
                                     -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let hdr = match req.headers().get(http::header::AUTHORIZATION) {
         Some(hdr) => hdr.to_str().unwrap(), // unwrap Ok
@@ -59,8 +59,8 @@ pub fn authentication_middleware<S>(mut req: ServiceRequest,
     }
     let token = hdr_components[1];
 
-    let session = match authenticate(&token,
-                                     &req.app_data::<Data<AppState>>().expect("request state"))
+    let session = match authenticate(token,
+                                     req.app_data::<Data<AppState>>().expect("request state"))
     {
         Ok(session) => session,
         Err(_) => {
@@ -188,7 +188,7 @@ pub fn session_create_oauth(oauth_token: &str,
             debug!("issuing session, {:?}", session);
             state.memcache
                  .borrow_mut()
-                 .set_session(&session.get_token(), &session, Some(*SESSION_DURATION));
+                 .set_session(session.get_token(), &session, Some(*SESSION_DURATION));
             Ok(session)
         }
         Err(e) => {

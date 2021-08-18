@@ -3,6 +3,7 @@ $pkg_origin = "biome"
 $pkg_maintainer = "The Biome Maintainers <humans@biome.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps = @(
+    "core/openssl",
     "core/zeromq",
     "core/zlib",
     "core/libarchive",
@@ -29,7 +30,7 @@ $bin = "bldr-worker"
 function pkg_version {
     # TED: After migrating the builder repo we needed to add to
     # the rev-count to keep version sorting working
-    5000 + (git rev-list HEAD --count)
+    5600 + (git rev-list HEAD --count)
 }
 
 function Invoke-Before {
@@ -51,6 +52,10 @@ function Invoke-Prepare {
     $env:INCLUDE += ";$HAB_CACHE_SRC_PATH/$pkg_dirname/include"
     $env:LIBARCHIVE_INCLUDE_DIR = "$(Get-HabPackagePath "libarchive")/include"
     $env:LIBARCHIVE_LIB_DIR = "$(Get-HabPackagePath "libarchive")/lib"
+    $env:OPENSSL_NO_VENDOR = 1
+    $env:OPENSSL_LIBS = 'ssleay32:libeay32'
+    $env:OPENSSL_LIB_DIR = "$(Get-HabPackagePath "openssl")/lib"
+    $env:OPENSSL_INCLUDE_DIR = "$(Get-HabPackagePath "openssl")/include"
     $env:LIBZMQ_PREFIX = "$(Get-HabPackagePath "zeromq")"
 
     # Used by the `build.rs` program to set the version of the binaries
@@ -101,7 +106,7 @@ function Invoke-Build {
 function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item "$env:CARGO_TARGET_DIR/release/bldr-worker.exe" "$pkg_prefix/bin/bldr-worker.exe"
-    Copy-Item "$env:CARGO_TARGET_DIR/release\build\openssl-sys-*\out\openssl-build\install\bin\*.dll" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "libarchive")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zeromq")/bin/*.dll" "$pkg_prefix/bin"

@@ -25,7 +25,7 @@ use crate::{bldr_core::{self,
 use builder_core::crypto;
 
 use diesel::pg::PgConnection;
-use futures03::executor::block_on;
+use futures::executor::block_on;
 
 use biome_core::{crypto::keys::{AnonymousBox,
                                   KeyCache,
@@ -33,8 +33,7 @@ use biome_core::{crypto::keys::{AnonymousBox,
                    package::{target,
                              PackageTarget}};
 use linked_hash_map::LinkedHashMap;
-use protobuf::{parse_from_bytes,
-               Message,
+use protobuf::{Message,
                RepeatedField};
 use std::{collections::HashSet,
           convert::TryInto,
@@ -196,10 +195,10 @@ impl WorkerMgr {
 
     pub fn start(cfg: &Config,
                  datastore: &DataStore,
-                 db: DbPool,
                  scheduler: Option<Scheduler>)
                  -> Result<JoinHandle<()>> {
-        let mut manager = Self::new(cfg, datastore, db, scheduler);
+        let diesel_pool = DbPool::new(&cfg.datastore.clone());
+        let mut manager = Self::new(cfg, datastore, diesel_pool, scheduler);
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new().name("worker-manager".to_string())
                                            .spawn(move || {
@@ -290,7 +289,7 @@ impl WorkerMgr {
                 }
 
                 for target in PackageTarget::targets() {
-                    if self.build_targets.contains(&target) {
+                    if self.build_targets.contains(target) {
                         if let Err(err) = self.process_work(*target) {
                             warn!("Worker-manager unable to process work: err {:?}", err);
                         }
@@ -352,10 +351,9 @@ impl WorkerMgr {
         let jobs = self.datastore.get_dispatched_jobs()?;
 
         for mut job in jobs {
-            if self.workers
-                   .iter()
-                   .find(|t| t.1.job_id == Some(job.get_id()))
-                   .is_none()
+            if !self.workers
+                    .iter()
+                    .any(|t| t.1.job_id == Some(job.get_id()))
             {
                 warn!("Requeing job: {}", job.get_id());
                 job.set_state(jobsrv::JobState::Pending);
@@ -439,7 +437,7 @@ impl WorkerMgr {
         let mut wc = jobsrv::WorkerCommand::new();
         wc.set_op(jobsrv::WorkerOperation::CancelJob);
 
-        self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
+        self.rq_sock.send_str(worker_ident, zmq::SNDMORE)?;
         self.rq_sock.send(&[], zmq::SNDMORE)?;
         self.rq_sock
             .send(&wc.write_to_bytes().unwrap(), zmq::SNDMORE)?;
@@ -469,7 +467,7 @@ impl WorkerMgr {
                     block_on(scheduler.request_work(WorkerId(worker_ident.clone()),
                                                     BuilderPackageTarget(target)))
                 {
-                    let conn = self.datastore.get_pool().get_conn()?;
+                    let conn = self.db.get_conn()?;
                     let project =
                         Project::get(&job_entry.project_name, &target.to_string(), &conn)?;
                     let maybe_job =
@@ -526,7 +524,7 @@ impl WorkerMgr {
         let mut wc = jobsrv::WorkerCommand::new();
         wc.set_op(jobsrv::WorkerOperation::StartJob);
 
-        self.rq_sock.send_str(&worker_ident, zmq::SNDMORE)?;
+        self.rq_sock.send_str(worker_ident, zmq::SNDMORE)?;
         self.rq_sock.send(&[], zmq::SNDMORE)?;
         self.rq_sock
             .send(&wc.write_to_bytes().unwrap(), zmq::SNDMORE)?;
@@ -754,7 +752,7 @@ impl WorkerMgr {
         match self.datastore.get_job(&req)? {
             Some(job) => {
                 let mut job = Job::new(job);
-                match self.worker_cancel_job(&job, &worker_ident) {
+                match self.worker_cancel_job(&job, worker_ident) {
                     Ok(()) => {
                         job.set_state(jobsrv::JobState::CancelProcessing);
                         self.datastore.update_job(&job)?;
@@ -805,7 +803,7 @@ impl WorkerMgr {
 
     fn process_heartbeat(&mut self) -> Result<()> {
         self.hb_sock.recv(&mut self.msg, 0)?;
-        let heartbeat: jobsrv::Heartbeat = parse_from_bytes(&self.msg)?;
+        let heartbeat: jobsrv::Heartbeat = Message::parse_from_bytes(&self.msg)?;
         trace!("Got heartbeat: {:?}", heartbeat);
 
         let worker_ident = heartbeat.get_endpoint().to_string();
@@ -872,7 +870,7 @@ impl WorkerMgr {
 
         self.rq_sock.recv(&mut self.msg, 0)?;
 
-        let job = Job::new(parse_from_bytes::<jobsrv::Job>(&self.msg)?);
+        let job = Job::new(Message::parse_from_bytes(&self.msg)?);
         debug!("Got job status: {:?}", job);
         self.datastore.update_job(&job)?;
 
@@ -886,7 +884,7 @@ impl WorkerMgr {
                     // Tell the scheduler
                     job_graph_entry.job_state = JobExecState::Complete;
                     job_graph_entry.as_built_ident =
-                        Some(BuilderPackageIdent(job.get_package_ident().into()));
+                        Some(BuilderPackageIdent(job.get_package_ident().clone().into()));
                     block_on(scheduler.worker_finished(WorkerId(worker_id), job_graph_entry))
                 }
                 jobsrv::JobState::Failed => {
@@ -925,14 +923,14 @@ impl WorkerMgr {
     }
 
     fn job_graph_entry(&self, job: &jobsrv::Job) -> Result<JobGraphEntry> {
-        let conn = self.datastore.get_pool().get_conn()?;
+        let conn = self.db.get_conn()?;
         JobGraphEntry::get_by_job_id(job.get_id() as i64, &conn).map_err(Error::WorkerMgrDbError)
     }
 
     // This will be used when we implement cancel
     #[allow(dead_code)]
     fn job(&self, entry: &JobGraphEntry) -> Result<jobsrv::Job> {
-        let conn = self.datastore.get_pool().get_conn()?;
+        let conn = self.db.get_conn()?;
         let job =
             crate::db::models::jobs::Job::get(entry.id, &conn).map_err(Error::WorkerMgrDbError)?;
         Ok(job.into())

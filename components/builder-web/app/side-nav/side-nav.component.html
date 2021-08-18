@@ -18,6 +18,18 @@
         Search Packages
       </a>
     </li>
+    <li>
+      <a [routerLink]="['/events']" *ngIf="enabledEvents">
+        <bio-icon symbol="event"></bio-icon>
+        Events
+      </a>
+    </li>
+    <li>
+      <a [routerLink]="['/events/saas']" *ngIf="enabledEvents && enabledSaasEvents">
+        <bio-icon symbol="cloud"></bio-icon>
+        Events (SaaS)
+      </a>
+    </li>
   </ul>
   <!--
   <h3>Quick Links</h3>

@@ -160,7 +160,7 @@ fn get_origin(path: Path<String>, state: Data<AppState>) -> HttpResponse {
 
     match Origin::get(&origin_name, &*conn) {
         Ok(origin) => {
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(origin)
         }
         Err(NotFound) => HttpResponse::NotFound().into(),
@@ -301,7 +301,7 @@ fn delete_origin(req: HttpRequest, path: Path<String>, state: Data<AppState>) ->
 }
 
 fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
-    match Project::count_origin_projects(&origin, &*conn) {
+    match Project::count_origin_projects(origin, &*conn) {
         Ok(0) => {}
         Ok(count) => {
             let err = format!("There are {} projects remaining in origin {}. Must be zero.",
@@ -311,7 +311,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         Err(e) => return Err(Error::DieselError(e)),
     };
 
-    match OriginMember::count_origin_members(&origin, &*conn) {
+    match OriginMember::count_origin_members(origin, &*conn) {
         // allow 1 - the origin owner
         Ok(1) => {}
         Ok(count) => {
@@ -324,7 +324,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         }
     };
 
-    match OriginSecret::count_origin_secrets(&origin, &*conn) {
+    match OriginSecret::count_origin_secrets(origin, &*conn) {
         Ok(0) => {}
         Ok(count) => {
             let err = format!("There are {} secrets remaining in origin {}. Must be zero.",
@@ -336,7 +336,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         }
     };
 
-    match OriginIntegration::count_origin_integrations(&origin, &*conn) {
+    match OriginIntegration::count_origin_integrations(origin, &*conn) {
         Ok(0) => {}
         Ok(count) => {
             let err = format!("There are {} integrations remaining in origin {}. Must be zero.",
@@ -348,7 +348,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         }
     };
 
-    match Channel::count_origin_channels(&origin, &*conn) {
+    match Channel::count_origin_channels(origin, &*conn) {
         // allow 2 - [unstable, stable] channels cannot be deleted
         Ok(2) => {}
         Ok(count) => {
@@ -362,7 +362,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         }
     };
 
-    match Package::count_origin_packages(&origin, &*conn) {
+    match Package::count_origin_packages(origin, &*conn) {
         Ok(0) => {}
         Ok(count) => {
             let err = format!("There are {} packages remaining in origin {}. Must be zero.",
@@ -374,7 +374,7 @@ fn origin_delete_preflight(origin: &str, conn: &PgConnection) -> Result<()> {
         }
     };
 
-    match OriginPackageSettings::count_origin_package_settings(&origin, &*conn) {
+    match OriginPackageSettings::count_origin_package_settings(origin, &*conn) {
         Ok(0) => {}
         Ok(count) => {
             let err = format!("There are {} package settings entries remaining in origin {}. \
@@ -459,7 +459,7 @@ fn list_origin_keys(path: Path<String>, state: Data<AppState>) -> HttpResponse {
                     })
                     .collect();
 
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(&list)
         }
         Err(err) => {
@@ -522,7 +522,8 @@ fn upload_origin_key(req: HttpRequest,
 
         match save_public_origin_signing_key(account_id, &origin, &key, &*conn) {
             Ok(_) => {
-                HttpResponse::Created().header(http::header::LOCATION, format!("{}", req.uri()))
+                HttpResponse::Created().append_header((http::header::LOCATION,
+                                                       format!("{}", req.uri())))
                                        .body(format!("/origins/{}/keys/{}",
                                                      origin,
                                                      key.named_revision().revision()))
@@ -597,7 +598,7 @@ fn list_origin_secrets(req: HttpRequest,
             // Need to map to different struct for bio cli backward compat
             let new_list: Vec<OriginSecretWithOriginId> =
                 list.into_iter().map(|s| s.into()).collect();
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(&new_list)
         }
         Err(err) => {
@@ -1050,7 +1051,7 @@ fn list_origin_invitations(req: HttpRequest,
                 "invitations": serde_json::to_value(list).unwrap()
             });
 
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(json)
         }
         Err(err) => {
@@ -1089,9 +1090,10 @@ fn get_origin_member_role(req: HttpRequest,
         Ok(role) => {
             let body = role_results_json(role);
 
-            HttpResponse::Ok().header(http::header::CONTENT_TYPE, headers::APPLICATION_JSON)
-                              .header(http::header::CACHE_CONTROL,
-                                      headers::Cache::NoCache.to_string())
+            HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
+                                              headers::APPLICATION_JSON))
+                              .append_header((http::header::CACHE_CONTROL,
+                                              headers::Cache::NoCache.to_string()))
                               .body(body)
         }
         Err(err) => {
@@ -1288,7 +1290,7 @@ fn list_origin_members(req: HttpRequest,
                 "members": serde_json::to_value(users).unwrap()
             });
 
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(json)
         }
         Err(err) => {
@@ -1369,13 +1371,13 @@ fn fetch_origin_integrations(req: HttpRequest,
     match OriginIntegration::list_for_origin(&origin, &*conn).map_err(Error::DieselError) {
         Ok(oir) => {
             let integrations_response: HashMap<String, Vec<String>> =
-                oir.iter().fold(HashMap::new(), |mut acc, ref i| {
+                oir.iter().fold(HashMap::new(), |mut acc, i| {
                               acc.entry(i.integration.to_owned())
                                  .or_insert_with(Vec::new)
                                  .push(i.name.to_owned());
                               acc
                           });
-            HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(integrations_response)
         }
         Err(err) => {
@@ -1409,7 +1411,7 @@ fn fetch_origin_integration_names(req: HttpRequest,
             let mut hm: HashMap<String, Vec<String>> = HashMap::new();
             hm.insert("names".to_string(), names);
             HttpResponse::Ok()
-                .header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+                .append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                 .json(hm)
         }
         Err(err) => {
@@ -1519,7 +1521,7 @@ fn get_origin_integration(req: HttpRequest,
                         "body": serde_json::to_value(map).unwrap()
                     });
 
-                    HttpResponse::Ok().header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+                    HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                                       .json(sanitized)
                 }
                 Err(err) => {
@@ -1551,7 +1553,7 @@ fn key_as_http_response<K>(key: &K) -> HttpResponse
     let contents = key.to_key_string();
 
     HttpResponse::Ok()
-        .header(
+        .append_header((
             http::header::CONTENT_DISPOSITION,
             ContentDisposition {
                 disposition: DispositionType::Attachment,
@@ -1561,12 +1563,12 @@ fn key_as_http_response<K>(key: &K) -> HttpResponse
                     value: filename.clone().into_bytes(), // the actual bytes of the filename
                 })],
             },
-        )
-        .header(
+        ))
+        .append_header((
             http::header::HeaderName::from_static(headers::XFILENAME),
             filename,
-        )
-        .header(http::header::CACHE_CONTROL, headers::NO_CACHE)
+        ))
+        .append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
         .body(&contents)
 }
 
@@ -1580,12 +1582,12 @@ fn generate_origin_encryption_keys(origin: &str,
 
     let pk_body = public.to_key_string();
     let new_pk =
-        db_keys::NewOriginPublicEncryptionKey { owner_id:  session_id as i64,
-                                                origin:    &origin,
-                                                name:      public.named_revision().name(),
+        db_keys::NewOriginPublicEncryptionKey { owner_id: session_id as i64,
+                                                origin,
+                                                name: public.named_revision().name(),
                                                 full_name: &public.named_revision().to_string(),
-                                                revision:  &public.named_revision().revision(),
-                                                body:      &pk_body, };
+                                                revision: public.named_revision().revision(),
+                                                body: &pk_body };
 
     save_secret_origin_encryption_key(&secret, session_id, key_cache, conn)?;
     db_keys::OriginPublicEncryptionKey::create(&new_pk, &*conn)?;
@@ -1606,7 +1608,7 @@ pub fn save_secret_origin_encryption_key(key: &core_keys::OriginSecretEncryption
                                                  origin:    key.named_revision().name(),
                                                  name:      key.named_revision().name(),
                                                  full_name: &key.named_revision().to_string(),
-                                                 revision:  &key.named_revision().revision(),
+                                                 revision:  key.named_revision().revision(),
                                                  body:      &encrypted, };
 
     db_keys::OriginPrivateEncryptionKey::create(&new_sk, conn)?;

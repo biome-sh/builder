@@ -25,9 +25,9 @@ env_logger = "*"
 petgraph = "*"
 walkdir = "*"
 libarchive = "*"
-clap = "2"
+clap = "*"
 protobuf = "*"
-postgres = "0.15.2"
+postgres = "*"
 r2d2 = "*"
 serde = "*"
 serde_derive = "*"
@@ -53,7 +53,7 @@ path = "../builder-core"
 path = "../builder-db"
 
 [build-dependencies]
-pkg-config = "0.3"
+pkg-config = "*"
 
 [features]
 default = []
