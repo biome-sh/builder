@@ -11,6 +11,10 @@ setup: $(addprefix /hab/bin/,git tomlcheck shellcheck)
 setup: $(addprefix /hab/bin/bio-plan-,tomlcheck shellcheck rendercheck)
 .PHONY: setup
 
+dist: /.studio
+	@. results/builder-api.env && tar -zcf results/meta-$$pkg_version-$$pkg_target.tar.gz results/*.env
+.PHONY: dist
+
 pre-commit:
 	@pre-commit run -a
 
