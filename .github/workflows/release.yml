@@ -35,7 +35,7 @@ jobs:
           HAB_ORIGIN: biome
           HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
         run: |
-          bio studio run 'make -f ci/Makefile all dist upload'
+          bio studio run 'make -f ci/Makefile build dist upload'
 
       - name: Get package info
         run: |
