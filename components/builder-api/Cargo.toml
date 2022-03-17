@@ -47,9 +47,7 @@ rusoto_s3 = "*"
 tempfile = "*"
 url = "*"
 uuid = { version = "*", features = ["v4"] }
-
-[dependencies.biome_builder_events]
-path = "../builder-events"
+zmq = "*"
 
 [dependencies.actix-web]
 version = "4.0.0-beta.8"
@@ -59,10 +57,6 @@ features = [ "openssl" ]
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-[dependencies.zmq]
-git = "https://github.com/habitat-sh/rust-zmq"
-branch = "v0.8-symlinks-removed"
 
 [dependencies.artifactory-client]
 path = "../artifactory-client"

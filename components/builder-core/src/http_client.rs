@@ -100,7 +100,7 @@ fn certificates() -> Result<Vec<Certificate>> {
     Ok(certificates)
 }
 
-fn process_cache_dir<P>(cache_path: P, mut certificates: &mut Vec<Certificate>)
+fn process_cache_dir<P>(cache_path: P, certificates: &mut Vec<Certificate>)
     where P: AsRef<Path>
 {
     debug!("Processing cache directory: {:?}", cache_path.as_ref());
@@ -112,16 +112,16 @@ fn process_cache_dir<P>(cache_path: P, mut certificates: &mut Vec<Certificate>)
                     Ok(entry) => {
                         let path = entry.path();
                         if path.is_file() {
-                            process_cert_file(&mut certificates, &path);
+                            process_cert_file(certificates, &path);
                         }
                     }
-                    Err(err) => debug!("Unable to read cache entry, err = {:?}", err),
+                    Err(err) => error!("Unable to read cache entry, err = {:?}", err),
                 }
             }
         }
         Err(err) => {
             if err.kind() != std::io::ErrorKind::NotFound {
-                debug!("Unable to read cache directory, err = {:?}", err)
+                error!("Unable to read cache directory, err = {:?}", err)
             }
         }
     }
@@ -133,7 +133,7 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
     match cert_from_file(file_path) {
         Ok(cert) => certificates.push(cert),
         Err(err) => {
-            debug!("Unable to process cert file: {}, err={:?}",
+            error!("Unable to process cert file: {}, err={:?}",
                    file_path.display(),
                    err)
         }

@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2018-2021 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
 
 use crate::{bldr_core::{error::Error::RpcError,
                         metrics::CounterMetric},
-            db::models::{channel::Channel,
+            db::models::{channel::{Channel,
+                                   ChannelWithPromotion},
                          origin::*,
                          package::{BuilderPackageIdent,
                                    BuilderPackageTarget,
@@ -228,15 +229,15 @@ fn get_packages_for_origin_package_version(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn get_latest_package_for_origin_package(req: HttpRequest,
-                                         path: Path<(String, String)>,
-                                         qtarget: Query<Target>)
-                                         -> HttpResponse {
+async fn get_latest_package_for_origin_package(req: HttpRequest,
+                                               path: Path<(String, String)>,
+                                               qtarget: Query<Target>)
+                                               -> HttpResponse {
     let (origin, pkg) = path.into_inner();
 
     let ident = PackageIdent::new(origin, pkg, None, None);
 
-    match do_get_package(&req, &qtarget, &ident) {
+    match do_get_package(&req, &qtarget, &ident).await {
         Ok(json_body) => {
             HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
                                               headers::APPLICATION_JSON))
@@ -252,15 +253,15 @@ fn get_latest_package_for_origin_package(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn get_latest_package_for_origin_package_version(req: HttpRequest,
-                                                 path: Path<(String, String, String)>,
-                                                 qtarget: Query<Target>)
-                                                 -> HttpResponse {
+async fn get_latest_package_for_origin_package_version(req: HttpRequest,
+                                                       path: Path<(String, String, String)>,
+                                                       qtarget: Query<Target>)
+                                                       -> HttpResponse {
     let (origin, pkg, version) = path.into_inner();
 
     let ident = PackageIdent::new(origin, pkg, Some(version), None);
 
-    match do_get_package(&req, &qtarget, &ident) {
+    match do_get_package(&req, &qtarget, &ident).await {
         Ok(json_body) => {
             HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
                                               headers::APPLICATION_JSON))
@@ -276,15 +277,15 @@ fn get_latest_package_for_origin_package_version(req: HttpRequest,
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn get_package(req: HttpRequest,
-               path: Path<(String, String, String, String)>,
-               qtarget: Query<Target>)
-               -> HttpResponse {
+async fn get_package(req: HttpRequest,
+                     path: Path<(String, String, String, String)>,
+                     qtarget: Query<Target>)
+                     -> HttpResponse {
     let (origin, pkg, version, release) = path.into_inner();
 
     let ident = PackageIdent::new(origin, pkg, Some(version), Some(release));
 
-    match do_get_package(&req, &qtarget, &ident) {
+    match do_get_package(&req, &qtarget, &ident).await {
         Ok(json_body) => {
             HttpResponse::Ok().append_header((http::header::CONTENT_TYPE,
                                               headers::APPLICATION_JSON))
@@ -693,9 +694,8 @@ fn get_package_channels(req: HttpRequest,
                                          &*conn)
     {
         Ok(channels) => {
-            let list: Vec<String> = channels.iter()
-                                            .map(|channel| channel.name.to_string())
-                                            .collect();
+            let list: Vec<ChannelWithPromotion> =
+                channels.into_iter().map(|channel| channel.into()).collect();
             HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
                               .json(list)
         }
@@ -898,7 +898,12 @@ pub fn postprocess_extended_package_list(_req: &HttpRequest,
                                          count: i64,
                                          pagination: &Query<Pagination>)
                                          -> HttpResponse {
-    let (start, _) = helpers::extract_pagination(pagination);
+    let start = if pagination.range < 0 {
+        0
+    } else {
+        let (start, _) = helpers::extract_pagination(pagination);
+        start
+    };
     let pkg_count = packages.len() as isize;
     let stop = match pkg_count {
         0 => count,
@@ -934,6 +939,7 @@ fn do_get_packages(req: &HttpRequest,
     };
 
     let (page, per_page) = helpers::extract_pagination_in_pages(pagination);
+    let limit = if pagination.range < 0 { -1 } else { per_page };
 
     let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
@@ -942,7 +948,7 @@ fn do_get_packages(req: &HttpRequest,
                                                                                   opt_session_id,
                                                                                   &ident.origin),
                              page:       page as i64,
-                             limit:      per_page as i64, };
+                             limit:      limit as i64, };
 
     if pagination.distinct {
         match Package::list_distinct(lpr, &*conn).map_err(Error::DieselError) {
@@ -1302,10 +1308,10 @@ async fn do_upload_package_async(req: HttpRequest,
     }
 }
 
-fn do_get_package(req: &HttpRequest,
-                  qtarget: &Query<Target>,
-                  ident: &PackageIdent)
-                  -> Result<String> {
+async fn do_get_package(req: &HttpRequest,
+                        qtarget: &Query<Target>,
+                        ident: &PackageIdent)
+                        -> Result<String> {
     let opt_session_id = match authorize_session(req, None, None) {
         Ok(session) => Some(session.get_id()),
         Err(_) => None,
@@ -1418,10 +1424,22 @@ fn do_get_package(req: &HttpRequest,
     };
 
     let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
-    let channels = channels_for_package_ident(req, &pkg.ident, target, &*conn)?;
+    let channels = channels_for_package_ident(req, &pkg.ident, *pkg.target, &*conn)?;
 
     pkg_json["channels"] = json!(channels);
     pkg_json["is_a_service"] = json!(pkg.is_a_service());
+    let size = match req_state(req).packages
+                                   .size_of(&pkg.ident, *pkg.target)
+                                   .await
+    {
+        Ok(size) => size,
+        Err(err) => {
+            debug!("Could not get size for {:?}, {:?}", pkg.ident, err);
+            0
+        }
+    };
+
+    pkg_json["size"] = json!(size);
 
     let json_body = serde_json::to_string(&pkg_json).unwrap();
 

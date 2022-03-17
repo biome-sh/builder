@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Chef Software Inc. and/or applicable contributors
+// Biome project based on Chef Habitat's code (c) 2016-2021 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ export class EventsSaaSComponent implements OnInit, OnDestroy {
     this.searchBox = new FormControl(this.searchQuery);
     this.filters = dateFilters;
     this.dateFilterChanged = function (item: any) {
-      this.currentFilter = item;
       this.isOpen = !this.isOpen;
       this.store.dispatch(setSaasEventsDateFilter(item));
       this.fetchEvents(0);
@@ -107,7 +106,7 @@ export class EventsSaaSComponent implements OnInit, OnDestroy {
   }
 
   get dateFilter() {
-    return this.store.getState().events.dateFilter;
+    return this.store.getState().eventsSaas.dateFilter;
   }
 
   get currentFilter() {

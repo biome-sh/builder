@@ -12,24 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Record } from 'immutable';
+import { Component, Input } from '@angular/core';
 
-export const Package = Record({
-  ident: Record({
-    origin: undefined,
-    name: undefined,
-    version: undefined,
-    release: undefined,
-  })(),
-  checksum: '',
-  manifest: '',
-  deps: [],
-  tdeps: [],
-  exposes: [],
-  config: undefined,
-  channels: [],
-  target: undefined,
-  is_a_service: undefined,
-  visibility: '',
-  hart_size: 0
-});
+import * as moment from 'moment';
+
+@Component({
+  selector: 'bio-date',
+  template: `<mat-label [matTooltip]="tooltip" matTooltipPosition="above">{{ displayDate }}</mat-label>`
+})
+export class DateComponent {
+  @Input() date: string = '';
+
+  get tooltip() {
+    let tip;
+
+    if (this.date && this.date.trim() !== '') {
+      tip = this.date;
+    }
+
+    return moment(this.date).format('ddd DD-MMM-YYYY, hh:mm A');
+  }
+
+  get displayDate() {
+    return moment.utc(this.date).fromNow();
+  }
+}

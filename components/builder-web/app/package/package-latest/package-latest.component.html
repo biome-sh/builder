@@ -9,7 +9,7 @@
   </nav>
   <bio-icon symbol="loading" class="spinning" *ngIf="ui.loading"></bio-icon>
   <ng-container *ngIf="!ui.loading">
-    <bio-package-detail [package]="latest" *ngIf="hasLatest"></bio-package-detail>
+    <bio-package-detail [package]="latest" *ngIf="hasLatest" [channels]="channels"></bio-package-detail>
     <div class="none" *ngIf="!hasLatest">
       <p>
         <strong>There are no available Biome artifacts (.hart files) for this origin/package.</strong>

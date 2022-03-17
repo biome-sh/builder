@@ -646,6 +646,7 @@ describe('Working with packages', function () {
           expect(res.body.ident.name).to.equal('testapp');
           expect(res.body.ident.version).to.equal('0.1.13');
           expect(res.body.ident.release).to.equal(release10);
+          expect(res.body.size).to.equal(1633);
           done(err);
         });
     });
@@ -743,6 +744,7 @@ describe('Working with packages', function () {
           expect(res.body.ident.name).to.equal('testapp');
           expect(res.body.ident.version).to.equal('0.1.3');
           expect(res.body.ident.release).to.equal(release2);
+          expect(res.body.size).to.equal(1569);
           done(err);
         });
     });
@@ -757,6 +759,7 @@ describe('Working with packages', function () {
           expect(res.body.ident.name).to.equal('testapp');
           expect(res.body.ident.version).to.equal('0.1.3');
           expect(res.body.ident.release).to.equal(release2);
+          expect(res.body.size).to.equal(1569);
           done(err);
         });
     });
@@ -950,7 +953,7 @@ describe('Working with packages', function () {
         .expect(200)
         .end(function (err, res) {
           expect(res.body.length).to.equal(1);
-          expect(res.body[0]).to.equal('unstable');
+          expect(res.body[0].name).to.equal('unstable');
           done(err);
         });
     });
@@ -993,6 +996,18 @@ describe('Working with packages', function () {
         });
     });
 
+    // TODO supposed to be 404, but receiving an ampty array 
+    it('unauthenticated users cannot view private package channels', function (done) {
+      request.get(`/depot/pkgs/neurosis/testapp/0.1.3/${release2}/channels`)
+        .type('application/json')
+        .accept('application/json')
+        .expect(200)
+        .end(function (err, res) {
+          expect(res.body.length).to.equal(0);
+          done(err);
+        });
+    });
+
     it('does not let members of other origins view private packages', function (done) {
       request.get(`/depot/pkgs/neurosis/testapp/0.1.3/${release2}`)
         .type('application/json')
@@ -1030,6 +1045,32 @@ describe('Working with packages', function () {
           expect(res.body.ident.name).to.equal('testapp');
           expect(res.body.ident.version).to.equal('0.1.3');
           expect(res.body.ident.release).to.equal(release2);
+          done(err);
+        });
+    });
+
+    // TODO supposed to be 404, but receiving an ampty array 
+    it('does not let members of the other origin to view private package channels', function (done) {
+      request.get(`/depot/pkgs/neurosis/testapp/0.1.3/${release2}/channels`)
+        .type('application/json')
+        .accept('application/json')
+        .set('Authorization', global.mystiqueBearer)
+        .expect(200)
+        .end(function (err, res) {
+          expect(res.body.length).to.equal(0);
+          done(err);
+        });
+    });
+
+    it('allows owners of the origin to view private package channels', function (done) {
+      request.get(`/depot/pkgs/neurosis/testapp/0.1.3/${release2}/channels`)
+        .type('application/json')
+        .accept('application/json')
+        .set('Authorization', global.boboBearer)
+        .expect(200)
+        .end(function (err, res) {
+          expect(res.body.length).to.equal(1);
+          expect(res.body[0].name).to.equal('unstable');
           done(err);
         });
     });

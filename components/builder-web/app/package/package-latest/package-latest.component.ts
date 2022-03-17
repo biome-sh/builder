@@ -1,4 +1,4 @@
-// Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc
+// Biome project based on Chef Habitat's code (c) 2016-2022 Chef Software, Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,5 +68,9 @@ export class PackageLatestComponent implements OnDestroy {
 
   get ui() {
     return this.store.getState().packages.ui.latest;
+  }
+
+  get channels() {
+    return this.store.getState().packages.currentChannels;
   }
 }
