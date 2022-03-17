@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016-2022 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -197,8 +197,11 @@ export function get(params, nextRange: number = 0) {
   });
 }
 
-export function getPackageChannels(origin: string, name: string, version: string, release: string) {
-  const url = `${urlPrefix}/depot/pkgs/${origin}/${name}/${version}/${release}/channels`;
+export function getPackageChannels(origin: string, name: string, version: string, release: string, target: string = '') {
+  let url = `${urlPrefix}/depot/pkgs/${origin}/${name}/${version}/${release}/channels`;
+  if (target) {
+    url = `${url}?target=${target}`;
+  }
 
   return new Promise((resolve, reject) => {
     fetch(url, opts())
@@ -313,10 +316,10 @@ export function getEvents(nextRange: number = 0, fromDate: string, toDate: strin
 }
 
 export function getSaasEvents(nextRange: number = 0, fromDate: string, toDate: string, query: string = '') {
-  let url = `${urlPrefix}/depot/events/saas` + `?range=${nextRange}&channel=stable&from_date=${fromDate}&to_date=${toDate}&query=${query}`;
+  let url = `${urlPrefix}/depot/events/saas?range=${nextRange}&channel=stable&from_date=${fromDate}&to_date=${toDate}&query=${query}`;
 
   return new Promise((resolve, reject) => {
-    fetch(url, opts())
+    fetch(url)
       .then(response => handleUnauthorized(response, reject))
       .then(response => {
         if (response.status >= 400) {

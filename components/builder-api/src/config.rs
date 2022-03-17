@@ -2,7 +2,6 @@
 
 use crate::{bldr_core::{self,
                         config::ConfigFile},
-            bldr_events::connection::EventConfig,
             db::config::DataStoreCfg};
 use artifactory_client::config::ArtifactoryCfg;
 use github_api_client::config::GitHubCfg;
@@ -47,7 +46,6 @@ pub struct Config {
     pub memcache:    MemcacheCfg,
     pub jobsrv:      JobsrvCfg,
     pub datastore:   DataStoreCfg,
-    pub eventbus:    EventConfig,
 }
 
 #[derive(Debug)]
@@ -98,17 +96,18 @@ impl Default for S3Cfg {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct ApiCfg {
-    pub data_path:        PathBuf,
-    pub log_path:         PathBuf,
+    pub data_path:                  PathBuf,
+    pub log_path:                   PathBuf,
     /// Location of Builder encryption keys
-    pub key_path:         KeyCache,
-    pub targets:          Vec<PackageTarget>,
-    pub build_targets:    Vec<PackageTarget>,
+    pub key_path:                   KeyCache,
+    pub targets:                    Vec<PackageTarget>,
+    pub build_targets:              Vec<PackageTarget>,
     #[serde(with = "deserialize_into_vec")]
-    pub features_enabled: Vec<String>,
-    pub build_on_upload:  bool,
-    pub private_max_age:  usize,
-    pub saas_bldr_url:    String,
+    pub features_enabled:           Vec<String>,
+    pub build_on_upload:            bool,
+    pub private_max_age:            usize,
+    pub saas_bldr_url:              String,
+    pub suppress_autobuild_origins: Vec<String>,
 }
 
 mod deserialize_into_vec {
@@ -126,17 +125,18 @@ mod deserialize_into_vec {
 
 impl Default for ApiCfg {
     fn default() -> Self {
-        ApiCfg { data_path:        PathBuf::from("/hab/svc/builder-api/data"),
-                 log_path:         env::temp_dir(),
-                 key_path:         KeyCache::new("/hab/svc/builder-api/files"),
-                 targets:          vec![target::X86_64_LINUX,
-                                        target::X86_64_LINUX_KERNEL2,
-                                        target::X86_64_WINDOWS,],
-                 build_targets:    vec![target::X86_64_LINUX, target::X86_64_WINDOWS],
-                 features_enabled: vec!["jobsrv".to_string()],
-                 build_on_upload:  true,
-                 private_max_age:  300,
-                 saas_bldr_url:    "https://bldr.habitat.sh".to_string(), }
+        ApiCfg { data_path:                  PathBuf::from("/hab/svc/builder-api/data"),
+                 log_path:                   env::temp_dir(),
+                 key_path:                   KeyCache::new("/hab/svc/builder-api/files"),
+                 targets:                    vec![target::X86_64_LINUX,
+                                                  target::X86_64_LINUX_KERNEL2,
+                                                  target::X86_64_WINDOWS,],
+                 build_targets:              vec![target::X86_64_LINUX, target::X86_64_WINDOWS],
+                 features_enabled:           vec!["jobsrv".to_string()],
+                 build_on_upload:            true,
+                 private_max_age:            300,
+                 saas_bldr_url:              "https://bldr.habitat.sh".to_string(),
+                 suppress_autobuild_origins: vec![], }
     }
 }
 
@@ -323,8 +323,6 @@ impl fmt::Display for JobsrvCfg {
 mod tests {
     use super::*;
 
-    use crate::bldr_events::connection::Provider;
-
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn config_from_file() {
@@ -338,6 +336,7 @@ mod tests {
         features_enabled = "foo, bar"
         build_on_upload = false
         private_max_age = 400
+        suppress_autobuild_origins = ["origin1", "origin2"]
 
         [http]
         listen = "0:0:0:0:0:0:0:1"
@@ -424,6 +423,9 @@ mod tests {
         assert_eq!(&format!("{}", config.memcache.hosts[0]),
                    "memcache://192.168.0.1:12345");
 
+        assert_eq!(&config.api.suppress_autobuild_origins,
+                   &["origin1".to_string(), "origin2".to_string()]);
+
         assert_eq!(&format!("{}", config.jobsrv), "http://1.2.3.4:1234");
 
         assert_eq!(config.http.port, 9636);
@@ -461,12 +463,6 @@ mod tests {
                    Some("/root_ca.crt".to_string()));
         assert_eq!(config.datastore.ssl_key, Some("/ssl.key".to_string()));
         assert_eq!(config.datastore.ssl_cert, Some("/ssl.crt".to_string()));
-
-        assert_eq!(config.eventbus.provider, Provider::Kafka);
-        assert_eq!(config.eventbus.kafka.bootstrap_nodes,
-                   ["myhost:9092".to_string()]);
-        assert_eq!(config.eventbus.kafka.client_id,
-                   "http://myhost".parse().unwrap());
     }
 
     #[test]
