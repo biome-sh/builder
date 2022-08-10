@@ -20,9 +20,9 @@ do_install() {
   do_builder_install
 }
 
-do_strip() {
-  return 0
-}
+# do_strip() {
+#   return 0
+# }
 
 do_builder_before() {
   update_pkg_version

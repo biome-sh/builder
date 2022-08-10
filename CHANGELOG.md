@@ -1,4 +1,32 @@
-Habitat Builder CHANGELOG
+# Habitat Builder CHANGELOG
+
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Bump rust to 1.62.1 [#1749](https://github.com/habitat-sh/builder/pull/1749) ([sajjaphani](https://github.com/sajjaphani))
+<!-- latest_release -->
+
+
+
+##  (2022-06-23)
+
+#### Merged Pull Requests
+- Fix copy to clipboard functionality [#1745](https://github.com/habitat-sh/builder/pull/1745) ([sajjaphani](https://github.com/sajjaphani))
+- Fix activating &#39;Build Jobs&#39; on package page [#1736](https://github.com/habitat-sh/builder/pull/1736) ([sajjaphani](https://github.com/sajjaphani))
+- Dg/fix migration script [#1743](https://github.com/habitat-sh/builder/pull/1743) ([dikshagupta1](https://github.com/dikshagupta1))
+- Bump crossbeam-utils from 0.8.5 to 0.8.8 [#1739](https://github.com/habitat-sh/builder/pull/1739) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump regex from 1.5.4 to 1.5.5 [#1741](https://github.com/habitat-sh/builder/pull/1741) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Update actix-web crate [#1730](https://github.com/habitat-sh/builder/pull/1730) ([sajjaphani](https://github.com/sajjaphani))
+- patchelf cargo-clippy with refreshed glibc [#1732](https://github.com/habitat-sh/builder/pull/1732) ([mwrock](https://github.com/mwrock))
+- Worker disconnects [#1726](https://github.com/habitat-sh/builder/pull/1726) ([pozsgaic](https://github.com/pozsgaic))
+
+## [20220210](https://github.com/habitat-sh/builder/tree/20220210) (2022-05-02)
+
+#### Merged Pull Requests
+- Initial Expeditor configuration for updating CHANGELOG.md [#1718](https://github.com/habitat-sh/builder/pull/1718) ([sajjaphani](https://github.com/sajjaphani))
+
+
 
 ##  (2022-02-10)
 
