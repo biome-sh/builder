@@ -52,7 +52,6 @@ describe('PackageDetailComponent', () => {
     TestBed.configureTestingModule({
       declarations: [
         PackageDetailComponent,
-        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'bio-channels', inputs: ['channels', 'canDemote'], outputs: ['demote'] }),
         MockComponent({ selector: 'bio-package-list', inputs: ['currentPackage', 'packages'] }),
         MockComponent({ selector: 'bio-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),

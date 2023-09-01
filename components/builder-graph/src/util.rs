@@ -28,15 +28,13 @@ use biome_builder_db::models::package::{BuilderPackageIdent,
                                           PackageWithVersionArray};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Default)]
 pub enum EdgeType {
+    #[default]
     RuntimeDep,
     BuildDep,
     StrongBuildDep,
     ExternalConstraint, // This comes from non dependency graph issues such as worker build limits
-}
-
-impl Default for EdgeType {
-    fn default() -> Self { EdgeType::RuntimeDep }
 }
 
 pub fn short_ident(ident: &PackageIdent, use_version: bool) -> PackageIdent {
@@ -104,13 +102,13 @@ pub fn write_packages_json<T>(packages: T, filename: &str)
     // TODO: figure out how to stream this
     let serialized = serde_json::to_string(&output).unwrap();
     let path = Path::new(filename);
-    let mut file = File::create(&path).unwrap();
+    let mut file = File::create(path).unwrap();
     file.write_all(serialized.as_bytes()).unwrap();
 }
 
 pub fn read_packages_json(filename: &str) -> Vec<PackageWithVersionArray> {
     let path = Path::new(filename);
-    if let Ok(file) = File::open(&path) {
+    if let Ok(file) = File::open(path) {
         let reader = BufReader::new(file);
         let u: Vec<PackageWithVersionArray> = serde_json::from_reader(reader).unwrap();
         u
@@ -141,10 +139,10 @@ pub fn make_temp_ident(ident: &PackageIdent) -> PackageIdent {
 }
 
 pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, error::Error> {
-    let s = std::fs::read_to_string(&path).map_err(|_| {
-                                              error::Error::Misc(format!("Could not open file {}",
-                                                                         path))
-                                          })?;
+    let s = std::fs::read_to_string(path).map_err(|_| {
+                                             error::Error::Misc(format!("Could not open file {}",
+                                                                        path))
+                                         })?;
 
     s.lines().filter_map(line_to_ident).collect()
 }

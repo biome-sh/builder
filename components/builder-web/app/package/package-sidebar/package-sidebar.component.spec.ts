@@ -48,7 +48,6 @@ describe('PackageSidebarComponent', () => {
       declarations: [
         PackageSidebarComponent,
         MockComponent({ selector: 'bio-copyable', inputs: ['style', 'text'] }),
-        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'bio-icon', inputs: ['symbol'] }),
         MockComponent({ selector: 'bio-visibility-icon', inputs: ['visibility', 'prefix'] })
       ],

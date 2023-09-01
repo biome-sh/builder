@@ -37,8 +37,7 @@
           <div>
             <dt>Release</dt>
             <dd>
-              {{ package.ident.release }}
-              <bio-platform-icon [platform]="package.target"></bio-platform-icon>
+              {{ package.ident.release }} - {{ titleFrom(package.target) }}
             </dd>
           </div>
           <div>

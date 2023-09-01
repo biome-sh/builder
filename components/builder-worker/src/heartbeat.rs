@@ -43,8 +43,10 @@ fn worker_os() -> proto::Os { proto::Os::Windows }
 fn worker_os() -> proto::Os { proto::Os::Darwin }
 
 #[derive(PartialEq)]
+#[derive(Default)]
 enum PulseState {
     Pause,
+    #[default]
     Pulse,
 }
 
@@ -55,10 +57,6 @@ impl AsRef<str> for PulseState {
             PulseState::Pulse => CMD_PULSE,
         }
     }
-}
-
-impl Default for PulseState {
-    fn default() -> PulseState { PulseState::Pulse }
 }
 
 /// Client for sending and receiving messages to and from the HeartbeatMgr
@@ -91,7 +89,7 @@ impl HeartbeatCli {
     pub fn set_busy(&mut self) -> Result<()> {
         self.state.set_state(proto::WorkerState::Busy);
         self.sock.send(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
-        self.sock.send(&message::encode(&self.state)?, 0)?;
+        self.sock.send(message::encode(&self.state)?, 0)?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
@@ -100,7 +98,7 @@ impl HeartbeatCli {
     pub fn set_ready(&mut self) -> Result<()> {
         self.state.set_state(proto::WorkerState::Ready);
         self.sock.send(PulseState::Pulse.as_ref(), zmq::SNDMORE)?;
-        self.sock.send(&message::encode(&self.state)?, 0)?;
+        self.sock.send(message::encode(&self.state)?, 0)?;
         self.sock.recv(&mut self.msg, 0)?;
         Ok(())
     }
@@ -204,7 +202,7 @@ impl HeartbeatMgr {
     // Broadcast to subscribers the HeartbeatMgr health and state
     fn pulse(&mut self) -> Result<()> {
         trace!("heartbeat pulsed: {:?}", self.heartbeat);
-        self.pub_sock.send(&message::encode(&self.heartbeat)?, 0)?;
+        self.pub_sock.send(message::encode(&self.heartbeat)?, 0)?;
         Ok(())
     }
 

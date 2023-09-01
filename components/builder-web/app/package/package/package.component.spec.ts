@@ -115,7 +115,6 @@ describe('PackageComponent', () => {
         PackageComponent,
         MockComponent({ selector: 'bio-package-breadcrumbs', inputs: ['ident'] }),
         MockComponent({ selector: 'bio-package-sidebar', inputs: ['origin', 'name', 'target', 'building', 'isOriginMember', 'isNewProject', 'hasPlan'] }),
-        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'bio-job-notice', inputs: ['job'] }),
         MockComponent({ selector: 'bio-visibility-icon', inputs: ['visibility', 'prefix'] })
       ],

@@ -37,13 +37,11 @@ use crate::{config::Config,
 /// Interval for main thread to check cancel status
 pub const BUILD_CANCEL_WAIT_SECS: u64 = 15;
 
+#[derive(Default)]
 enum State {
+    #[default]
     Ready,
     Busy,
-}
-
-impl Default for State {
-    fn default() -> State { State::Ready }
 }
 
 #[allow(clippy::rc_buffer)] // #1548 tracks fixing this
@@ -88,7 +86,7 @@ impl Server {
 
         self.enable_features_from_config();
 
-        HeartbeatMgr::start(&self.config, (&*self.net_ident).clone())?;
+        HeartbeatMgr::start(&self.config, (*self.net_ident).clone())?;
         RunnerMgr::start(self.config.clone(), self.net_ident.clone())?;
         LogForwarder::start(&self.config)?;
         self.hb_cli.connect()?;
@@ -179,7 +177,7 @@ impl Server {
     fn reject_job(&mut self) -> Result<()> {
         let mut reply = message::decode::<jobsrv::Job>(&self.msg)?;
         reply.set_state(jobsrv::JobState::Rejected);
-        self.fe_sock.send(&message::encode(&reply)?, 0)?;
+        self.fe_sock.send(message::encode(&reply)?, 0)?;
         Ok(())
     }
 
