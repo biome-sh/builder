@@ -3,6 +3,10 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- CHEF-6083: Updated the GTM code as per the recommendation. [#1792](https://github.com/habitat-sh/builder/pull/1792) ([agmathur](https://github.com/agmathur))
+- fix UI issues [#1791](https://github.com/habitat-sh/builder/pull/1791) ([sajjaphani](https://github.com/sajjaphani))
+- Bump qs from 6.5.1 to 6.11.2 in /test/builder-api [#1793](https://github.com/habitat-sh/builder/pull/1793) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cookiejar from 2.1.1 to 2.1.4 in /test/builder-api [#1771](https://github.com/habitat-sh/builder/pull/1771) ([dependabot[bot]](https://github.com/dependabot[bot]))
 - Bump h2 from 0.3.15 to 0.3.17 [#1781](https://github.com/habitat-sh/builder/pull/1781) ([dependabot[bot]](https://github.com/dependabot[bot]))
 - Bump minimatch and mocha in /test/builder-api [#1789](https://github.com/habitat-sh/builder/pull/1789) ([dependabot[bot]](https://github.com/dependabot[bot]))
 - Bump openssl from 0.10.48 to 0.10.55 [#1785](https://github.com/habitat-sh/builder/pull/1785) ([dependabot[bot]](https://github.com/dependabot[bot]))
