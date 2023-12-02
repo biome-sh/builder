@@ -3,6 +3,9 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- CHEF-6081: Added testing version of OneTrust script. [#1797](https://github.com/habitat-sh/builder/pull/1797) ([agmathur](https://github.com/agmathur))
+- implemented new footer and UI changes done [#1794](https://github.com/habitat-sh/builder/pull/1794) ([AadeshNichite](https://github.com/AadeshNichite))
+- updated loader utils package version [#1795](https://github.com/habitat-sh/builder/pull/1795) ([vinay033](https://github.com/vinay033))
 - CHEF-6083: Updated the GTM code as per the recommendation. [#1792](https://github.com/habitat-sh/builder/pull/1792) ([agmathur](https://github.com/agmathur))
 - fix UI issues [#1791](https://github.com/habitat-sh/builder/pull/1791) ([sajjaphani](https://github.com/sajjaphani))
 - Bump qs from 6.5.1 to 6.11.2 in /test/builder-api [#1793](https://github.com/habitat-sh/builder/pull/1793) ([dependabot[bot]](https://github.com/dependabot[bot]))
