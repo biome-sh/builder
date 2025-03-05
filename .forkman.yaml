@@ -5,7 +5,6 @@
 # Most uniq patterns should go first
 # !!! ORDER IS IMPORTANT !!!
 patterns:
-
   # Copyright exactly as recommendation from Chef Company
   'Copyright (c) 2015-2016 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2015-2016 The Habitat Maintainers': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
@@ -18,6 +17,7 @@ patterns:
   'Copyright (c) 2017-2020 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2018-2021 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2018-2021 Chef Software, Inc"
   'Copyright (c) 2020-2022 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2020-2022 Chef Software, Inc"
+  'Copyright (c) 2016-2023 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2020-2025 Chef Software, Inc"
 
   'Copyright (c) 2016 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2017 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
@@ -31,6 +31,10 @@ patterns:
   'Copyright:: Copyright (c) 2015-2016 Chef Software, Inc': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright 2015-2019 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
   'Copyright (c) 2020-2020 Chef Software Inc. and/or applicable contributors': "Biome project based on Chef Habitat's code (c) 2016-2020 Chef Software, Inc"
+  'Copyright © 2012 - 2023 Chef Software, Inc.': "Biome project based on Chef Habitat's code (c) 2016-2025 Chef Software, Inc"
+  'Copyright © 2012-2024 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.': "Biome project based on Chef Habitat's code (c) 2016-2025 Chef Software, Inc"
+  'I acknowledge and agree that use of Progress Habitat Builder is governed': "Biome Builder is based on Chef Habitat's code. Progress Chef has its own EULA"
+  'Progress Chef located at <a href="https://github.com/habitat-sh/habitat" target="_blank">Progress Chef EULA</a>': 'Progress Chef located at <a href="https://github.com/habitat-sh/habitat" target="_blank">Progress Chef EULA</a>'
   'Chef license agreement': 'Biome license agreement'
   'Chef License Acceptance': 'Biome License Acceptance'
   'Chef products': 'Biome products'
