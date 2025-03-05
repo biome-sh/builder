@@ -1,3 +1,0 @@
-log_level="biome_builder_jobsrv=debug,biome_builder_graph=debug,info"
-features_enabled="NEWSCHEDULER,USECYCLICGRAPH,BUILDDEPS"
-

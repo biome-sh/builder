@@ -1,7 +1,7 @@
 UNAME_S := $(shell uname -s)
 BIN = builder-graph
 LIB = builder-db builder-core github-api-client
-SRV = builder-api builder-jobsrv builder-worker
+SRV = builder-api
 ALL = $(BIN) $(LIB) $(SRV)
 
 .DEFAULT_GOAL := build-bin
@@ -102,7 +102,7 @@ unit-$1: linux ## executes the $1 component's unit test suite
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
-TOOLCHAIN := $(shell cat rust-toolchain)
+TOOLCHAIN := $(shell tail -n 1  rust-toolchain | cut -d'"' -f 2)
 lint:
 	$(run) test/run_clippy.sh $(TOOLCHAIN) test/unexamined_lints.txt \
 	                                 test/allowed_lints.txt \

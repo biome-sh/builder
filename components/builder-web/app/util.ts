@@ -36,6 +36,10 @@ export function friendlyTime(t) {
   return moment(t).fromNow();
 }
 
+export function getLatestBase(): string {
+  return window['Biome']?.config?.latest_base_default_channel;
+}
+
 // Take some params and return a project
 export function projectFromParams(p = {}) {
   let id = undefined;
@@ -225,3 +229,5 @@ export function labelForJobState(state) {
     promote: 'Promote',
   }[state.toLowerCase()];
 }
+
+export const latestBase = getLatestBase();

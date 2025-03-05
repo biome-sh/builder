@@ -131,6 +131,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.state.features.saasEvents;
   }
 
+  get enabledBase() {
+    return this.state.features.enableBase;
+  }
+
   ngOnDestroy() {
     this.sub.unsubscribe();
   }

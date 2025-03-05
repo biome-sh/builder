@@ -18,6 +18,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Origin } from './records/Origin';
 import { Package } from './records/Package';
 import { Project } from './records/Project';
+import { latestBase } from './util';
 
 export default Record({
   app: Record({
@@ -96,7 +97,9 @@ export default Record({
     })(),
     builder: false,
     events: false,
-    saasEvents: false
+    saasEvents: false,
+    visibility: false,
+    enableBase: false,
   })(),
   notifications: Record({
     all: List(),
@@ -164,7 +167,8 @@ export default Record({
     latest: Package(),
     latestInChannel: Record({
       stable: undefined,
-      unstable: undefined
+      unstable: undefined,
+      [latestBase]: undefined
     })(),
     visible: List(),
     versions: undefined,
@@ -196,6 +200,11 @@ export default Record({
           errorMessage: undefined,
           exists: false,
           loading: true,
+        })(),
+        [latestBase]: Record({
+          errorMessage: undefined,
+          exists: false,
+          loading: false,
         })()
       })(),
       versions: Record({

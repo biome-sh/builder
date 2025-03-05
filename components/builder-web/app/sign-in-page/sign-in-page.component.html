@@ -1,11 +1,11 @@
-<div class="sign-in-page-component">
+<div class="sign-in-page-component" id="sign-in-page-component">
   <a class="logo" href="{{ wwwUrl }}">
     <img src="assets/images/builder-biome-logo.svg" alt="Biome">
   </a>
   <div class="body">
     <div class="content">
       <section class="upper">
-        <a mat-raised-button color="primary" class="button" href="{{ loginUrl }}">
+        <a mat-raised-button color="primary" class="button" (click)="showEulaPopup(loginUrl)">
           <bio-icon [symbol]="providerType"></bio-icon>
           <span>Sign In with {{ providerName }}</span>
         </a>

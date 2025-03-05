@@ -26,7 +26,8 @@ import {
   fetchJobs, fetchIntegrations, fetchLatestPackage, fetchLatestInChannel, fetchOrigin, fetchProject,
   fetchPackageSettings, fetchPackageVersions, setCurrentPackageTarget, clearPackageVersions, fetchPackage, fetchPackageChannels
 } from '../../actions/index';
-import { targetFrom, targets as allPlatforms } from '../../util';
+import { targetFrom, targets as allPlatforms, latestBase } from '../../util';
+import { fetchOriginChannels } from '../../actions/origins';
 
 @Component({
   template: require('./package.component.html')
@@ -54,6 +55,8 @@ export class PackageComponent implements OnInit, OnDestroy {
     const release$ = this.store.observe('router.route.params.release').pipe(filter(v => v));
     const token$ = this.store.observe('session.token');
     const origins$ = this.store.observe('origins.mine');
+    const originsCurrent$ = this.store.observe('origins.current');
+    const originsCurrentChannels$ = this.store.observe('origins.current.channels');
     const platforms$ = this.store.observe('packages.currentPlatforms');
     const versionsLoading$ = this.store.observe('packages.ui.versions.loading');
     const isOriginMember$ = combineLatest(origin$, origins$)
@@ -78,6 +81,15 @@ export class PackageComponent implements OnInit, OnDestroy {
     origin$
       .pipe(takeUntil(this.isDestroyed$))
       .subscribe(() => this.fetchOrigin());
+
+    originsCurrent$
+      .pipe(
+        takeUntil(this.isDestroyed$),
+        filter((origin) => origin.name !== undefined)
+      )
+      .subscribe((origin) => {
+        this.store.dispatch(fetchOriginChannels(origin.name));
+      });
 
     combineLatest(origin$, name$, isOriginMember$)
       .pipe(takeUntil(this.isDestroyed$))
@@ -112,7 +124,21 @@ export class PackageComponent implements OnInit, OnDestroy {
         // Just ensure we are on the latest page
         if (!this.ident.version && !this.ident.release) {
           this.fetchLatest();
-          this.fetchLatestStable();
+          if (target === undefined) {
+            this.fetchLatestStable('');
+          }
+          else {
+            this.fetchLatestStable(this.target);
+          }
+
+
+          // This check whether channel is exist in current origin
+          if (target === undefined) {
+            this.fetchCurrentLts('');
+          }
+          else {
+            this.fetchCurrentLts(this.target);
+          }
         }
       });
 
@@ -132,6 +158,15 @@ export class PackageComponent implements OnInit, OnDestroy {
         this.fetchJobs();
       }
     }, 10000);
+  }
+
+  // Check if the given channel exist in current origin
+  isChannelExistInOrigin(channelName) {
+    const channelExist = this.store.getState().origins.current.channels.find((channel) => {
+      return channel.name === channelName;
+    });
+
+    return channelExist?.name === channelName ? true : false;
   }
 
   ngOnDestroy() {
@@ -178,6 +213,10 @@ export class PackageComponent implements OnInit, OnDestroy {
 
   get builderEnabled() {
     return this.store.getState().features.builder;
+  }
+
+  get visibilityEnabled() {
+    return this.store.getState().features.visibility;
   }
 
   get activePackage() {
@@ -251,6 +290,10 @@ export class PackageComponent implements OnInit, OnDestroy {
   }
 
   private getLatestPlatform(target) {
+    if (target === undefined) {
+      target = 'x86_64-linux';
+    }
+
     const versions = this.store.getState().packages?.versions;
     if (!versions) {
       return target;
@@ -261,7 +304,7 @@ export class PackageComponent implements OnInit, OnDestroy {
       return target;
     }
 
-    return versions[0].platforms[0];
+    return versions[0]?.platforms[0];
   }
 
   private fetchLatest() {
@@ -271,9 +314,13 @@ export class PackageComponent implements OnInit, OnDestroy {
     this.store.dispatch(setCurrentPackageTarget(currentTarget));
   }
 
-  private fetchLatestStable() {
-    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable', this.getLatestPlatform(this.target)));
+  private fetchLatestStable(target: string) {
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable', target));
   }
+
+  private fetchCurrentLts(target: string) {
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, latestBase, target));
+}
 
   private fetchPackageSettings() {
     this.store.dispatch(fetchPackageSettings(this.origin, this.name, this.token));
