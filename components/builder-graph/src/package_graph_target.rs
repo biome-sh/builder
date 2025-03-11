@@ -156,7 +156,6 @@ impl PackageGraphForTarget {
                                                                          &plan_deps,
                                                                          EdgeType::RuntimeDep);
 
-            // 
             // * The graph invariant is that it is cycle free, so if we aren't adding any new edges,
             //   we can't add a cycle
             // * If this node doesn't have anyone depending on it, it can't be part of a cycle
@@ -241,7 +240,6 @@ impl PackageGraphForTarget {
                                                                           &plan_deps,
                                                                           EdgeType::RuntimeDep);
 
-            // 
             // * The graph invariant is that it is cycle free, so if we aren't adding any new edges,
             //   we can't add a cycle
             // * If this node doesn't have anyone depending on it, it can't be part of a cycle
@@ -974,7 +972,7 @@ mod test {
         let packages = vec![mk_pkg("a/top/c/d", &[], &[], &[]),
                             mk_pkg("a/left/c/d", &["a/top"], &[], &[]),
                             mk_pkg("a/right/c/d", &["a/top"], &[], &[]),
-                            mk_pkg("a/bottom/c/d", &["a/left", "a/right"], &[], &[])];
+                            mk_pkg("a/bottom/c/d", &["a/left", "a/right"], &[], &[]),];
         let mut graph = PackageGraphForTarget::new(PackageTarget::from_str(TGT).unwrap());
         graph.build(packages.into_iter(), true);
         graph
@@ -1133,7 +1131,7 @@ mod test {
                             mk_pkg("a/libgcc/1/d", &[], &["a/gcc/1", "a/make"], &[]),
                             mk_pkg("a/glibc/c/d", &[], &["a/gcc", "a/make"], &[]),
                             mk_pkg("a/make/c/d", &["a/glibc"], &[], &[]),
-                            mk_pkg("a/out/c/d", &["a/glibc"], &["a/make", "a/gcc"], &[])];
+                            mk_pkg("a/out/c/d", &["a/glibc"], &["a/make", "a/gcc"], &[]),];
         let mut graph = PackageGraphForTarget::new(PackageTarget::from_str(TGT).unwrap());
         graph.build(packages.into_iter(), true);
         graph
@@ -1210,7 +1208,7 @@ mod test {
                                    &["a/libgcc", "a/glibc"],
                                    &["a/make"],
                                    &["a/make"]),
-                            mk_pkg("a/make/z/d", &["a/strong", "a/glibc"], &[], &[])];
+                            mk_pkg("a/make/z/d", &["a/strong", "a/glibc"], &[], &[]),];
 
         graph.build(extended.into_iter(), true);
 

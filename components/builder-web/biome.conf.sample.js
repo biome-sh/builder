@@ -16,6 +16,9 @@ biomeConfig({
     // Enable Builder-specific features
     enable_builder: true,
 
+    // Enable ability to set project visibility
+    enable_visibility: true,
+
     // Enable supported container-registry integrations
     enable_publisher_amazon: false,
     enable_publisher_azure: false,
@@ -73,5 +76,11 @@ biomeConfig({
 
      // Enable/Disable builder events from SaaS
      // The 'enable_builder_events' property also needs to be set to enable SaaS events.
-     enable_builder_events_saas: false
+     enable_builder_events_saas: false,
+
+     // Enable/Disable LTS channel from SaaS
+     enable_base: false,
+
+     // Set configurable base channel name
+     latest_base_default_channel: "base"
 });

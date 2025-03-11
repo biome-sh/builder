@@ -110,6 +110,7 @@ export {
   POPULATE_ORIGIN_MEMBERS,
   POPULATE_ORIGIN_PUBLIC_KEYS,
   POPULATE_ORIGIN_SECRETS,
+  POPULATE_ORIGIN_CHANNELS,
   SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY,
   SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY,
   SET_CURRENT_ORIGIN_CREATING_FLAG,
@@ -171,11 +172,9 @@ export {
 } from './packages';
 
 export {
-  addProject,
   CLEAR_PROJECTS,
   CLEAR_CURRENT_PROJECT,
   CLEAR_CURRENT_PROJECT_INTEGRATION,
-  deleteProject,
   deleteProjectIntegration,
   fetchProject,
   fetchProjects,
@@ -187,7 +186,6 @@ export {
   setCurrentProjects,
   setProjectIntegrationSettings,
   setProjectVisibility,
-  updateProject
 } from './projects';
 
 export {

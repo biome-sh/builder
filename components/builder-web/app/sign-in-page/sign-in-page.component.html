@@ -1,11 +1,11 @@
-<div class="sign-in-page-component">
+<div class="sign-in-page-component" id="sign-in-page-component">
   <a class="logo" href="{{ wwwUrl }}">
-    <img src="/assets/images/biome-logo-inverse.svg" alt="Biome" height="25">
+    <img src="assets/images/builder-biome-logo.svg" alt="Biome">
   </a>
   <div class="body">
     <div class="content">
       <section class="upper">
-        <a mat-raised-button color="primary" class="button" href="{{ loginUrl }}">
+        <a mat-raised-button color="primary" class="button" (click)="showEulaPopup(loginUrl)">
           <bio-icon [symbol]="providerType"></bio-icon>
           <span>Sign In with {{ providerName }}</span>
         </a>
@@ -23,8 +23,9 @@
   </div>
   <p class="footnote">
     By clicking on "Sign in with {{ providerName }}", you are agreeing to the
-    <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> and
-    <a href="{{ wwwUrl }}/legal/privacy-policy/" target="_blank">Privacy Policy</a>.
-    <a href="https://www.chef.io/patents" target="_blank">Chef Patents</a>
+    <a href="{{ wwwUrl }}/legal/terms-and-conditions/" target="_blank">Terms of Service</a> ,
+    <a href="https://www.progress.com/legal/privacy-policy" target="_blank">Privacy Policy</a> and
+    <a href="https://www.progress.com/legal/cookie-policy" target="_blank">Cookie Policy </a>. 
+    Know more about <a href="https://www.chef.io/patents" target="_blank">Chef Patents</a>
   </p>
 </div>

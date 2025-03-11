@@ -8,6 +8,7 @@ use crate::{crypto,
             protocol::{message,
                        originsrv}};
 use chrono::{self,
+             DateTime,
              Duration,
              LocalResult::Single,
              TimeZone,
@@ -95,11 +96,11 @@ impl AccessToken {
     /// See the type-level documentation for additional details.
     pub fn validate_access_token(token: &str, key_cache: &KeyCache) -> Result<originsrv::Session> {
         // Parse the input as an AccessToken.
-        let token: Self = token.parse()?;
+        let access_token: Self = token.parse()?;
 
         // Decrypt the contents to get the `originsrv::AccessToken`
         // protobuf inside.
-        let payload = token.decrypt(key_cache)?;
+        let payload = access_token.decrypt(key_cache)?;
 
         // Ensure that the token has not expired yet.
         //
@@ -111,7 +112,24 @@ impl AccessToken {
                     return Err(Error::TokenExpired);
                 }
             }
-            _ => return Err(Error::TokenInvalid),
+            _ => {
+                // mwrock - 2024-09-13
+                // Prior to the chronos update 4 months ago this is the max timestamp used for user
+                // tokens We have succesfully parsed this value via the call to
+                // Utc.timestamp_opt above for years Yesterday (2024-09-12), this
+                // value became out of bounds and yields a 401 trying to auth
+                // Right now we have no idea why and some day perhaps we will all laugh around the
+                // fire as we remember this bug and how trivial it truly was. Today
+                // no one is laughing. I hope there will be a better fix than this
+                // in the near future but this will allow the many keys currently
+                // out in the wild with this value to authenticate.
+                if payload.get_expires() != 8_210_298_326_400 {
+                    trace!("unable to parse timestamp from expires {} for token {}",
+                           payload.get_expires(),
+                           token);
+                    return Err(Error::TokenInvalid);
+                }
+            }
         }
 
         // If all is OK, finally convert into an `originsrv::Session`.
@@ -146,7 +164,7 @@ impl AccessToken {
     /// protobuf-generated code :/
     fn new_proto(account_id: u64, flags: u32, lifetime: Duration) -> originsrv::AccessToken {
         let expires = Utc::now().checked_add_signed(lifetime)
-                                .unwrap_or_else(|| chrono::MAX_DATE.and_hms(0, 0, 0))
+                                .unwrap_or(DateTime::<Utc>::MAX_UTC)
                                 .timestamp();
 
         let mut token = originsrv::AccessToken::new();
@@ -188,7 +206,10 @@ impl fmt::Display for AccessToken {
     ///
     /// (but longer)
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}", ACCESS_TOKEN_PREFIX, base64::encode(&self.0))
+        write!(f,
+               "{}{}",
+               ACCESS_TOKEN_PREFIX,
+               biome_core::base64::encode(&self.0))
     }
 }
 
@@ -200,7 +221,7 @@ impl FromStr for AccessToken {
     /// has already expired.
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         if let Some(payload) = s.strip_prefix(ACCESS_TOKEN_PREFIX) {
-            let encrypted = base64::decode(payload).map(String::from_utf8)??;
+            let encrypted = biome_core::base64::decode(payload).map(String::from_utf8)??;
 
             // Though the fact that we're encrypting as a `SignedBox` for this
             // application is not terribly important, the fact that the string
@@ -215,12 +236,15 @@ impl FromStr for AccessToken {
             //
             // See documentation comments on builder_core::crypto::encrypt as
             // well.
-            if encrypted.parse::<SignedBox>().is_err() {
+            if let Err(err) = encrypted.parse::<SignedBox>() {
+                trace!("unable to parse SignedBox from token {}, err: {}", s, err);
                 Err(Error::TokenInvalid)
             } else {
                 Ok(Self(encrypted))
             }
         } else {
+            trace!("token {} is not prefixed with an underscore and is invalid",
+                   s);
             Err(Error::TokenInvalid)
         }
     }
@@ -320,7 +344,7 @@ mod tests {
 
         // December 31, 262143 CE... see `chrono::naive::date::MAX_DATE`
         // User tokens essentially never expire.
-        let maximum_time = 8_210_298_326_400;
+        let maximum_time = 8_210_266_876_799;
         assert_eq!(inner.get_expires(), maximum_time);
     }
 
@@ -370,7 +394,7 @@ mod tests {
             assert!(token.starts_with('_'), "Token must start with a '_'");
 
             let rest_of_token = token.trim_start_matches('_');
-            assert!(base64::decode(rest_of_token).is_ok(),
+            assert!(biome_core::base64::decode(rest_of_token).is_ok(),
                     "Token after '_' must be base64-encoded")
         }
     }
@@ -427,7 +451,7 @@ mod tests {
             //
             // This is the best we can do with `std::str::FromStr`, though.
             let encrypted: SignedBox = key.encrypt("supersecretstuff");
-            let b64 = base64::encode(&encrypted.to_string());
+            let b64 = biome_core::base64::encode(encrypted.to_string());
             let token = format!("_{}", b64);
             let parsed = token.parse::<AccessToken>();
             assert!(parsed.is_ok(), "It should parse because it's encrypted");

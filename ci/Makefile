@@ -1,5 +1,5 @@
 # Keep plans in a correct build order
-PLANS := components/builder-api components/builder-api-proxy components/builder-datastore components/builder-memcached components/builder-minio components/builder-graph components/builder-jobsrv components/builder-worker
+PLANS := components/builder-api components/builder-api-proxy components/builder-datastore components/builder-memcached components/builder-minio components/builder-graph components/builder-jobsrv
 
 .DEFAULT_GOAL := all
 all: tomlcheck shellcheck rendercheck build

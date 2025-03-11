@@ -15,7 +15,9 @@
         <span class="column">{{ version.release_count }}</span>
         <span class="column">{{ releaseToDate(version.latest) }}</span>
         <span class="column">
-          <bio-platform-icon [platform]="platform" *ngFor="let platform of platformsFor(version)"></bio-platform-icon>
+          <ul>
+            <li class="zeroed" *ngFor="let platform of platformsFor(version)">{{nameFrom(platform)}}</li>
+          </ul>
         </span>
         <bio-icon class="toggle" [symbol]="toggleFor(version.version)"></bio-icon>
       </li>
@@ -32,14 +34,10 @@
                 {{ releaseToDate(pkg.release) }}
               </div>
               <div class="column os">
-                <bio-platform-icon [platform]="pkg.platforms[0]"></bio-platform-icon>
+                {{ nameFrom(pkg.platforms[0]) }}
               </div>
-              <div class="column visibility">
-                <!-- TBD -->
-              </div>
-              <div class="column build-source">
-                <!-- TBD -->
-              </div>
+              <div class="column visibility"></div>
+              <div class="column build-source"></div>
               <bio-icon symbol="chevron-right"></bio-icon>
             </a>
             <div class="channels">
@@ -54,7 +52,7 @@
                 [version]="pkg.version"
                 [release]="pkg.release"
                 [target]="pkg.platforms[0]"
-                channel="stable"
+                [channels]="pkg.channels"
                 *ngIf="promotable(pkg)">
               </bio-package-promote>
             </div>

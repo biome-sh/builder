@@ -13,7 +13,7 @@
         </span>
         <span class="column">
           <button [disabled]="updating" *ngIf="canShowDemote(channel)" class="action active" type="button" (click)="handleDemote(channel)">Demote</button>
-          <button [disabled]="updating" *ngIf="canShowPromote(channel, package)" class="action" type="button" (click)="handlePromote()">Promote</button>
+          <button [disabled]="updating" *ngIf="canShowPromote(channel, package)" class="action" type="button" (click)="handlePromote(channel)">Promote</button>
         </span>
       </li>
     </div>
@@ -37,8 +37,7 @@
           <div>
             <dt>Release</dt>
             <dd>
-              {{ package.ident.release }}
-              <bio-platform-icon [platform]="package.target"></bio-platform-icon>
+              {{ package.ident.release }} - {{ titleFrom(package.target) }}
             </dd>
           </div>
           <div>

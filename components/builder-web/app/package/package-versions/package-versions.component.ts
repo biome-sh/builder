@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AppStore } from '../../app.store';
-import { packageString, parseDate, targetsFromPkgVersions } from '../../util';
+import { packageString, parseDate, targetFrom, targetsFromPkgVersions } from '../../util';
 import { demotePackage, filterPackagesBy } from '../../actions/index';
 
 @Component({
@@ -102,7 +102,11 @@ export class PackageVersionsComponent implements OnDestroy {
   }
 
   promotable(pkg) {
-    return this.memberOfOrigin && pkg.channels.indexOf('stable') === -1;
+    const originChannels = this.store.getState().origins.current.channels;
+    const hasMissingChannel = originChannels.some(originChannel =>
+      pkg.channels.indexOf(originChannel.name) === -1
+    );
+    return this.memberOfOrigin && hasMissingChannel;
   }
 
   get memberOfOrigin() {
@@ -154,5 +158,10 @@ export class PackageVersionsComponent implements OnDestroy {
     }
 
     return [];
+  }
+
+  nameFrom(platform) {
+    const target = targetFrom('id', platform);
+    return target ? target.name : '';
   }
 }

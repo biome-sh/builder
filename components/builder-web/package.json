@@ -6,8 +6,8 @@
     "url": "https://github.com/biome-sh/builder.git"
   },
   "engines": {
-    "node": ">=8.9.4",
-    "npm": ">=5.6.0"
+    "node": ">=14.18.1",
+    "npm": ">=6.14.15"
   },
   "license": "Apache-2.0",
   "scripts": {
@@ -31,9 +31,6 @@
     "serve-e2e": "lite-server -c ./bs-config.e2e.js",
     "start": "bin/start",
     "test": "npm run test-unit && npm run test-e2e",
-    "test-e2e": "npm run build-e2e && concurrently --success first --kill-others 'npm run serve-e2e' 'cypress run'",
-    "test-e2e-record": "npm run build-e2e && concurrently --success first --kill-others 'npm run serve-e2e' 'cypress run --record'",
-    "test-e2e-watch": "concurrently 'npm start' 'cypress open'",
     "test-unit": "karma start",
     "test-unit-watch": "npm run test-unit -- --no-single-run",
     "test-watch": "concurrently 'npm run test-unit-watch' 'npm run test-e2e-watch'",
@@ -59,8 +56,8 @@
     "immutable": "^3.8.2",
     "js-cookie": "^2.2.0",
     "lodash": "^4.17.21",
-    "marked": "^0.7.0",
-    "moment": "^2.22.2",
+    "marked": "^15.0.6",
+    "moment": "^2.30.1",
     "redux": "^4.0.0",
     "redux-reset": "^0.3.0",
     "redux-thunk": "^2.3.0",
@@ -76,10 +73,9 @@
     "awesome-typescript-loader": "^5.2.1",
     "codelyzer": "^4.4.4",
     "concurrently": "^3.6.1",
-    "cypress": "^3.4.1",
     "http-proxy-middleware": "^0.19.2",
     "jasmine-core": "^3.7.1",
-    "karma": "^6.3.2",
+    "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^2.0.0",
     "karma-coverage": "^2.0.3",
@@ -88,10 +84,11 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-sourcemap-loader": "^0.3.8",
     "karma-spec-reporter": "0.0.32",
-    "karma-webpack": "^4.0.2",
+    "karma-webpack": "^5.0.1",
     "lite-server": "^2.6.1",
+    "loader-utils": "^1.4.2",
     "ng2-mock-component": "^0.1.0",
-    "node-sass": "^4.14.1",
+    "node-sass": "^8.0.0",
     "normalize-scss": "^7.0.0",
     "phantomjs-prebuilt": "^2.1.16",
     "raw-loader": "^0.5.1",
@@ -102,7 +99,7 @@
     "tsun": "^0.5.0",
     "typescript": "^3.9.9",
     "watch": "^1.0.2",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
   }
 }

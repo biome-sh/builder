@@ -26,7 +26,8 @@ import {
   fetchJobs, fetchIntegrations, fetchLatestPackage, fetchLatestInChannel, fetchOrigin, fetchProject,
   fetchPackageSettings, fetchPackageVersions, setCurrentPackageTarget, clearPackageVersions, fetchPackage, fetchPackageChannels
 } from '../../actions/index';
-import { targetFrom, targets as allPlatforms } from '../../util';
+import { targetFrom, targets as allPlatforms, latestBase } from '../../util';
+import { fetchOriginChannels } from '../../actions/origins';
 
 @Component({
   template: require('./package.component.html')
@@ -54,6 +55,8 @@ export class PackageComponent implements OnInit, OnDestroy {
     const release$ = this.store.observe('router.route.params.release').pipe(filter(v => v));
     const token$ = this.store.observe('session.token');
     const origins$ = this.store.observe('origins.mine');
+    const originsCurrent$ = this.store.observe('origins.current');
+    const originsCurrentChannels$ = this.store.observe('origins.current.channels');
     const platforms$ = this.store.observe('packages.currentPlatforms');
     const versionsLoading$ = this.store.observe('packages.ui.versions.loading');
     const isOriginMember$ = combineLatest(origin$, origins$)
@@ -79,6 +82,15 @@ export class PackageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.isDestroyed$))
       .subscribe(() => this.fetchOrigin());
 
+    originsCurrent$
+      .pipe(
+        takeUntil(this.isDestroyed$),
+        filter((origin) => origin.name !== undefined)
+      )
+      .subscribe((origin) => {
+        this.store.dispatch(fetchOriginChannels(origin.name));
+      });
+
     combineLatest(origin$, name$, isOriginMember$)
       .pipe(takeUntil(this.isDestroyed$))
       .subscribe(([origin, name, isOriginMember]) => {
@@ -102,14 +114,32 @@ export class PackageComponent implements OnInit, OnDestroy {
         filter(([versionsLoading]) => !versionsLoading)
       )
       .subscribe(([versionsLoading, origin, name, target, platforms]) => {
-        const defaultTarget = platforms.length ? platforms[0] : allPlatforms[0];
-        const currentTarget = target ?
-          targetFrom('param', target || defaultTarget.param) :
-          targetFrom('id', this.target || defaultTarget.id);
+        const latestVersion = this.store.getState().packages.versions?.[0];
+        const tgt = target ? targetFrom('param', target).id : latestVersion ? latestVersion.platforms[0] : allPlatforms[0].id;
+        const currentTarget = targetFrom('id', tgt);
         this.target = currentTarget.id;
         this.store.dispatch(setCurrentPackageTarget(currentTarget));
-        this.fetchLatest();
-        this.fetchLatestStable();
+
+        // This particularly happens when we refresh the page
+        // Just ensure we are on the latest page
+        if (!this.ident.version && !this.ident.release) {
+          this.fetchLatest();
+          if (target === undefined) {
+            this.fetchLatestStable('');
+          }
+          else {
+            this.fetchLatestStable(this.target);
+          }
+
+
+          // This check whether channel is exist in current origin
+          if (target === undefined) {
+            this.fetchCurrentLts('');
+          }
+          else {
+            this.fetchCurrentLts(this.target);
+          }
+        }
       });
 
     combineLatest(versionsLoading$, origin$, name$, target$, token$, origins$, platforms$)
@@ -130,6 +160,15 @@ export class PackageComponent implements OnInit, OnDestroy {
     }, 10000);
   }
 
+  // Check if the given channel exist in current origin
+  isChannelExistInOrigin(channelName) {
+    const channelExist = this.store.getState().origins.current.channels.find((channel) => {
+      return channel.name === channelName;
+    });
+
+    return channelExist?.name === channelName ? true : false;
+  }
+
   ngOnDestroy() {
     window.clearInterval(this.poll);
 
@@ -142,6 +181,17 @@ export class PackageComponent implements OnInit, OnDestroy {
 
   get subheading() {
     return this.activeRelease ? 'artifact' : 'package';
+  }
+
+  get isStandardPkg() {
+    // A package can be standard or native. That means all package versions should be of the same type.
+    // It is sufficient to check the type on the latest and fetched on the initial request.
+    const _type = this.store.getState().packages.latest.package_type || 'standard';
+    return _type.toLowerCase() === 'standard';
+  }
+
+  get nonStandardLabel() {
+    return 'native';
   }
 
   get ident() {
@@ -163,6 +213,10 @@ export class PackageComponent implements OnInit, OnDestroy {
 
   get builderEnabled() {
     return this.store.getState().features.builder;
+  }
+
+  get visibilityEnabled() {
+    return this.store.getState().features.visibility;
   }
 
   get activePackage() {
@@ -235,13 +289,38 @@ export class PackageComponent implements OnInit, OnDestroy {
     this.store.dispatch(fetchOrigin(this.origin));
   }
 
-  private fetchLatest() {
-    this.store.dispatch(fetchLatestPackage(this.origin, this.name, this.target));
+  private getLatestPlatform(target) {
+    if (target === undefined) {
+      target = 'x86_64-linux';
+    }
+
+    const versions = this.store.getState().packages?.versions;
+    if (!versions) {
+      return target;
+    }
+
+    const platformFound = versions.some(item => item.platforms.includes(target));
+    if (platformFound) {
+      return target;
+    }
+
+    return versions[0]?.platforms[0];
   }
 
-  private fetchLatestStable() {
-    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable', this.target));
+  private fetchLatest() {
+    const target = this.getLatestPlatform(this.target);
+    this.store.dispatch(fetchLatestPackage(this.origin, this.name, target));
+    const currentTarget = targetFrom('id', target);
+    this.store.dispatch(setCurrentPackageTarget(currentTarget));
   }
+
+  private fetchLatestStable(target: string) {
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, 'stable', target));
+  }
+
+  private fetchCurrentLts(target: string) {
+    this.store.dispatch(fetchLatestInChannel(this.origin, this.name, latestBase, target));
+}
 
   private fetchPackageSettings() {
     this.store.dispatch(fetchPackageSettings(this.origin, this.name, this.token));
@@ -266,8 +345,5 @@ export class PackageComponent implements OnInit, OnDestroy {
 
   private fetchRelease() {
     this.store.dispatch(fetchPackage({ ident: this.ident }));
-    this.store.dispatch(fetchPackageChannels(
-      this.ident.origin, this.ident.name, this.ident.version, this.ident.release
-    ));
   }
 }

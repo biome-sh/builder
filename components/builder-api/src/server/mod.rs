@@ -105,7 +105,8 @@ fn enable_features(config: &Config) {
                                                           ("JOBSRV", feat::Jobsrv),
                                                           ("LEGACYPROJECT", feat::LegacyProject),
                                                           ("ARTIFACTORY", feat::Artifactory),
-                                                          ("BUILDDEPS", feat::BuildDeps)]);
+                                                          ("BUILDDEPS", feat::BuildDeps),]);
+
     for key in &config.api.features_enabled {
         if features.contains_key(key.as_str()) {
             info!("Enabling feature: {}", key);
@@ -134,7 +135,8 @@ pub async fn run(config: Config) -> error::Result<()> {
 
     migrations::migrate_to_encrypted(&db_pool.get_conn().unwrap(), &config.api.key_path).unwrap();
 
-    migrations::encrypt_secret_keys::run(&db_pool.get_conn().unwrap(), &config.api.key_path).expect("Error encrypting secret keys");
+    migrations::encrypt_secret_keys::run(&db_pool.get_conn().unwrap(), &config.api.key_path)
+        .expect("Error encrypting secret keys");
 
     let mut srv = HttpServer::new(move || {
                       let app_state = match AppState::new(&config, db_pool.clone()) {
@@ -197,7 +199,7 @@ pub async fn run(config: Config) -> error::Result<()> {
                     verify_mode.insert(SslVerifyMode::PEER);
                     verify_mode.insert(SslVerifyMode::FAIL_IF_NO_PEER_CERT);
                     builder.set_verify(verify_mode);
-                    builder.set_ca_file(&ca_cert_path)?;
+                    builder.set_ca_file(ca_cert_path)?;
                 }
             }
 

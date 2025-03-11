@@ -1,7 +1,7 @@
 UNAME_S := $(shell uname -s)
 BIN = builder-graph
 LIB = builder-db builder-core github-api-client
-SRV = builder-api builder-jobsrv builder-worker
+SRV = builder-api
 ALL = $(BIN) $(LIB) $(SRV)
 
 .DEFAULT_GOAL := build-bin
@@ -70,18 +70,9 @@ clean-lib: $(addprefix clean-,$(LIB)) ## cleans the library components' project 
 clean-srv: $(addprefix clean-,$(SRV)) ## cleans the service components' project trees
 .PHONY: clean-srv
 
-fmt: fmt-bin fmt-lib fmt-srv ## formats all the components' codebases
-fmt-all: fmt
-.PHONY: fmt fmt-all
-
-fmt-bin: $(addprefix fmt-,$(BIN)) ## formats the binary components' codebases
-.PHONY: clean-bin
-
-fmt-lib: $(addprefix fmt-,$(LIB)) ## formats the library components' codebases
-.PHONY: clean-lib
-
-fmt-srv: $(addprefix fmt-,$(SRV)) ## formats the service components' codebases
-.PHONY: clean-srv
+fmt: 
+	bash ./support/ci/rustfmt.sh
+.PHONY: fmt 
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -102,7 +93,7 @@ unit-$1: linux ## executes the $1 component's unit test suite
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
-TOOLCHAIN := $(shell cat rust-toolchain)
+TOOLCHAIN := $(shell tail -n 1  rust-toolchain | cut -d'"' -f 2)
 lint:
 	$(run) test/run_clippy.sh $(TOOLCHAIN) test/unexamined_lints.txt \
 	                                 test/allowed_lints.txt \
@@ -125,11 +116,3 @@ clean-$1: linux ## cleans the $1 component's project tree
 
 endef
 $(foreach component,$(ALL),$(eval $(call CLEAN,$(component))))
-
-define FMT
-fmt-$1: linux ## formats the $1 component
-	sh -c 'cd components/$1 && cargo fmt'
-.PHONY: fmt-$1
-
-endef
-$(foreach component,$(ALL),$(eval $(call FMT,$(component))))

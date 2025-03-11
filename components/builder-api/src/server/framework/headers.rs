@@ -19,22 +19,22 @@ pub const APPLICATION_JSON: &str = "application/json";
 
 pub const XFILENAME: &str = "x-filename"; // must be lowercase
 
+#[derive(Default)]
 pub enum Cache {
     NoCache,
+    #[default]
     MaxAgeDefault,
     MaxAge(usize),
 }
 
-impl Default for Cache {
-    fn default() -> Self { Cache::MaxAgeDefault }
-}
+use std::fmt;
 
-impl ToString for Cache {
-    fn to_string(&self) -> String {
+impl fmt::Display for Cache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Cache::NoCache => NO_CACHE.to_string(),
-            Cache::MaxAgeDefault => CACHE.to_string(),
-            Cache::MaxAge(secs) => format!("public, max-age={}", secs),
+            Cache::NoCache => write!(f, "{}", NO_CACHE),
+            Cache::MaxAgeDefault => write!(f, "{}", CACHE),
+            Cache::MaxAge(secs) => write!(f, "public, max-age={}", secs),
         }
     }
 }

@@ -67,7 +67,6 @@ describe('PackageVersionsComponent', () => {
       declarations: [
         PackageVersionsComponent,
         MockComponent({ selector: 'bio-icon', inputs: ['symbol', 'title'] }),
-        MockComponent({ selector: 'bio-platform-icon', inputs: ['platform'] }),
         MockComponent({ selector: 'bio-channels', inputs: ['channels', 'canDemote'] }),
         MockComponent({ selector: 'bio-package-promote', inputs: ['origin', 'name', 'version', 'release', 'target', 'channel'] }),
         MockComponent({ selector: 'bio-copyable', inputs: ['text', 'style'] })

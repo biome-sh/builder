@@ -31,7 +31,7 @@ pub type GType = usize;
 pub fn rdeps(g: &Graph<GType, crate::util::EdgeType>,
              n: NodeIndex)
              -> Result<Vec<GType>, GraphErr> {
-    if is_cyclic_directed(&g) {
+    if is_cyclic_directed(g) {
         error!("Input graph should not be cyclic!");
         return Err(GraphErr::GraphCyclic);
     }
@@ -82,7 +82,7 @@ mod tests {
         let b = deps.add_node(11);
         let c = deps.add_node(12);
 
-        deps.extend_with_edges(&[(a, b), (b, c), (c, a)]);
+        deps.extend_with_edges([(a, b), (b, c), (c, a)]);
 
         match rdeps(&deps, a) {
             Ok(_) => panic!("Cyclic graph should fail!"),
@@ -103,7 +103,7 @@ mod tests {
         let g = deps.add_node(16);
         let h = deps.add_node(17);
 
-        deps.extend_with_edges(&[(a, c), (b, c), (c, f), (c, e), (d, e), (e, f), (g, h)]);
+        deps.extend_with_edges([(a, c), (b, c), (c, f), (c, e), (d, e), (e, f), (g, h)]);
 
         match rdeps(&deps, a) {
             Ok(v) => {

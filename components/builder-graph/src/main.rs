@@ -403,7 +403,7 @@ fn do_dump_build_order(datastore: &dyn DataStoreTrait,
     let manifest = graph.compute_build(&touched, datastore.as_unbuildable());
     println!("-------------------");
 
-    let mut file = File::create(&filename).expect("Failed to initialize file");
+    let mut file = File::create(filename).expect("Failed to initialize file");
     for pkg in &manifest.build_order() {
         file.write_all(pkg.format_for_shell().as_bytes()).unwrap();
     }
@@ -495,7 +495,7 @@ fn do_rdeps(graph: &PackageGraph, matches: &ArgMatches) {
     let origin = origin_from_matches(matches);
 
     let rdeps = graph.rdeps(&ident, origin);
-    let mut file = File::create(&filename).unwrap();
+    let mut file = File::create(filename).unwrap();
 
     writeln!(&mut file, "{}", ident).unwrap();
     for (dep, _) in &rdeps {
@@ -632,7 +632,7 @@ fn do_compute_attributed_deps(graph: &PackageGraph, matches: &ArgMatches) {
     let a_deps = graph.compute_attributed_deps(&idents, include_build_deps);
 
     let path = Path::new(out_file);
-    let mut file = File::create(&path).unwrap();
+    let mut file = File::create(path).unwrap();
 
     //
     println!("Expanded {} to {} deps, with (including build deps = {}), writing to {}",
@@ -1077,7 +1077,7 @@ fn split_command(values: Vec<&str>) -> Vec<Vec<String>> {
     let mut command = Vec::<String>::new();
     for word in values {
         if word.contains(',') {
-            let split: Vec<String> = word.to_string().split(',').map(|s| s.to_string()).collect();
+            let split: Vec<String> = word.split(',').map(|s| s.to_string()).collect();
             if !split[0].is_empty() {
                 command.push(split[0].to_string().clone());
             }

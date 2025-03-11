@@ -20,6 +20,9 @@ url = "*"
 [dependencies.builder_core]
 path = "../builder-core"
 
+[dependencies.biome_core]
+git = "https://github.com/biome-sh/biome.git"
+
 [dependencies.tokio]
 version = "*"
 features = ["macros","rt-multi-thread"]

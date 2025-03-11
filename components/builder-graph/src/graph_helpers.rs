@@ -62,7 +62,7 @@ pub fn dump_scc(graph: &DiGraphMap<PackageIdentIntern, EdgeType>,
                 filename: &str,
                 _origin_filter: Option<&str>) {
     let path = Path::new(filename);
-    let mut file = File::create(&path).unwrap();
+    let mut file = File::create(path).unwrap();
 
     let scc = tarjan_scc(graph);
 
@@ -204,7 +204,7 @@ pub fn dump_graph_raw(graph: &DiGraphMap<PackageIdentIntern, EdgeType>,
                       filename: &str,
                       origin_filter: Option<&str>) {
     let path = Path::new(filename);
-    let mut file = File::create(&path).unwrap();
+    let mut file = File::create(path).unwrap();
 
     // iterate through nodes
     for node in graph.nodes().sorted() {
@@ -298,7 +298,7 @@ pub fn emit_graph_as_dot(graph: &DiGraphMap<PackageIdentIntern, EdgeType>,
                          filename: &str,
                          origin_filter: Option<&str>) {
     let path = Path::new(filename);
-    let mut file = File::create(&path).unwrap();
+    let mut file = File::create(path).unwrap();
     // This might be simpler to implement by creating a filtered graph, and then emiting it.
 
     writeln!(&mut file, "// Filtered by {:?}", origin_filter).unwrap();
@@ -588,7 +588,7 @@ pub fn tsort_subgraph(graph: &DiGraphMap<PackageIdentIntern, EdgeType>,
 
     // We pre-fill this to allow us to efficiently test for membership below
     for node_ident in component {
-        unsatisfied.insert(*node_ident, usize::max_value());
+        unsatisfied.insert(*node_ident, usize::MAX);
     }
     // First, walk through all the nodes, and count how many things they depend on
     // If they have no runtime deps in the
@@ -612,7 +612,7 @@ pub fn tsort_subgraph(graph: &DiGraphMap<PackageIdentIntern, EdgeType>,
 
     // Add things with no unsatisfied deps to worklist
     for (node_ident, dep_count) in &unsatisfied {
-        assert!(*dep_count != usize::max_value());
+        assert!(*dep_count != usize::MAX);
         if *dep_count == 0 {
             worklist.push_back(*node_ident)
         }

@@ -7,7 +7,8 @@ use crate::{bldr_core,
                      framework::headers,
                      helpers::req_state,
                      AppState}};
-use actix_web::{http::{self,
+use actix_web::{body::BoxBody,
+                http::{self,
                        StatusCode},
                 web::{self,
                       Data,
@@ -18,6 +19,7 @@ use actix_web::{http::{self,
                 HttpRequest,
                 HttpResponse};
 use bldr_core::access_token::AccessToken as CoreAccessToken;
+use bytes::Bytes;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserUpdateReq {
@@ -45,7 +47,7 @@ impl Profile {
 pub fn do_get_access_tokens(req: &HttpRequest, account_id: u64) -> Result<Vec<AccountToken>> {
     let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
-    AccountToken::list(account_id, &*conn).map_err(Error::DieselError)
+    AccountToken::list(account_id, &conn).map_err(Error::DieselError)
 }
 
 // Route handlers - these functions can return any Responder trait
@@ -62,7 +64,7 @@ async fn get_account(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
         Err(err) => return err.into(),
     };
 
-    match Account::get_by_id(account_id, &*conn).map_err(Error::DieselError) {
+    match Account::get_by_id(account_id, &conn).map_err(Error::DieselError) {
         Ok(account) => HttpResponse::Ok().json(account),
         Err(err) => {
             debug!("{}", err);
@@ -108,7 +110,7 @@ async fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpR
 
     // Memcache supports multiple tokens but to preserve legacy behavior
     // we must purge any existing tokens AFTER generating new ones
-    let access_tokens = match AccountToken::list(account_id, &*conn).map_err(Error::DieselError) {
+    let access_tokens = match AccountToken::list(account_id, &conn).map_err(Error::DieselError) {
         Ok(access_tokens) => access_tokens,
         Err(err) => {
             debug!("{}", err);
@@ -134,7 +136,7 @@ async fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpR
     let new_token = NewAccountToken { account_id: account_id as i64,
                                       token:      &token, };
 
-    match AccountToken::create(&new_token, &*conn).map_err(Error::DieselError) {
+    match AccountToken::create(&new_token, &conn).map_err(Error::DieselError) {
         Ok(account_token) => {
             let mut memcache = state.memcache.borrow_mut();
             for token in access_tokens {
@@ -157,7 +159,10 @@ async fn revoke_access_token(req: HttpRequest,
     let token_id_str = path.into_inner();
     let token_id = match token_id_str.parse::<u64>() {
         Ok(id) => id,
-        Err(_) => return HttpResponse::new(StatusCode::UNPROCESSABLE_ENTITY),
+        Err(_) => {
+            let body = Bytes::from_static(b"Error parsing access token.");
+            return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY, BoxBody::new(body));
+        }
     };
 
     let account_id = match authorize_session(&req, None, None) {
@@ -170,7 +175,7 @@ async fn revoke_access_token(req: HttpRequest,
         Err(err) => return err.into(),
     };
 
-    let access_tokens = match AccountToken::list(account_id, &*conn).map_err(Error::DieselError) {
+    let access_tokens = match AccountToken::list(account_id, &conn).map_err(Error::DieselError) {
         Ok(access_tokens) => access_tokens,
         Err(err) => {
             debug!("{}", err);
@@ -178,7 +183,15 @@ async fn revoke_access_token(req: HttpRequest,
         }
     };
 
-    match AccountToken::delete(token_id, &*conn).map_err(Error::DieselError) {
+    let valid_token = access_tokens.iter()
+                                   .find(|token| token.id == token_id as i64);
+
+    if valid_token.is_none() {
+        let body = Bytes::from_static(b"Unauthorized access.");
+        return HttpResponse::with_body(StatusCode::UNAUTHORIZED, BoxBody::new(body));
+    }
+
+    match AccountToken::delete(token_id, &conn).map_err(Error::DieselError) {
         Ok(_) => {
             let mut memcache = state.memcache.borrow_mut();
             for token in access_tokens {
@@ -212,7 +225,7 @@ async fn update_account(req: HttpRequest,
         Err(err) => return err.into(),
     };
 
-    match Account::update(account_id, &body.email, &*conn).map_err(Error::DieselError) {
+    match Account::update(account_id, &body.email, &conn).map_err(Error::DieselError) {
         Ok(_) => HttpResponse::new(StatusCode::OK),
         Err(err) => {
             debug!("{}", err);

@@ -1,7 +1,7 @@
 <span class="package-promote-component" (click)="prompt($event)">
   <span *ngIf="!promoting">
-    <bio-icon symbol="star-circle"></bio-icon>
-    Promote to stable
+    <bio-icon symbol="star-circle"></bio-icon>    
+    <span>{{ promoteText }}</span>
   </span>
   <span class="promoting" *ngIf="promoting">
     <bio-icon symbol="loading" class="spinning"></bio-icon>
