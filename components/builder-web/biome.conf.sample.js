@@ -7,8 +7,9 @@ biomeConfig({
     // Cookie domain (optional; e.g., 'bldr.company.co')
     cookie_domain: "",
 
-    // The URL for the Builder demo app
-    demo_app_url: "https://www.habitat.sh/demo/build-system/steps/1/",
+    // Turn off the "Create Origin" button on the "my origins" page.
+    // This is true on publuc builder. False for on-prem
+    disable_origin_create: false,
 
     // The URL for documentation
     docs_url: "https://www.habitat.sh/docs",
