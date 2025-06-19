@@ -64,3 +64,5 @@ features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"
+tag = "v1.6.699"
+

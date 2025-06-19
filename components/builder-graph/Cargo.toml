@@ -45,6 +45,8 @@ tracing-futures = "*"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"
+tag = "v1.6.699"
+
 
 [dependencies.builder_core]
 path = "../builder-core"
