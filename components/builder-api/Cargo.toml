@@ -15,40 +15,61 @@ doc = false
 [dependencies]
 actix-rt = "*"
 bytes = "*"
-bitflags = "*"
+bitflags = "2.5.0"
 chrono = { version = "*", features = ["serde"] }
-diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
-env_logger = "*"
+env_logger = "0.10.2"
 features = "*"
 biome-builder-protocol = { path = "../builder-protocol" }
 lazy_static = "*"
 log = "*"
 memcache = "*"
-num_cpus = "*"
+# biome masked: num_cpus = "*"
 openssl = "*"
 percent-encoding = "*"
 protobuf = "*"
-reqwest = { version = "*", features = ["blocking", "json"] }
-serde = "*"
-serde_derive = "*"
-serde_json = "*"
+# biome masked: reqwest = { version = "*", features = ["blocking", "json"] }
+# biome masked: serde = "*"
+# biome masked:serde_derive = "*"
+# biome masked: serde_json = "*"
 sha2 = "*"
 futures = "*"
 rand = "*"
 r2d2 = "*"
 regex = "*"
-rusoto_core = "*"
-rusoto_s3 = "*"
+# biome masked: rusoto_core = "*"
+# biome masked: rusoto_s3 = "*"
 tempfile = "*"
-uuid = { version = "*", features = ["v4"] }
+# biome masked: uuid = { version = "*", features = ["v4"] }
+
+# biome core patches
+nix = { version = "0.30.1", features = ["signal", "user", "fs"] }
+rustls = "0.20.8"
+diesel = { version = "2.2.3", features = ["postgres", "chrono", "serde_json", "r2d2"] }
+md5 = "0.3.8"
+rusoto_core = "0.48.0"
+rusoto_s3 = "0.48.0"
+rcgen = "0.8.14"
+num_cpus = "1.15.0"
+uuid = { version = "1.2.2", features = ["v4"] }
+rustls-pemfile = "1.0.1"
+reqwest = { version = "0.11.6", features = ["blocking", "json"] }
+actix-http = "3.3.0"
+
+serde = "1.0.152"
+serde_derive = "1.0.152"
+serde_json = "1.0.93"
 
 [dependencies.actix-web]
-version = "*"
+# biome masked: version = "*"
+
+# biome core patches
+version = "4.3.0"
 default-features = false
 features = [ "openssl" ]
 
 [dependencies.clap]
-version = "*"
+# biome masked: version = "*"
+version = "2.33.3"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.artifactory-client]

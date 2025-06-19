@@ -23,7 +23,7 @@ version = "*"
 features = ["fs"]
 
 [dependencies.reqwest]
-version = "*"
+version = "0.11.6"
 features = ["stream"]
 
 [package.metadata.cargo-machete]

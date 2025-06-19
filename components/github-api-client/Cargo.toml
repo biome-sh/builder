@@ -7,12 +7,16 @@ edition = "2018"
 
 [dependencies]
 base64 = "*"
-frank_jwt = "*"
+# biome masked: frank_jwt = "*"
 log = "*"
 reqwest = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
+
+# biome core
+frank_jwt = "3.1.3"
+
 
 [dependencies.builder_core]
 path = "../builder-core"

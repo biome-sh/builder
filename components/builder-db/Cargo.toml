@@ -9,12 +9,12 @@ edition = "2018"
 [dependencies]
 biome-builder-protocol = { path = "../builder-protocol" }
 log = "*"
-diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
-diesel-derive-enum = { version = "*", features = ["postgres"] }
-diesel_full_text_search = "*"
-diesel_migrations = "*"
+# biome masked: diesel = { version = "*", features = ["postgres", "chrono", "serde_json", "r2d2"] }
+# biome masked: diesel-derive-enum = { version = "*", features = ["postgres"] }
+# biome masked: diesel_full_text_search = "*"
+# biome masked: diesel_migrations = "*"
 itertools = "*"
-r2d2 = "*"
+# biome masked: r2d2 = "*"
 serde = "*"
 chrono = { version = "*", features = ["serde"] }
 serde_derive = "*"
@@ -22,10 +22,24 @@ num_cpus = "*"
 protobuf = "*"
 fallible-iterator = "*" # TODO: Do we need this? Machete says we don't.
 percent-encoding = "*"
-postgres = "*"
-postgres-types = { version = "*", features = ["derive"] }
-postgres-shared = "*"
-r2d2_postgres = "*"
+# biome masked: postgres = "*"
+# biome masked: postgres-types = { version = "*", features = ["derive"] }
+# biome masked: postgres-shared = "*"
+# biome masked: r2d2_postgres = "*"
+
+# biome patched
+diesel = { version = "2.2.3", features = ["postgres", "chrono", "serde_json", "r2d2"] }
+diesel-derive-enum = { version = "2.1.0", features = ["postgres"] }
+diesel_full_text_search = "2.2.0"
+diesel_migrations = "2.2.0"
+
+postgres = "0.19.2"
+postgres-types = "0.2.2"
+postgres-shared = "0.2.1"
+postgres-protocol = "0.6.2"
+r2d2 = "0.8.9"
+r2d2_postgres = "0.18.1"
+clap = "2.33.3"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"

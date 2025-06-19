@@ -69,3 +69,7 @@ do_builder_prepare() {
   export PLAN_PACKAGE_TARGET="$pkg_target"
   build_line "Setting PLAN_PACKAGE_TARGET=$PLAN_PACKAGE_TARGET"
 }
+
+do_clean() {
+    true
+}

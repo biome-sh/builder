@@ -8,8 +8,11 @@ workspace = "../../"
 edition = "2018"
 
 [dependencies]
-protobuf = "*"
+# biome masked: protobuf = "*"
 serde = "*"
+
+# biome core
+protobuf = "2.25.2"
 
 [dependencies.biome_core]
 git = "https://github.com/biome-sh/biome.git"
