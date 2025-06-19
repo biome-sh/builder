@@ -14,19 +14,14 @@
 
 #[macro_use]
 extern crate diesel;
-#[macro_use]
 extern crate diesel_derive_enum;
-#[macro_use]
 extern crate diesel_migrations;
 #[macro_use]
 extern crate log;
 extern crate postgres;
-#[macro_use]
 extern crate postgres_types;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate paste;
 
 use builder_core as bldr_core;
 use biome_builder_protocol as protocol;
@@ -35,7 +30,6 @@ use biome_core as bio_core;
 pub mod config;
 pub mod diesel_pool;
 pub mod error;
-pub mod functions;
 pub mod metrics;
 pub mod migration;
 // https://github.com/rust-lang/rust-clippy/issues/9014

@@ -9,8 +9,7 @@ use diesel::{self,
              QueryDsl,
              RunQueryDsl};
 
-use crate::{protocol::originsrv,
-            schema::project::origin_projects};
+use crate::schema::project::origin_projects;
 
 use crate::{bldr_core::metrics::CounterMetric,
             metrics::Counter};
@@ -67,14 +66,14 @@ pub struct UpdateProject<'a> {
 }
 
 impl Project {
-    pub fn get(name: &str, target: &str, conn: &PgConnection) -> QueryResult<Project> {
+    pub fn get(name: &str, target: &str, conn: &mut PgConnection) -> QueryResult<Project> {
         Counter::DBCall.increment();
         origin_projects::table.filter(origin_projects::name.eq(name))
                               .filter(origin_projects::target.eq(target))
                               .get_result(conn)
     }
 
-    pub fn delete(name: &str, target: &str, conn: &PgConnection) -> QueryResult<usize> {
+    pub fn delete(name: &str, target: &str, conn: &mut PgConnection) -> QueryResult<usize> {
         Counter::DBCall.increment();
         diesel::delete(
             origin_projects::table
@@ -84,54 +83,33 @@ impl Project {
         .execute(conn)
     }
 
-    pub fn create(project: &NewProject, conn: &PgConnection) -> QueryResult<Project> {
+    pub fn create(project: &NewProject, conn: &mut PgConnection) -> QueryResult<Project> {
         Counter::DBCall.increment();
         diesel::insert_into(origin_projects::table).values(project)
                                                    .get_result(conn)
     }
 
-    pub fn update(project: &UpdateProject, conn: &PgConnection) -> QueryResult<usize> {
+    pub fn update(project: &UpdateProject, conn: &mut PgConnection) -> QueryResult<usize> {
         Counter::DBCall.increment();
         diesel::update(origin_projects::table.find(project.id)).set(project)
                                                                .execute(conn)
     }
 
-    pub fn list(origin: &str, conn: &PgConnection) -> QueryResult<Vec<Project>> {
+    pub fn list(origin: &str, conn: &mut PgConnection) -> QueryResult<Vec<Project>> {
         Counter::DBCall.increment();
         origin_projects::table.filter(origin_projects::origin.eq(origin))
                               .get_results(conn)
     }
 
-    pub fn count_origin_projects(origin: &str, conn: &PgConnection) -> QueryResult<i64> {
+    pub fn count_origin_projects(origin: &str, conn: &mut PgConnection) -> QueryResult<i64> {
         Counter::DBCall.increment();
         origin_projects::table.select(count(origin_projects::id))
                               .filter(origin_projects::origin.eq(&origin))
                               .first(conn)
     }
 
-    pub fn get_by_id(project_id: i64, conn: &PgConnection) -> QueryResult<Project> {
+    pub fn get_by_id(project_id: i64, conn: &mut PgConnection) -> QueryResult<Project> {
         Counter::DBCall.increment();
         origin_projects::table.find(project_id).get_result(conn)
-    }
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<originsrv::OriginProject> for Project {
-    fn into(self) -> originsrv::OriginProject {
-        let mut proj = originsrv::OriginProject::new();
-        proj.set_id(self.id as u64);
-        proj.set_owner_id(self.owner_id as u64);
-        proj.set_origin_name(self.origin);
-        proj.set_package_name(self.package_name);
-        proj.set_name(self.name);
-        proj.set_plan_path(self.plan_path);
-        proj.set_target(self.target);
-        proj.set_vcs_type(self.vcs_type);
-        proj.set_vcs_data(self.vcs_data);
-        if let Some(install_id) = self.vcs_installation_id {
-            proj.set_vcs_installation_id(install_id as u32);
-        }
-        proj.set_auto_build(self.auto_build);
-        proj
     }
 }

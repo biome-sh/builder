@@ -2,17 +2,18 @@ use crate::{db::models::{channel::PackageChannelTrigger as PCT,
                          origin::OriginMemberRole,
                          package::PackageVisibility},
             bio_core::package::PackageTarget,
-            protocol::jobsrv,
             server::{authorize::authorize_session,
                      AppState}};
 use actix_web::{http::header,
                 web::Query,
-                HttpRequest};
-use chrono::NaiveDateTime;
+                HttpRequest,
+                HttpResponse};
+use chrono::{NaiveDate,
+             NaiveDateTime};
 use regex::Regex;
 use serde::Serialize;
+use serde_json::Value;
 use std::str::FromStr;
-
 // TODO - this module should not just be a grab bag of stuff
 
 pub const PAGINATION_RANGE_MAX: isize = 50;
@@ -110,26 +111,6 @@ pub fn extract_pagination_in_pages(pagination: &Query<Pagination>) -> (isize, is
     (pagination.range / PAGINATION_RANGE_MAX + 1, PAGINATION_RANGE_MAX)
 }
 
-pub fn extract_target(qtarget: &Query<Target>) -> PackageTarget {
-    match qtarget.target {
-        Some(ref t) => {
-            trace!("Query requested target = {}", t);
-            match PackageTarget::from_str(t) {
-                Ok(t) => t,
-                Err(err) => {
-                    debug!("Invalid target requested: {}, err = {:?}", t, err);
-                    debug!("USING DEFAULT = x86_64-linux");
-                    PackageTarget::from_str("x86_64-linux").unwrap()
-                }
-            }
-        }
-        None => {
-            debug!("NO TARGET PASSED. USING DEFAULT = x86_64-linux");
-            PackageTarget::from_str("x86_64-linux").unwrap()
-        }
-    }
-}
-
 // TODO: Deprecate getting target from User Agent header
 pub fn target_from_headers(req: &HttpRequest) -> PackageTarget {
     let user_agent_header = match req.headers().get(header::USER_AGENT) {
@@ -170,6 +151,69 @@ pub fn target_from_headers(req: &HttpRequest) -> PackageTarget {
     }
 }
 
+pub fn fetch_license_expiration(license_key: &str,
+                                base_url: &str)
+                                -> std::result::Result<NaiveDate, HttpResponse> {
+    let license_url = format!("{}/License/download?licenseId={}&version=2",
+                              base_url.trim_end_matches('/'),
+                              license_key);
+
+    let response =
+        reqwest::blocking::Client::new().get(license_url)
+                                        .header("Accept", "application/json")
+                                        .send()
+                                        .map_err(|e| {
+                                            debug!("License API request failed: {}", e);
+                                            HttpResponse::BadRequest().body(format!("License API \
+                                                                                     error: {}",
+                                                                                    e))
+                                        })?;
+
+    let status = response.status();
+    let body = response.text().map_err(|e| {
+                                   debug!("Failed to read license server response: {}", e);
+                                   HttpResponse::BadRequest().body(format!("Failed to read \
+                                                                            license server \
+                                                                            response: {}",
+                                                                           e))
+                               })?;
+
+    if !status.is_success() {
+        debug!("License server returned error: {}", body);
+        return Err(HttpResponse::build(status).body(body));
+    }
+
+    let json: Value = serde_json::from_str(&body).map_err(|e| {
+                          debug!("Failed to parse license server response: {}", e);
+                          HttpResponse::BadRequest().body(format!("JSON parse error: {}", e))
+                      })?;
+
+    let entitlements = json["entitlements"].as_array()
+                                           .filter(|ents| !ents.is_empty())
+                                           .ok_or_else(|| {
+                                               debug!("No entitlements found in license data");
+                                               HttpResponse::BadRequest().body("Invalid license \
+                                                                                key.")
+                                           })?;
+
+    let expiration = entitlements.iter()
+                                 .filter_map(|ent| {
+                                     ent.get("period")?
+                                        .get("end")?
+                                        .as_str()?
+                                        .parse::<NaiveDate>()
+                                        .ok()
+                                 })
+                                 .max()
+                                 .ok_or_else(|| {
+                                     debug!("No entitlement end dates found in license payload");
+                                     HttpResponse::BadRequest().body("No valid entitlement end \
+                                                                      date found.")
+                                 })?;
+
+    Ok(expiration)
+}
+
 pub fn visibility_for_optional_session(req: &HttpRequest,
                                        optional_session_id: Option<u64>,
                                        origin: &str)
@@ -184,29 +228,6 @@ pub fn visibility_for_optional_session(req: &HttpRequest,
     }
 
     v
-}
-
-pub fn trigger_from_request(req: &HttpRequest) -> jobsrv::JobGroupTrigger {
-    // TODO: the search strings should be configurable.
-    if let Some(agent) = req.headers().get(header::USER_AGENT) {
-        if let Ok(s) = agent.to_str() {
-            if s.starts_with("bio/") {
-                return jobsrv::JobGroupTrigger::BioClient;
-            }
-        }
-    }
-
-    if let Some(referer) = req.headers().get(header::REFERER) {
-        if let Ok(s) = referer.to_str() {
-            // this needs to be as generic as possible otherwise local dev envs and on-prem depots
-            // won't work
-            if s.contains("http") {
-                return jobsrv::JobGroupTrigger::BuilderUI;
-            }
-        }
-    }
-
-    jobsrv::JobGroupTrigger::Unknown
 }
 
 // TED remove function above when it's no longer used anywhere

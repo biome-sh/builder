@@ -1,11 +1,13 @@
 use crate::{bldr_core,
-            db::models::account::*,
+            db::models::{account::*,
+                         license_keys::*},
             protocol::originsrv,
             server::{authorize::authorize_session,
                      error::{Error,
                              Result},
                      framework::headers,
-                     helpers::req_state,
+                     helpers::{fetch_license_expiration,
+                               req_state},
                      AppState}};
 use actix_web::{body::BoxBody,
                 http::{self,
@@ -27,11 +29,15 @@ pub struct UserUpdateReq {
     pub email: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct LicensePayload {
+    pub account_id:  String,
+    pub license_key: String,
+}
+
 pub struct Profile {}
 
 impl Profile {
-    // Route registration
-    //
     pub fn register(cfg: &mut ServiceConfig) {
         cfg.route("/profile", web::get().to(get_account))
            .route("/profile", web::patch().to(update_account))
@@ -39,19 +45,18 @@ impl Profile {
            .route("/profile/access-tokens",
                   web::post().to(generate_access_token))
            .route("/profile/access-tokens/{id}",
-                  web::delete().to(revoke_access_token));
+                  web::delete().to(revoke_access_token))
+           .route("/profile/license", web::put().to(set_license))
+           .route("/profile/license", web::delete().to(delete_license))
+           .route("/profile/license", web::get().to(get_license));
     }
 }
 
-// do_get_access_tokens is used in the framework middleware so it has to be public
 pub fn do_get_access_tokens(req: &HttpRequest, account_id: u64) -> Result<Vec<AccountToken>> {
-    let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
-
-    AccountToken::list(account_id, &conn).map_err(Error::DieselError)
+    let mut conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
+    AccountToken::list(account_id, &mut conn).map_err(Error::DieselError)
 }
 
-// Route handlers - these functions can return any Responder trait
-//
 #[allow(clippy::needless_pass_by_value)]
 async fn get_account(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
     let account_id = match authorize_session(&req, None, None) {
@@ -59,12 +64,12 @@ async fn get_account(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
         Err(_err) => return HttpResponse::new(StatusCode::UNAUTHORIZED),
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
 
-    match Account::get_by_id(account_id, &conn).map_err(Error::DieselError) {
+    match Account::get_by_id(account_id, &mut conn).map_err(Error::DieselError) {
         Ok(account) => HttpResponse::Ok().json(account),
         Err(err) => {
             debug!("{}", err);
@@ -103,14 +108,13 @@ async fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpR
         Err(err) => return err.into(),
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
 
-    // Memcache supports multiple tokens but to preserve legacy behavior
-    // we must purge any existing tokens AFTER generating new ones
-    let access_tokens = match AccountToken::list(account_id, &conn).map_err(Error::DieselError) {
+    let access_tokens = match AccountToken::list(account_id, &mut conn).map_err(Error::DieselError)
+    {
         Ok(access_tokens) => access_tokens,
         Err(err) => {
             debug!("{}", err);
@@ -118,7 +122,6 @@ async fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpR
         }
     };
 
-    // TODO: Provide an API for this
     let flags = {
         let extension = req.extensions();
         let session = extension.get::<originsrv::Session>().unwrap();
@@ -136,7 +139,7 @@ async fn generate_access_token(req: HttpRequest, state: Data<AppState>) -> HttpR
     let new_token = NewAccountToken { account_id: account_id as i64,
                                       token:      &token, };
 
-    match AccountToken::create(&new_token, &conn).map_err(Error::DieselError) {
+    match AccountToken::create(&new_token, &mut conn).map_err(Error::DieselError) {
         Ok(account_token) => {
             let mut memcache = state.memcache.borrow_mut();
             for token in access_tokens {
@@ -170,12 +173,13 @@ async fn revoke_access_token(req: HttpRequest,
         Err(err) => return err.into(),
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
 
-    let access_tokens = match AccountToken::list(account_id, &conn).map_err(Error::DieselError) {
+    let access_tokens = match AccountToken::list(account_id, &mut conn).map_err(Error::DieselError)
+    {
         Ok(access_tokens) => access_tokens,
         Err(err) => {
             debug!("{}", err);
@@ -191,7 +195,7 @@ async fn revoke_access_token(req: HttpRequest,
         return HttpResponse::with_body(StatusCode::UNAUTHORIZED, BoxBody::new(body));
     }
 
-    match AccountToken::delete(token_id, &conn).map_err(Error::DieselError) {
+    match AccountToken::delete(token_id, &mut conn).map_err(Error::DieselError) {
         Ok(_) => {
             let mut memcache = state.memcache.borrow_mut();
             for token in access_tokens {
@@ -199,6 +203,123 @@ async fn revoke_access_token(req: HttpRequest,
             }
             HttpResponse::Ok().finish()
         }
+        Err(err) => {
+            debug!("{}", err);
+            err.into()
+        }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+async fn set_license(req: HttpRequest,
+                     state: Data<AppState>,
+                     Json(payload): Json<LicensePayload>)
+                     -> HttpResponse {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
+        Ok(conn_ref) => conn_ref,
+        Err(err) => return err.into(),
+    };
+
+    match authorize_session(&req, None, None) {
+        Ok(_session) => {
+            let expiration_date =
+                match fetch_license_expiration(&payload.license_key,
+                                               &state.config.api.license_server_url)
+                {
+                    Ok(date) => date,
+                    Err(err) => {
+                        return err;
+                    }
+                };
+
+            let new_license =
+                NewLicenseKey { account_id: payload.account_id.trim().parse::<i64>().unwrap(),
+                                license_key: &payload.license_key,
+                                expiration_date };
+
+            match LicenseKey::create(&new_license, &mut conn).map_err(Error::DieselError) {
+                Ok(license) => {
+                    HttpResponse::Ok().json(json!({
+                              "expiration_date": license.expiration_date.to_string()
+                          }))
+                }
+                Err(err) => {
+                    debug!("{}", err);
+                    err.into()
+                }
+            }
+        }
+        Err(err) => err.into(),
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+async fn delete_license(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
+        Ok(conn_ref) => conn_ref,
+        Err(err) => return err.into(),
+    };
+
+    let account_id = match authorize_session(&req, None, None) {
+        Ok(session) => session.get_id() as i64,
+        Err(err) => return err.into(),
+    };
+
+    match LicenseKey::delete_by_account_id(account_id, &mut conn).map_err(Error::DieselError) {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(err) => {
+            debug!("{}", err);
+            err.into()
+        }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)]
+async fn get_license(req: HttpRequest, state: Data<AppState>) -> HttpResponse {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
+        Ok(conn_ref) => conn_ref,
+        Err(err) => return err.into(),
+    };
+
+    let account_id = match authorize_session(&req, None, None) {
+        Ok(session) => session.get_id() as i64,
+        Err(err) => return err.into(),
+    };
+
+    match LicenseKey::get_by_account_id(account_id, &mut conn).map_err(Error::DieselError) {
+        Ok(Some(license)) => {
+            let today = chrono::Utc::now().date_naive();
+            if license.expiration_date >= today {
+                HttpResponse::Ok().json(json!({
+                                            "license_key": license.license_key,
+                                            "expiration_date": license.expiration_date.to_string()
+                                        }))
+            } else {
+                match fetch_license_expiration(&license.license_key,
+                                               &state.config.api.license_server_url)
+                {
+                    Ok(expiration_date) => {
+                        if expiration_date >= today {
+                            let new_record = NewLicenseKey { account_id,
+                                                             license_key: &license.license_key,
+                                                             expiration_date };
+                            if let Err(err) = LicenseKey::create(&new_record, &mut conn)
+                                .map_err(Error::DieselError)
+                            {
+                                debug!("Failed to update expiration in DB: {}", err);
+                                return err.into();
+                            }
+                        }
+                        HttpResponse::Ok().json(json!({
+                                                    "license_key": license.license_key,
+                                                    "expiration_date": expiration_date.to_string()
+                                                }))
+                    }
+                    Err(resp) => resp,
+                }
+            }
+        }
+        Ok(None) => HttpResponse::new(StatusCode::NOT_FOUND),
         Err(err) => {
             debug!("{}", err);
             err.into()
@@ -220,12 +341,12 @@ async fn update_account(req: HttpRequest,
         return HttpResponse::new(StatusCode::BAD_REQUEST);
     }
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
 
-    match Account::update(account_id, &body.email, &conn).map_err(Error::DieselError) {
+    match Account::update(account_id, &body.email, &mut conn).map_err(Error::DieselError) {
         Ok(_) => HttpResponse::new(StatusCode::OK),
         Err(err) => {
             debug!("{}", err);
