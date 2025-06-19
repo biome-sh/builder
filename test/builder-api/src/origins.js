@@ -23,7 +23,7 @@ const projectCreatePayload2 = {
 const release1 = "20200205165325";
 const file1 = fs.readFileSync(
   __dirname +
-    `/../fixtures/deletemeifyoucan-testapp-0.1.3-${release1}-x86_64-linux.hart`
+  `/../fixtures/deletemeifyoucan-testapp-0.1.3-${release1}-x86_64-linux.hart`
 );
 const revision = "20200205153202";
 const pubFile = fs.readFileSync(
@@ -55,6 +55,7 @@ describe("Origin API", function () {
         .send({ name: "neurosis", default_package_visibility: "private" })
         .expect(201)
         .end(function (err, res) {
+          console.log("Full response body:", res.body);
           expect(res.body.name).to.equal("neurosis");
           expect(res.body.default_package_visibility).to.equal("private");
           global.originNeurosis = res.body;
@@ -106,6 +107,20 @@ describe("Origin API", function () {
         .end(function (err, res) {
           expect(res.body.name).to.equal("xmen");
           global.originXmen = res.body;
+          done(err);
+        });
+    });
+  });
+
+  describe("Create origin when not allowed", function () {
+    it("requires the user to be allowed", function (done) {
+      request
+        .post("/depot/origins")
+        .set("Authorization", global.hankBearer)
+        .send({ name: "hank" })
+        .expect(403)
+        .end(function (err, res) {
+          expect(res.text).to.be.empty;
           done(err);
         });
     });
@@ -229,7 +244,7 @@ describe("Related Origin API functions", function () {
       request
         .put(
           "/depot/origins/umbrella/invitations/" +
-            global.inviteBoboToUmbrella.id
+          global.inviteBoboToUmbrella.id
         )
         .set("Authorization", global.boboBearer)
         .expect(204)
@@ -448,7 +463,7 @@ describe("Related Origin API functions", function () {
         request
           .put(
             "/depot/origins/deletemeifyoucan/invitations/" +
-              global.inviteWeskerToDeleteMeIfYouCan.id
+            global.inviteWeskerToDeleteMeIfYouCan.id
           )
           .set("Authorization", global.weskerBearer)
           .expect(204)

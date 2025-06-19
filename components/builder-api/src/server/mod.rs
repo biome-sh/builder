@@ -3,6 +3,7 @@ pub mod error;
 pub mod framework;
 pub mod helpers;
 pub mod migrations;
+pub mod provision;
 pub mod resources;
 pub mod services;
 
@@ -11,17 +12,14 @@ use self::{framework::middleware::authentication_middleware,
                        channels::Channels,
                        events::Events,
                        ext::Ext,
-                       jobs::Jobs,
-                       notify::Notify,
                        origins::Origins,
                        pkgs::Packages,
                        profile::Profile,
-                       projects::Projects,
                        settings::Settings,
                        user::User},
            services::{memcache::MemcacheClient,
                       s3::S3Handler}};
-use crate::{bldr_core::rpc::RpcClient,
+use crate::{bldr_core::keys,
             config::{Config,
                      GatewayCfg},
             db::{migration,
@@ -34,7 +32,6 @@ use actix_web::{http::{KeepAlive,
                 HttpResponse,
                 HttpServer};
 use artifactory_client::client::ArtifactoryClient;
-use github_api_client::GitHubClient;
 use oauth_client::client::OAuth2Client;
 use openssl::ssl::{SslAcceptor,
                    SslFiletype,
@@ -42,6 +39,7 @@ use openssl::ssl::{SslAcceptor,
                    SslVerifyMode};
 use rand::{self,
            Rng};
+use resources::jobs::Jobs;
 use std::{cell::RefCell,
           collections::HashMap,
           iter::FromIterator,
@@ -65,7 +63,6 @@ const TLS_CIPHERS: &str = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SH
 features! {
     pub mod feat {
         const List = 0b0000_0001,
-        const Jobsrv = 0b0000_0010,
         const LegacyProject = 0b0000_0011,
         const Artifactory = 0b0000_0100,
         const BuildDeps = 0b0000_1000
@@ -76,8 +73,6 @@ features! {
 pub struct AppState {
     config:      Config,
     packages:    S3Handler,
-    github:      GitHubClient,
-    jobsrv:      RpcClient,
     oauth:       OAuth2Client,
     memcache:    RefCell<MemcacheClient>,
     artifactory: ArtifactoryClient,
@@ -89,8 +84,6 @@ impl AppState {
         let app_state =
             AppState { config: config.clone(),
                        packages: S3Handler::new(config.s3.clone()),
-                       github: GitHubClient::new(config.github.clone())?,
-                       jobsrv: RpcClient::new(&format!("{}", config.jobsrv)),
                        oauth: OAuth2Client::new(config.oauth.clone())?,
                        memcache: RefCell::new(MemcacheClient::new(&config.memcache.clone())),
                        artifactory: ArtifactoryClient::new(config.artifactory.clone())?,
@@ -102,7 +95,6 @@ impl AppState {
 
 fn enable_features(config: &Config) {
     let features: HashMap<_, _> = HashMap::from_iter(vec![("LIST", feat::List),
-                                                          ("JOBSRV", feat::Jobsrv),
                                                           ("LEGACYPROJECT", feat::LegacyProject),
                                                           ("ARTIFACTORY", feat::Artifactory),
                                                           ("BUILDDEPS", feat::BuildDeps),]);
@@ -110,7 +102,9 @@ fn enable_features(config: &Config) {
     for key in &config.api.features_enabled {
         if features.contains_key(key.as_str()) {
             info!("Enabling feature: {}", key);
-            feat::enable(features[key.as_str()]);
+            if let Some(flag) = features.get(key.as_str()) {
+                feat::enable(*flag);
+            }
         }
     }
 
@@ -131,12 +125,38 @@ pub async fn run(config: Config) -> error::Result<()> {
     let cfg = Arc::new(config.clone());
     let db_pool = DbPool::new(&config.datastore.clone());
 
-    migration::setup(&db_pool.get_conn().unwrap()).unwrap();
+    // Check if the builder encryption key is present; if not, panic with an appropriate error.
+    if let Err(e) = keys::get_latest_builder_key(&config.api.key_path) {
+        panic!("Failed to get the builder encryption key, error = {}", e);
+    }
+    let mut conn = db_pool.get_conn().unwrap();
+    migration::setup(&mut conn).unwrap();
+    migrations::migrate_to_encrypted(&mut conn, &config.api.key_path).unwrap();
 
-    migrations::migrate_to_encrypted(&db_pool.get_conn().unwrap(), &config.api.key_path).unwrap();
-
-    migrations::encrypt_secret_keys::run(&db_pool.get_conn().unwrap(), &config.api.key_path)
+    migrations::encrypt_secret_keys::run(&mut conn, &config.api.key_path)
         .expect("Error encrypting secret keys");
+
+    // Bootstrap the user if automatic provisioning of the account is enabled.
+    if config.provision.auto_provision_account {
+        info!("bootstrapping user");
+        let app_state = match AppState::new(&config, db_pool.clone()) {
+            Ok(state) => state,
+            Err(err) => {
+                error!("Unable to create application state, err = {}", err);
+                panic!("Cannot start without valid application state");
+            }
+        };
+
+        match provision::provision_bldr_environment(&app_state) {
+            Ok(_) => {
+                info!("Token has been successfully provisioned and stored.");
+            }
+            Err(e) => {
+                error!("Error during bldr account provisioning, err = {}", e);
+                panic!("Error during bldr account provisioning, err = {}", e);
+            }
+        }
+    }
 
     let mut srv = HttpServer::new(move || {
                       let app_state = match AppState::new(&config, db_pool.clone()) {
@@ -157,11 +177,9 @@ pub async fn run(config: Config) -> error::Result<()> {
                     .configure(Channels::register)
                     .configure(Ext::register)
                     .configure(Jobs::register)
-                    .configure(Notify::register)
                     .configure(Origins::register)
                     .configure(Packages::register)
                     .configure(Profile::register)
-                    .configure(Projects::register)
                     .configure(Settings::register)
                     .configure(User::register)
                     .configure(Events::register)
@@ -208,4 +226,15 @@ pub async fn run(config: Config) -> error::Result<()> {
         None => srv.bind(cfg.http.clone())?,
     };
     Ok(srv.run().await?)
+}
+
+impl Clone for feat::Flags {
+    fn clone(&self) -> Self { *self }
+}
+
+impl Copy for feat::Flags {}
+impl std::fmt::Debug for feat::Flags {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Flags({:#010b})", self.bits())
+    }
 }

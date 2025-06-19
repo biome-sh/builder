@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{bldr_core::{error::Error::RpcError,
-                        metrics::CounterMetric},
+use super::reverse_dependencies::{self};
+use crate::{bldr_core::metrics::CounterMetric,
             db::models::{channel::{Channel,
                                    ChannelWithPromotion},
+                         license_keys::*,
                          origin::*,
                          package::{BuilderPackageIdent,
                                    BuilderPackageTarget,
@@ -31,23 +32,19 @@ use crate::{bldr_core::{error::Error::RpcError,
                          settings::{GetOriginPackageSettings,
                                     NewOriginPackageSettings,
                                     OriginPackageSettings}},
-            bio_core::{package::{metadata::PackageType,
-                                 FromArchive,
+            bio_core::{package::{FromArchive,
                                  Identifiable,
                                  PackageArchive,
                                  PackageIdent,
                                  PackageTarget},
                        ChannelIdent},
-            protocol::{jobsrv,
-                       net::NetOk,
-                       originsrv},
             server::{authorize::authorize_session,
                      error::{Error,
                              Result},
                      feat,
-                     framework::{headers,
-                                 middleware::route_message},
+                     framework::headers,
                      helpers::{self,
+                               fetch_license_expiration,
                                req_state,
                                Pagination,
                                Target},
@@ -72,7 +69,6 @@ use bytes::Bytes;
 use diesel::result::Error::NotFound;
 use futures::{channel::mpsc,
               StreamExt};
-use protobuf::Message;
 use serde::ser::Serialize;
 use std::{convert::Infallible,
           fs::{self,
@@ -96,35 +92,7 @@ pub struct Upload {
     #[serde(default)]
     checksum: String,
     #[serde(default)]
-    builder:  Option<String>,
-    #[serde(default)]
     forced:   bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Schedule {
-    #[serde(default = "default_target")]
-    target:       String,
-    #[serde(default)]
-    deps_only:    Option<String>,
-    #[serde(default)]
-    origin_only:  Option<String>,
-    #[serde(default)]
-    package_only: Option<String>,
-}
-
-fn default_target() -> String { "x86_64-linux".to_string() }
-
-#[derive(Debug, Deserialize)]
-pub struct GetSchedule {
-    #[serde(default)]
-    include_projects: bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct OriginScheduleStatus {
-    #[serde(default)]
-    limit: String,
 }
 
 pub struct Packages {}
@@ -136,14 +104,8 @@ impl Packages {
         cfg.route("/depot/pkgs/{origin}",
                   web::get().to(get_packages_for_origin))
            .route("/depot/pkgs/search/{query}", web::get().to(search_packages))
-           .route("/depot/pkgs/schedule/{groupid}",
-                  web::get().to(get_schedule))
            .route("/depot/pkgs/{origin}/{pkg}",
                   web::get().to(get_packages_for_origin_package))
-           .route("/depot/pkgs/schedule/{origin}/status",
-                  web::get().to(get_origin_schedule_status))
-           .route("/depot/pkgs/schedule/{origin}/{pkg}",
-                  web::post().to(schedule_job_group))
            .route("/depot/pkgs/{origin}/{pkg}/latest",
                   web::get().to(get_latest_package_for_origin_package))
            .route("/depot/pkgs/{origin}/{pkg}/versions",
@@ -313,7 +275,7 @@ async fn delete_package(req: HttpRequest,
         return err.into();
     }
 
-    let ident = PackageIdent::new(origin, pkg, Some(version), Some(release));
+    let ident = PackageIdent::new(origin.clone(), pkg.clone(), Some(version), Some(release));
 
     // TODO: Deprecate target from headers
     let target = match qtarget.target {
@@ -332,7 +294,7 @@ async fn delete_package(req: HttpRequest,
         None => helpers::target_from_headers(&req),
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -341,7 +303,7 @@ async fn delete_package(req: HttpRequest,
     match Package::list_package_channels(&BuilderPackageIdent(ident.clone()),
                                          target,
                                          PackageVisibility::all(),
-                                         &conn)
+                                         &mut conn)
     {
         Ok(channels) => {
             if channels.iter()
@@ -361,29 +323,18 @@ async fn delete_package(req: HttpRequest,
         }
     }
 
-    // Check whether package project has any rdeps
-    if feat::is_enabled(feat::Jobsrv) {
-        let mut rdeps_get = jobsrv::JobGraphPackageReverseDependenciesGet::new();
-        rdeps_get.set_origin(ident.origin().to_string());
-        rdeps_get.set_name(ident.name().to_string());
-        rdeps_get.set_target(target.to_string());
-
-        match route_message::<jobsrv::JobGraphPackageReverseDependenciesGet,
-                            jobsrv::JobGraphPackageReverseDependencies>(&req, &rdeps_get).await
-        {
-            Ok(rdeps) => {
-                if !rdeps.get_rdeps().is_empty() {
-                    debug!("Deleting package with rdeps not allowed: {}", ident);
-                    let body = Bytes::from(format!("Deleting package with rdeps not allowed '{}'",
-                                                   ident).into_bytes());
-                    return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY,
-                                                   BoxBody::new(body));
-                }
+    match reverse_dependencies::get_rdeps(&mut conn, &origin, &pkg, &target).await {
+        Ok(reverse_depenencies) => {
+            if !reverse_depenencies.rdeps.is_empty() {
+                let body = Bytes::from(format!("Deleting package with rdeps not allowed '{}'",
+                                               ident).into_bytes());
+                return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY,
+                                               BoxBody::new(body));
             }
-            Err(err) => {
-                debug!("{}", err);
-                return err.into();
-            }
+        }
+        Err(err) => {
+            debug!("{}", err);
+            return err.into();
         }
     }
 
@@ -392,20 +343,21 @@ async fn delete_package(req: HttpRequest,
     let pkg = match Package::get(GetPackage { ident:      BuilderPackageIdent(ident.clone()),
                                               visibility: PackageVisibility::all(),
                                               target:     BuilderPackageTarget(target), },
-                                 &conn).map_err(Error::DieselError)
+                                 &mut conn).map_err(Error::DieselError)
     {
         Ok(pkg) => pkg,
         Err(err) => return err.into(),
     };
 
-    if let Err(err) = Channel::delete_channel_package(pkg.id, &conn).map_err(Error::DieselError) {
+    if let Err(err) = Channel::delete_channel_package(pkg.id, &mut conn).map_err(Error::DieselError)
+    {
         debug!("{}", err);
         return err.into();
     }
 
     match Package::delete(DeletePackage { ident:  BuilderPackageIdent(ident.clone()),
                                           target: BuilderPackageTarget(target), },
-                          &conn).map_err(Error::DieselError)
+                          &mut conn).map_err(Error::DieselError)
     {
         Ok(_) => {
             state.memcache.borrow_mut().clear_cache_for_package(&ident);
@@ -427,7 +379,7 @@ async fn download_package(req: HttpRequest,
                           -> HttpResponse {
     let (origin, name, version, release) = path.into_inner();
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -467,9 +419,95 @@ async fn download_package(req: HttpRequest,
     match Package::get(GetPackage { ident:      BuilderPackageIdent(ident.clone()),
                                     visibility: vis,
                                     target:     BuilderPackageTarget(target), },
-                       &conn)
+                       &mut conn)
     {
         Ok(package) => {
+            let channels = match channels_for_package_ident(&req, &package.ident, target, &mut conn)
+            {
+                Ok(channels) => channels,
+                Err(err) => {
+                    return HttpResponse::InternalServerError()
+                        .body(format!("Failed to determine package channels: {}", err));
+                }
+            };
+
+            let should_restrict = if let Some(chs_vec) = channels.as_ref() {
+                let in_unrestricted_channels = state.config
+                                                    .api
+                                                    .unrestricted_channels
+                                                    .iter()
+                                                    .any(|c| chs_vec.contains(c));
+
+                if in_unrestricted_channels || state.config.api.restricted_if_present.is_empty() {
+                    false
+                } else {
+                    let in_partially_unrestricted_channels = state.config
+                                                                  .api
+                                                                  .partially_unrestricted_channels
+                                                                  .iter()
+                                                                  .any(|c| chs_vec.contains(c));
+
+                    let in_restricted_if_present = state.config
+                                                        .api
+                                                        .restricted_if_present
+                                                        .iter()
+                                                        .any(|c| chs_vec.contains(c));
+
+                    !in_partially_unrestricted_channels || in_restricted_if_present
+                }
+            } else {
+                true
+            };
+
+            if should_restrict {
+                match opt_session_id {
+                    Some(account_id) => {
+                        match LicenseKey::get_by_account_id(account_id as i64, &mut conn) {
+                            Ok(Some(license)) => {
+                                let today = chrono::Utc::now().date_naive();
+                                if license.expiration_date < today {
+                                    match fetch_license_expiration(&license.license_key,
+                                                                   &state.config
+                                                                         .api
+                                                                         .license_server_url)
+                                    {
+                                        Ok(new_expiration) => {
+                                            let update =
+                                                NewLicenseKey { account_id:      account_id as i64,
+                                                                license_key:
+                                                                    &license.license_key,
+                                                                expiration_date: new_expiration, };
+
+                                            if let Err(err) = LicenseKey::create(&update, &mut conn)
+                                            {
+                                                debug!("Failed to update license in DB: {}", err);
+                                                return HttpResponse::InternalServerError()
+                                                    .body("License update failed.");
+                                            }
+                                        }
+                                        Err(err_msg) => {
+                                            return err_msg;
+                                        }
+                                    }
+                                }
+                            }
+                            Ok(None) => {
+                                return HttpResponse::Forbidden().body("No valid license key \
+                                                                       found.");
+                            }
+                            Err(err) => {
+                                debug!("License DB error: {}", err);
+                                return HttpResponse::InternalServerError()
+                                    .body("License validation error.");
+                            }
+                        }
+                    }
+                    None => {
+                        return HttpResponse::Unauthorized().body("Authentication required.");
+                    }
+                }
+            }
+
             let dir = tempdir_in(&state.config.api.data_path).expect("Unable to create a tempdir!");
             let file_path = dir.path().join(archive_name(&package.ident, target));
             let temp_ident = ident;
@@ -546,159 +584,6 @@ async fn upload_package(req: HttpRequest,
     }
 }
 
-// TODO REVIEW: should this path be under jobs instead?
-#[allow(clippy::needless_pass_by_value)]
-async fn schedule_job_group(req: HttpRequest,
-                            path: Path<(String, String)>,
-                            qschedule: Query<Schedule>,
-                            state: Data<AppState>)
-                            -> HttpResponse {
-    let (origin_name, package) = path.into_inner();
-
-    let session = match authorize_session(&req, Some(&origin_name), Some(OriginMemberRole::Member))
-    {
-        Ok(session) => session,
-        Err(err) => return err.into(),
-    };
-
-    let target = match PackageTarget::from_str(&qschedule.target) {
-        Ok(t) => t,
-        Err(_) => {
-            debug!("Invalid target received: {}", qschedule.target);
-            return HttpResponse::new(StatusCode::BAD_REQUEST);
-        }
-    };
-
-    if !state.config.api.build_targets.contains(&target) {
-        debug!("Rejecting build with target: {}", qschedule.target);
-        return HttpResponse::new(StatusCode::BAD_REQUEST);
-    }
-
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
-        Ok(conn_ref) => conn_ref,
-        Err(err) => return err.into(),
-    };
-
-    let ident = PackageIdent::new(origin_name.clone(), package.clone(), None, None);
-    let latest_pkg = match Package::get_latest(
-        GetLatestPackage {
-            ident: BuilderPackageIdent(ident.clone()),
-            target: BuilderPackageTarget(target),
-            visibility: helpers::visibility_for_optional_session(
-                &req,
-                Some(session.get_id()),
-                &origin_name,
-            ),
-        },
-        &conn,
-    ) {
-        Ok(pkg) => Some(pkg),
-        Err(NotFound) => None,
-        Err(err) => {
-            debug!("{:?}", err);
-            return Error::DieselError(err).into();
-        }
-    };
-
-    if let Some(pkg) = latest_pkg {
-        if *pkg.package_type == PackageType::Native {
-            debug!("Unsupported package type for building {}.",
-                   *pkg.package_type);
-            let body = Bytes::from(format!("Building '{}' package is not supported",
-                                           *pkg.package_type).into_bytes());
-            let body = BoxBody::new(body);
-            return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY, body);
-        }
-    }
-
-    let mut request = jobsrv::JobGroupSpec::new();
-    request.set_origin(origin_name);
-    request.set_package(package);
-    request.set_target(qschedule.target.clone());
-    request.set_deps_only(qschedule.deps_only
-                                   .clone()
-                                   .unwrap_or_else(|| "false".to_string())
-                                   .parse()
-                                   .unwrap_or(false));
-    request.set_origin_only(qschedule.origin_only
-                                     .clone()
-                                     .unwrap_or_else(|| "false".to_string())
-                                     .parse()
-                                     .unwrap_or(false));
-    request.set_package_only(qschedule.package_only
-                                      .clone()
-                                      .unwrap_or_else(|| "false".to_string())
-                                      .parse()
-                                      .unwrap_or(false));
-    request.set_trigger(helpers::trigger_from_request(&req));
-    request.set_requester_id(session.get_id());
-    request.set_requester_name(session.get_name().to_string());
-
-    match route_message::<jobsrv::JobGroupSpec, jobsrv::JobGroup>(&req, &request).await {
-        Ok(group) => {
-            HttpResponse::Created().append_header((http::header::CACHE_CONTROL,
-                                                   headers::Cache::NoCache.to_string()))
-                                   .json(group)
-        }
-        Err(err) => {
-            debug!("{}", err);
-            err.into()
-        }
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)]
-async fn get_schedule(req: HttpRequest,
-                      path: Path<String>,
-                      qgetschedule: Query<GetSchedule>)
-                      -> HttpResponse {
-    let group_id_str = path.into_inner();
-    let group_id = match group_id_str.parse::<u64>() {
-        Ok(id) => id,
-        Err(_) => return HttpResponse::new(StatusCode::BAD_REQUEST),
-    };
-
-    let mut request = jobsrv::JobGroupGet::new();
-    request.set_group_id(group_id);
-    request.set_include_projects(qgetschedule.include_projects);
-
-    match route_message::<jobsrv::JobGroupGet, jobsrv::JobGroup>(&req, &request).await {
-        Ok(group) => {
-            HttpResponse::Ok().append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
-                              .json(group)
-        }
-        Err(err) => {
-            debug!("{}", err);
-            err.into()
-        }
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)]
-async fn get_origin_schedule_status(req: HttpRequest,
-                                    path: Path<String>,
-                                    qoss: Query<OriginScheduleStatus>)
-                                    -> HttpResponse {
-    let origin = path.into_inner();
-    let limit = qoss.limit.parse::<u32>().unwrap_or(10);
-
-    let mut request = jobsrv::JobGroupOriginGet::new();
-    request.set_origin(origin);
-    request.set_limit(limit);
-
-    match route_message::<jobsrv::JobGroupOriginGet, jobsrv::JobGroupOriginResponse>(&req, &request)
-        .await
-    {
-        Ok(jgor) => HttpResponse::Ok()
-            .append_header((http::header::CACHE_CONTROL, headers::NO_CACHE))
-            .json(jgor.get_job_groups()),
-        Err(err) => {
-            debug!("{}", err);
-            err.into()
-        }
-    }
-}
-
 #[allow(clippy::needless_pass_by_value)]
 async fn get_package_channels(req: HttpRequest,
                               path: Path<(String, String, String, String)>,
@@ -712,7 +597,7 @@ async fn get_package_channels(req: HttpRequest,
         Err(_) => None,
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -748,7 +633,7 @@ async fn get_package_channels(req: HttpRequest,
                                          helpers::visibility_for_optional_session(&req,
                                                                                   opt_session_id,
                                                                                   &ident.origin),
-                                         &conn)
+                                         &mut conn)
     {
         Ok(channels) => {
             let list: Vec<ChannelWithPromotion> =
@@ -775,7 +660,7 @@ async fn list_package_versions(req: HttpRequest,
         Err(_) => None,
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -786,7 +671,7 @@ async fn list_package_versions(req: HttpRequest,
                                          helpers::visibility_for_optional_session(&req,
                                                                                   opt_session_id,
                                                                                   &origin),
-                                         &conn)
+                                         &mut conn)
     {
         Ok(packages) => {
             trace!(target: "biome_builder_api::server::resources::pkgs::versions", "list_package_versions for {} found {} package versions: {:?}", ident, packages.len(), packages);
@@ -819,7 +704,7 @@ async fn search_packages(req: HttpRequest,
         Err(_) => None,
     };
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -853,7 +738,7 @@ async fn search_packages(req: HttpRequest,
                                            account_id: opt_session_id, };
 
     if pagination.distinct {
-        return match Package::search_distinct(&search_packages, &conn) {
+        return match Package::search_distinct(&search_packages, &mut conn) {
             Ok((packages, count)) => postprocess_package_list(&req, &packages, count, &pagination),
             Err(err) => {
                 debug!("{}", err);
@@ -862,7 +747,7 @@ async fn search_packages(req: HttpRequest,
         };
     }
 
-    match Package::search(&search_packages, &conn) {
+    match Package::search(&search_packages, &mut conn) {
         Ok((packages, count)) => postprocess_package_list(&req, &packages, count, &pagination),
         Err(err) => {
             debug!("{}", err);
@@ -900,7 +785,7 @@ async fn package_privacy_toggle(req: HttpRequest,
         return err.into();
     }
 
-    let conn = match state.db.get_conn().map_err(Error::DbError) {
+    let mut conn = match state.db.get_conn().map_err(Error::DbError) {
         Ok(conn_ref) => conn_ref,
         Err(err) => return err.into(),
     };
@@ -911,7 +796,7 @@ async fn package_privacy_toggle(req: HttpRequest,
         return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY, BoxBody::new(body));
     }
 
-    match Package::update_visibility(pv, BuilderPackageIdent(ident.clone()), &conn) {
+    match Package::update_visibility(pv, BuilderPackageIdent(ident.clone()), &mut conn) {
         Ok(_) => {
             trace!("Clearing cache for {}", ident);
             state.memcache.borrow_mut().clear_cache_for_package(&ident);
@@ -1002,7 +887,7 @@ fn do_get_packages(req: &HttpRequest,
     let (page, per_page) = helpers::extract_pagination_in_pages(pagination);
     let limit = if pagination.range < 0 { -1 } else { per_page };
 
-    let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
+    let mut conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
     let lpr = ListPackages { ident:      BuilderPackageIdent(ident.clone()),
                              visibility: helpers::visibility_for_optional_session(req,
@@ -1012,7 +897,7 @@ fn do_get_packages(req: &HttpRequest,
                              limit:      limit as i64, };
 
     if pagination.distinct {
-        match Package::list_distinct(lpr, &conn).map_err(Error::DieselError) {
+        match Package::list_distinct(&lpr, &mut conn).map_err(Error::DieselError) {
             Ok((packages, count)) => {
                 let ident_pkgs: Vec<PackageIdentWithChannelPlatform> =
                     packages.into_iter().map(|p| p.into()).collect();
@@ -1022,7 +907,7 @@ fn do_get_packages(req: &HttpRequest,
         }
     }
 
-    match Package::list(lpr, &conn).map_err(Error::DieselError) {
+    match Package::list(&lpr, &mut conn).map_err(Error::DieselError) {
         Ok((packages, count)) => {
             let ident_pkgs: Vec<PackageIdentWithChannelPlatform> =
                 packages.into_iter().map(|p| p.into()).collect();
@@ -1043,7 +928,7 @@ fn do_upload_package_start(req: &HttpRequest,
                            -> Result<(PathBuf, BufWriter<File>)> {
     authorize_session(req, Some(&ident.origin), Some(OriginMemberRole::Member))?;
 
-    let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
+    let mut conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
     if qupload.forced {
         debug!("Upload was forced (bypassing existing package check) for: {}",
@@ -1063,7 +948,7 @@ fn do_upload_package_start(req: &HttpRequest,
                 visibility: PackageVisibility::all(),
                 target: BuilderPackageTarget(PackageTarget::from_str(&target).unwrap()), // Unwrap OK
             },
-            &conn,
+            &mut conn,
         ) {
             Ok(_) => return Err(Error::Conflict),
             Err(NotFound) => {}
@@ -1151,7 +1036,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
         return HttpResponse::with_body(StatusCode::UNPROCESSABLE_ENTITY, body);
     }
 
-    let conn = match req_state(req).db.get_conn().map_err(Error::DbError) {
+    let mut conn = match req_state(req).db.get_conn().map_err(Error::DbError) {
         Ok(conn) => conn,
         Err(err) => return err.into(),
     };
@@ -1165,7 +1050,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
             target: BuilderPackageTarget(PackageTarget::from_str(&target_from_artifact).unwrap()),
             visibility: PackageVisibility::all(),
         },
-        &conn,
+        &mut conn,
     ) {
         Ok(pkg) => {
             if package_type != *pkg.package_type {
@@ -1203,7 +1088,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
                     PackageTarget::from_str(&target_from_artifact).unwrap(),
                 ), // Unwrap OK
             },
-            &conn,
+            &mut conn,
         ) {
             Ok(pkg) => {
                 if qupload.checksum != pkg.checksum {
@@ -1218,15 +1103,6 @@ async fn do_upload_package_finish(req: &HttpRequest,
             }
             Err(NotFound) => {}
             Err(err) => return Error::DieselError(err).into(),
-        }
-    }
-
-    // Check with scheduler to ensure we don't have circular deps, if configured
-    if feat::is_enabled(feat::Jobsrv) {
-        match has_circular_deps(req, ident, target_from_artifact, &mut archive).await {
-            Ok(val) if val => return HttpResponse::new(StatusCode::FAILED_DEPENDENCY),
-            Err(err) => return err.into(),
-            _ => (),
         }
     }
 
@@ -1298,11 +1174,11 @@ async fn do_upload_package_finish(req: &HttpRequest,
             origin: &package.origin,
             name: &package.name,
         },
-        &conn,
+        &mut conn,
     ) {
         // TED if this is in-fact optional in the db it should be an option in the model
         Ok(pkg) => pkg.visibility,
-        Err(_) => match Origin::get(&ident.origin, &conn) {
+        Err(_) => match Origin::get(&ident.origin, &mut conn) {
             Ok(o) => {
                 match OriginPackageSettings::create(
                     &NewOriginPackageSettings {
@@ -1311,7 +1187,7 @@ async fn do_upload_package_finish(req: &HttpRequest,
                         visibility: &o.default_package_visibility,
                         owner_id: package.owner_id,
                     },
-                    &conn,
+                    &mut conn,
                 ) {
                     Ok(pkg_settings) => pkg_settings.visibility,
                     Err(err) => return Error::DieselError(err).into(),
@@ -1322,77 +1198,14 @@ async fn do_upload_package_finish(req: &HttpRequest,
     };
 
     // Re-create origin package as needed (eg, checksum update)
-    match Package::create(&package, &conn) {
-        Ok(pkg) => {
-            if feat::is_enabled(feat::Jobsrv) {
-                let mut job_graph_package = jobsrv::JobGraphPackageCreate::new();
-                job_graph_package.set_package(pkg.into());
-
-                let msg_size = job_graph_package.compute_size();
-                match route_message::<jobsrv::JobGraphPackageCreate, originsrv::OriginPackage>(
-                    req,
-                    &job_graph_package,
-                )
-                .await
-                {
-                    Ok(_) => (),
-                    Err(Error::BuilderCore(RpcError(code, _)))
-                        if StatusCode::from_u16(code).unwrap() == StatusCode::NOT_FOUND =>
-                    {
-                        debug!(
-                            "Graph not found for package target: {}",
-                            target_from_artifact
-                        );
-                    }
-                    Err(err) => {
-                        warn!(
-                            "Failed to create job graph package, (msg_size {}) err={:?}",
-                            msg_size, err
-                        );
-                        debug!("Message: {:?}", job_graph_package);
-                        return err.into();
-                    }
-                }
-            }
-        }
+    match Package::create(&package, &mut conn) {
+        Ok(_) => {}
         Err(NotFound) => {
             debug!("Package::create returned NotFound (DB conflict handled)");
         }
         Err(err) => {
             debug!("Failed to create package in DB, err: {:?}", err);
             return Error::DieselError(err).into();
-        }
-    }
-
-    // Schedule re-build of dependent packages (if requested)
-    // Don't schedule builds if the upload is being done by the builder
-    if qupload.builder.is_none()
-       && feat::is_enabled(feat::Jobsrv)
-       && req_state(req).config.api.build_on_upload
-    {
-        let mut request = jobsrv::JobGroupSpec::new();
-        request.set_origin(ident.origin.to_string());
-        request.set_package(ident.name.to_string());
-        request.set_target(target_from_artifact.to_string());
-        request.set_deps_only(true);
-        request.set_origin_only(false);
-        request.set_package_only(false);
-        request.set_trigger(jobsrv::JobGroupTrigger::Upload);
-        request.set_requester_id(session.get_id());
-        request.set_requester_name(session.get_name().to_string());
-
-        match route_message::<jobsrv::JobGroupSpec, jobsrv::JobGroup>(req, &request).await {
-            Ok(group) => {
-                debug!("Scheduled reverse dependecy build for {}, group id: {}",
-                       ident,
-                       group.get_id())
-            }
-            Err(Error::BuilderCore(RpcError(code, _)))
-                if StatusCode::from_u16(code).unwrap() == StatusCode::NOT_FOUND =>
-            {
-                debug!("Unable to schedule build for {} (not found)", ident)
-            }
-            Err(err) => warn!("Unable to schedule build for {}, err: {:?}", ident, err),
         }
     }
 
@@ -1443,7 +1256,7 @@ async fn do_get_package(req: &HttpRequest,
     };
     Counter::GetPackage.increment();
 
-    let conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
+    let mut conn = req_state(req).db.get_conn().map_err(Error::DbError)?;
 
     let target = match qtarget.target {
         Some(ref t) => {
@@ -1498,7 +1311,7 @@ async fn do_get_package(req: &HttpRequest,
                                           helpers::visibility_for_optional_session(req,
                                                                                    opt_session_id,
                                                                                    &ident.origin),
-                                          &conn)
+                                          &mut conn)
         {
             Ok(pkg) => pkg,
             Err(NotFound) => {
@@ -1527,7 +1340,7 @@ async fn do_get_package(req: &HttpRequest,
                     &ident.origin,
                 ),
             },
-            &conn,
+            &mut conn,
         ) {
             Ok(pkg) => pkg.into(),
             Err(NotFound) => {
@@ -1549,8 +1362,10 @@ async fn do_get_package(req: &HttpRequest,
     };
 
     let mut pkg_json = serde_json::to_value(pkg.clone()).unwrap();
-    let channels = channels_for_package_ident(req, &pkg.ident, *pkg.target, &conn)?;
+    let channels = channels_for_package_ident(req, &pkg.ident, *pkg.target, &mut conn)?;
 
+    pkg_json["config"] = json!("");
+    pkg_json["manifest"] = json!("");
     pkg_json["channels"] = json!(channels);
     pkg_json["is_a_service"] = json!(pkg.is_a_service());
     let size = match req_state(req).packages
@@ -1633,83 +1448,4 @@ fn download_response_for_archive(archive: &PackageArchive,
         .insert_header(ContentType::octet_stream())
         .append_header((http::header::CACHE_CONTROL, cache_hdr))
         .streaming(rx_body.map(|s| Ok::<_, Infallible>(s)))
-}
-
-async fn has_circular_deps(req: &HttpRequest,
-                           ident: &PackageIdent,
-                           target: PackageTarget,
-                           archive: &mut PackageArchive)
-                           -> Result<bool> {
-    let mut pcr_req = jobsrv::JobGraphPackagePreCreate::new();
-    pcr_req.set_ident(format!("{}", ident));
-    pcr_req.set_target(target.to_string());
-
-    let mut pcr_deps = protobuf::RepeatedField::new();
-    let mut pcr_build_deps = protobuf::RepeatedField::new();
-
-    let build_deps_from_artifact = match archive.build_deps() {
-        Ok(build_deps) => build_deps,
-        Err(e) => {
-            debug!("Could not get build deps from {:#?}: {:#?}", archive, e);
-            return Err(Error::BiomeCore(e));
-        }
-    };
-
-    let deps_from_artifact = match archive.deps() {
-        Ok(deps) => deps,
-        Err(e) => {
-            debug!("Could not get deps from {:#?}: {:#?}", archive, e);
-            return Err(Error::BiomeCore(e));
-        }
-    };
-    for ident in build_deps_from_artifact {
-        let dep_str = format!("{}", ident);
-        pcr_build_deps.push(dep_str);
-    }
-    pcr_req.set_build_deps(pcr_build_deps);
-
-    for ident in deps_from_artifact {
-        let dep_str = format!("{}", ident);
-        pcr_deps.push(dep_str);
-    }
-    pcr_req.set_deps(pcr_deps);
-
-    match route_message::<jobsrv::JobGraphPackagePreCreate, NetOk>(req, &pcr_req).await {
-        Ok(_) => Ok(false),
-        Err(Error::BuilderCore(RpcError(code, _)))
-            if StatusCode::from_u16(code).unwrap() == StatusCode::CONFLICT =>
-        {
-            debug!("Failed package circular dependency check for {}", ident);
-            Ok(true)
-        }
-        Err(Error::BuilderCore(RpcError(code, _)))
-            if StatusCode::from_u16(code).unwrap() == StatusCode::NOT_FOUND =>
-        {
-            debug!("Graph not found for package target: {}", target);
-            Ok(false)
-        }
-        Err(err) => Err(err),
-    }
-}
-
-pub fn platforms_for_package_ident(req: &HttpRequest,
-                                   package: &BuilderPackageIdent)
-                                   -> Result<Option<Vec<String>>> {
-    let opt_session_id = match authorize_session(req, None, None) {
-        Ok(session) => Some(session.get_id()),
-        Err(_) => None,
-    };
-
-    let conn = req_state(req).db.get_conn()?;
-
-    match Package::list_package_platforms(package,
-                                          helpers::visibility_for_optional_session(req,
-                                                                                   opt_session_id,
-                                                                                   &package.origin),
-                                          &conn)
-    {
-        Ok(list) => Ok(Some(list.iter().map(|p| p.to_string()).collect())),
-        Err(NotFound) => Ok(None),
-        Err(err) => Err(Error::DieselError(err)),
-    }
 }

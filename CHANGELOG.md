@@ -3,6 +3,35 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update copyright year to 2025 [#1907](https://github.com/habitat-sh/builder/pull/1907) ([vkarve-chef](https://github.com/vkarve-chef))
+- Fixed license not found response [#1906](https://github.com/habitat-sh/builder/pull/1906) ([sougata-progress](https://github.com/sougata-progress))
+- Removed config section [#1905](https://github.com/habitat-sh/builder/pull/1905) ([sougata-progress](https://github.com/sougata-progress))
+- Fixed license expiration response [#1904](https://github.com/habitat-sh/builder/pull/1904) ([sougata-progress](https://github.com/sougata-progress))
+- Bump brace-expansion from 2.0.1 to 2.0.2 in /test/builder-api [#1903](https://github.com/habitat-sh/builder/pull/1903) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fixed license key expired response [#1901](https://github.com/habitat-sh/builder/pull/1901) ([sougata-progress](https://github.com/sougata-progress))
+- Added package metadata back [#1902](https://github.com/habitat-sh/builder/pull/1902) ([sougata-progress](https://github.com/sougata-progress))
+- Updated get license API [#1899](https://github.com/habitat-sh/builder/pull/1899) ([sougata-progress](https://github.com/sougata-progress))
+- diesel upgrade [#1898](https://github.com/habitat-sh/builder/pull/1898) ([sougata-progress](https://github.com/sougata-progress))
+- remove restricted channel settings in default toml [#1897](https://github.com/habitat-sh/builder/pull/1897) ([mwrock](https://github.com/mwrock))
+- Added license validation for pkg download [#1891](https://github.com/habitat-sh/builder/pull/1891) ([sougata-progress](https://github.com/sougata-progress))
+- Removed entire plan, package manifest and the dependencies section [#1896](https://github.com/habitat-sh/builder/pull/1896) ([sougata-progress](https://github.com/sougata-progress))
+- Updates deprecated &#39;hab sup status&#39; commands to &#39;hab svc status&#39; calls [#1893](https://github.com/habitat-sh/builder/pull/1893) ([jasonheath](https://github.com/jasonheath))
+- Taking cargo machete to our crates [#1894](https://github.com/habitat-sh/builder/pull/1894) ([jasonheath](https://github.com/jasonheath))
+- soft delete origins [#1886](https://github.com/habitat-sh/builder/pull/1886) ([mwrock](https://github.com/mwrock))
+- license key [#1883](https://github.com/habitat-sh/builder/pull/1883) ([sougata-progress](https://github.com/sougata-progress))
+- Removed Plan content from UI and API [#1884](https://github.com/habitat-sh/builder/pull/1884) ([sougata-progress](https://github.com/sougata-progress))
+<!-- latest_release -->
+
+## [20250403](https://github.com/habitat-sh/builder/tree/20250403) (2025-05-01)
+
+#### Merged Pull Requests
+- bump builder version [#1885](https://github.com/habitat-sh/builder/pull/1885) ([mwrock](https://github.com/mwrock))
+- Terraform Cleanup and Review [#1882](https://github.com/habitat-sh/builder/pull/1882) ([jasonheath](https://github.com/jasonheath))
+- Removal  jobsrv, graph, and worker and associated cleanup [#1875](https://github.com/habitat-sh/builder/pull/1875) ([jasonheath](https://github.com/jasonheath))
+- Support loading builder encryption key from env [#1880](https://github.com/habitat-sh/builder/pull/1880) ([sajjaphani](https://github.com/sajjaphani))
+- turn off rigin creation based on cfg.hosted and not enable_builder [#1881](https://github.com/habitat-sh/builder/pull/1881) ([mwrock](https://github.com/mwrock))
+- ability to restrict origin creation to authorized users [#1879](https://github.com/habitat-sh/builder/pull/1879) ([mwrock](https://github.com/mwrock))
+- Automate bldr user proision [#1877](https://github.com/habitat-sh/builder/pull/1877) ([sajjaphani](https://github.com/sajjaphani))
 - Fixed base channel button colour pallet [#1876](https://github.com/habitat-sh/builder/pull/1876) ([sougata-progress](https://github.com/sougata-progress))
 - Aligns rustfmt between Makefile and verify pipeline [#1874](https://github.com/habitat-sh/builder/pull/1874) ([jasonheath](https://github.com/jasonheath))
 - Address Markdown lint errors [#1872](https://github.com/habitat-sh/builder/pull/1872) ([jasonheath](https://github.com/jasonheath))
@@ -18,7 +47,6 @@
 - minio migration via hooks [#1860](https://github.com/habitat-sh/builder/pull/1860) ([jasonheath](https://github.com/jasonheath))
 - Added conditional render for deprecated stable message [#1859](https://github.com/habitat-sh/builder/pull/1859) ([sougata-progress](https://github.com/sougata-progress))
 - remove worker related post habitat build steps and cleanup bootstrap seed list [#1858](https://github.com/habitat-sh/builder/pull/1858) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [20241106](https://github.com/habitat-sh/builder/tree/20241106) (2024-11-04)
 

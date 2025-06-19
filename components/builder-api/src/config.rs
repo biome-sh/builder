@@ -45,8 +45,8 @@ pub struct Config {
     pub s3:          S3Cfg,
     pub ui:          UiCfg,
     pub memcache:    MemcacheCfg,
-    pub jobsrv:      JobsrvCfg,
     pub datastore:   DataStoreCfg,
+    pub provision:   ProvisionCfg,
 }
 
 #[derive(Debug)]
@@ -86,29 +86,40 @@ pub struct S3Cfg {
 
 impl Default for S3Cfg {
     fn default() -> Self {
-        S3Cfg { key_id:      String::from("depot"),
-                secret_key:  String::from("password"),
-                bucket_name: String::from("biome-builder-artifact-store.default"),
-                backend:     S3Backend::Minio,
-                endpoint:    String::from("http://localhost:9000"), }
+        let endpoint =
+            env::var("MINIO_ENDPOINT").unwrap_or_else(|_| String::from("http://localhost:9000"));
+        let key_id = env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| String::from("depot"));
+        let secret_key = env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| String::from("password"));
+        let bucket_name = env::var("MINIO_BUCKET_NAME").unwrap_or_else(|_| {
+                              String::from("biome-builder-artifact-store.default")
+                          });
+
+        S3Cfg { key_id,
+                secret_key,
+                bucket_name,
+                backend: S3Backend::Minio,
+                endpoint }
     }
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct ApiCfg {
-    pub data_path:                  PathBuf,
-    pub log_path:                   PathBuf,
+    pub data_path: PathBuf,
+    pub log_path: PathBuf,
     /// Location of Builder encryption keys
-    pub key_path:                   KeyCache,
-    pub targets:                    Vec<PackageTarget>,
-    pub build_targets:              Vec<PackageTarget>,
+    pub key_path: KeyCache,
+    pub targets: Vec<PackageTarget>,
     #[serde(with = "deserialize_into_vec")]
-    pub features_enabled:           Vec<String>,
-    pub build_on_upload:            bool,
-    pub private_max_age:            usize,
-    pub saas_bldr_url:              String,
+    pub features_enabled: Vec<String>,
+    pub private_max_age: usize,
+    pub saas_bldr_url: String,
     pub suppress_autobuild_origins: Vec<String>,
+    pub allowed_users_for_origin_create: Vec<String>,
+    pub license_server_url: String,
+    pub unrestricted_channels: Vec<String>,
+    pub partially_unrestricted_channels: Vec<String>,
+    pub restricted_if_present: Vec<String>,
 }
 
 mod deserialize_into_vec {
@@ -126,18 +137,26 @@ mod deserialize_into_vec {
 
 impl Default for ApiCfg {
     fn default() -> Self {
-        ApiCfg { data_path:                  PathBuf::from("/hab/svc/builder-api/data"),
-                 log_path:                   env::temp_dir(),
-                 key_path:                   KeyCache::new("/hab/svc/builder-api/files"),
-                 targets:                    vec![target::X86_64_LINUX,
-                                                  target::X86_64_LINUX_KERNEL2,
-                                                  target::X86_64_WINDOWS,],
-                 build_targets:              vec![target::X86_64_LINUX, target::X86_64_WINDOWS],
-                 features_enabled:           vec!["jobsrv".to_string()],
-                 build_on_upload:            true,
-                 private_max_age:            300,
-                 saas_bldr_url:              "https://bldr.habitat.sh".to_string(),
-                 suppress_autobuild_origins: vec![], }
+        let data_path = env::var("BLDR_DATA_DIR").map(PathBuf::from)
+                                                 .unwrap_or_else(|_| PathBuf::from("files"));
+        let key_path = env::var("BLDR_HAB_KEY_DIR").map(PathBuf::from)
+                                                   .unwrap_or_else(|_| PathBuf::from("files"));
+
+        ApiCfg { data_path,
+                 log_path: env::temp_dir(),
+                 key_path: KeyCache::new(key_path),
+                 targets: vec![target::X86_64_LINUX,
+                               target::X86_64_LINUX_KERNEL2,
+                               target::X86_64_WINDOWS,],
+                 features_enabled: vec!["jobsrv".to_string()],
+                 private_max_age: 300,
+                 saas_bldr_url: "https://bldr.habitat.sh".to_string(),
+                 license_server_url: "http://licensing-acceptance.chef.co".to_string(),
+                 suppress_autobuild_origins: vec![],
+                 allowed_users_for_origin_create: vec![],
+                 unrestricted_channels: vec![],
+                 partially_unrestricted_channels: vec![],
+                 restricted_if_present: vec![] }
     }
 }
 
@@ -180,8 +199,8 @@ pub struct TLSClientCfg {
 
 impl Default for TLSServerCfg {
     fn default() -> Self {
-        TLSServerCfg { cert_path:    PathBuf::from("/hab/svc/builder-api/files/service.crt"),
-                       key_path:     PathBuf::from("/hab/svc/builder-api/files/service.key"),
+        TLSServerCfg { cert_path:    PathBuf::from("files/server.crt"),
+                       key_path:     PathBuf::from("files/server.key"),
                        ca_cert_path: None, }
     }
 }
@@ -195,13 +214,40 @@ impl Default for TLSClientCfg {
     }
 }
 
+/// Resolves a given address string to an `IpAddr`.
+///
+/// - If the input is a valid IP address, it is returned as-is.
+/// - If the input is a hostname, it attempts to resolve it to an IP.
+/// - Returns an error if the input is neither a valid IP nor a resolvable hostname.
+fn resolve_addr(addr: &str) -> Result<IpAddr, String> {
+    addr.parse()
+        .map_err(|_| format!("Invalid IP address or hostname: {}", addr))
+        .or_else(|_| {
+            (addr, 0) // Use port 0 since we only need the IP
+                     .to_socket_addrs()
+                     .map_err(|_| format!("Failed to resolve hostname: {}", addr))?
+                     .next()
+                     .map(|socket_addr| socket_addr.ip())
+                     .ok_or_else(|| format!("No IP addresses found for hostname: {}", addr))
+        })
+}
+
 impl Default for HttpCfg {
     fn default() -> Self {
-        HttpCfg { listen:        IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-                  port:          9636,
-                  tls:           None,
+        let listen = match env::var("BLDR_LISTEN") {
+            Ok(addr) => resolve_addr(&addr).expect("Failed to resolve BLDR_LISTEN"),
+            Err(_) => IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), /* Use default if BLDR_LISTEN is not
+                                                              * set */
+        };
+        let port = env::var("BLDR_PORT").ok()
+                                        .and_then(|val| val.parse::<u16>().ok())
+                                        .unwrap_or(9636);
+
+        HttpCfg { listen,
+                  port,
+                  tls: None,
                   handler_count: Config::default_handler_count(),
-                  keep_alive:    60, }
+                  keep_alive: 60 }
     }
 }
 
@@ -240,9 +286,14 @@ pub struct MemcacheCfg {
 
 impl Default for MemcacheCfgHosts {
     fn default() -> Self {
-        MemcacheCfgHosts { host: String::from("localhost"),
-                           port: 11211,
-                           tls:  None, }
+        let host = env::var("MEMCACHED_HOST").unwrap_or_else(|_| String::from("localhost"));
+        let port = env::var("MEMCACHED_PORT").ok()
+                                             .and_then(|val| val.parse::<u16>().ok())
+                                             .unwrap_or(11211);
+
+        MemcacheCfgHosts { host,
+                           port,
+                           tls: None }
     }
 }
 
@@ -323,6 +374,31 @@ impl fmt::Display for JobsrvCfg {
     }
 }
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default)]
+pub struct ProvisionCfg {
+    pub auto_provision_account: bool,
+    pub username:               String,
+    pub email:                  String,
+    pub token_path:             PathBuf,
+    pub origins:                Vec<String>,
+    pub channels:               Vec<String>,
+}
+
+impl Default for ProvisionCfg {
+    fn default() -> Self {
+        let token_path = env::var("BLDR_TOKEN_DIR").map(PathBuf::from)
+                                                   .unwrap_or_else(|_| env::temp_dir());
+
+        ProvisionCfg { auto_provision_account: false,
+                       username: "chef-platform".to_string(),
+                       email: "chef-platform@progress.com".to_string(),
+                       token_path,
+                       origins: vec!["core".to_string()],
+                       channels: vec!["stable".to_string()] }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -336,11 +412,10 @@ mod tests {
         log_path = "/hab/svc/bio-depot/var/log"
         key_path = "/hab/svc/bio-depot/files"
         targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
-        build_targets = ["x86_64-linux"]
         features_enabled = "foo, bar"
-        build_on_upload = false
         private_max_age = 400
         suppress_autobuild_origins = ["origin1", "origin2"]
+        allowed_users_for_origin_create = ["super1", "super2"]
 
         [http]
         listen = "0:0:0:0:0:0:0:1"
@@ -413,12 +488,11 @@ mod tests {
         assert_eq!(config.api.targets[1], target::X86_64_LINUX_KERNEL2);
         assert_eq!(config.api.targets[2], target::X86_64_WINDOWS);
 
-        assert_eq!(config.api.build_targets.len(), 1);
-        assert_eq!(config.api.build_targets[0], target::X86_64_LINUX);
+        assert_eq!(&config.api.allowed_users_for_origin_create,
+                   &["super1".to_string(), "super2".to_string()]);
 
         assert_eq!(&config.api.features_enabled,
                    &["FOO".to_string(), "BAR".to_string()]);
-        assert!(!config.api.build_on_upload);
         assert_eq!(config.api.private_max_age, 400);
 
         assert_eq!(&format!("{}", config.http.listen), "::1");
@@ -426,11 +500,6 @@ mod tests {
         assert_eq!(config.memcache.ttl, 11);
         assert_eq!(&format!("{}", config.memcache.hosts[0]),
                    "memcache://192.168.0.1:12345");
-
-        assert_eq!(&config.api.suppress_autobuild_origins,
-                   &["origin1".to_string(), "origin2".to_string()]);
-
-        assert_eq!(&format!("{}", config.jobsrv), "http://1.2.3.4:1234");
 
         assert_eq!(config.http.port, 9636);
         assert_eq!(config.http.handler_count, 128);

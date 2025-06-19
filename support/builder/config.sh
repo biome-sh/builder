@@ -5,7 +5,7 @@ sleep 5
 
 pwfile=/hab/svc/builder-datastore/config/pwfile
 while [ ! -f $pwfile ] \
-&&  bio sup status biome/builder-datastore > /dev/null 2>&1;
+&&  bio svc status biome/builder-datastore > /dev/null 2>&1;
 do
   echo "Waiting for password"
   sleep 2
@@ -15,7 +15,7 @@ if [ -f $pwfile ]; then
   export PGPASSWORD
   PGPASSWORD=$(cat $pwfile)
 else
-  bio sup status
+  bio svc status
   echo "ERROR: $0: $pwfile does not exist and biome/builder-datastore is not running"
   exit 1
 fi
@@ -29,6 +29,9 @@ EOT
 mkdir -p /hab/user/builder-api/config
 cat <<EOT > /hab/user/builder-api/config/user.toml
 log_level = "debug,tokio_core=error,tokio_reactor=error,zmq=error,hyper=error"
+
+[api]
+allowed_users_for_origin_create = ['bobo', 'mystique', 'wesker', 'lkennedy']
 
 [http]
 handler_count = 15
@@ -77,19 +80,4 @@ proxy_read_timeout = 180
 
 [http]
 keepalive_timeout = "180s"
-EOT
-
-mkdir -p /hab/user/builder-jobsrv/config/
-cat <<EOT > /hab/user/builder-jobsrv/config/user.toml
-log_level = "debug,tokio_core=error,tokio_reactor=error,zmq=error,postgres=error"
-
-[http]
-handler_count = 15
-
-[datastore]
-password = "$PGPASSWORD"
-port = 5433
-
-[archive]
-backend = "local"
 EOT

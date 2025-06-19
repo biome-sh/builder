@@ -33,9 +33,6 @@ use crate::{error::{Error,
             bio_core::package::target::{self,
                                         PackageTarget}};
 
-/// Postprocessing config file name
-pub const BLDR_CFG: &str = ".bldr.toml";
-
 /// Default branch
 const DEFAULT_BRANCH: &str = "main";
 

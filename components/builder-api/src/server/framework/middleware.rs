@@ -1,14 +1,11 @@
 use crate::{bldr_core::{access_token::{AccessToken,
                                        BUILDER_ACCOUNT_ID,
                                        BUILDER_ACCOUNT_NAME},
-                        metrics::CounterMetric,
                         privilege::FeatureFlags},
             db::models::account::*,
             protocol::{self,
                        originsrv},
             server::{error,
-                     helpers::req_state,
-                     services::metrics::Counter,
                      AppState}};
 use actix_web::{body::BoxBody,
                 dev::{Service,
@@ -18,7 +15,6 @@ use actix_web::{body::BoxBody,
                 web::Data,
                 Error,
                 HttpMessage,
-                HttpRequest,
                 HttpResponse};
 use futures::future::{ok,
                       Either,
@@ -28,18 +24,6 @@ use std::env;
 
 lazy_static! {
     static ref SESSION_DURATION: u32 = 3 * 24 * 60 * 60;
-}
-
-pub async fn route_message<R, T>(req: &HttpRequest, msg: &R) -> error::Result<T>
-    where R: protobuf::Message,
-          T: protobuf::Message
-{
-    Counter::RouteMessage.increment();
-    // Route via Protobuf over HTTP
-    req_state(req).jobsrv
-                  .rpc::<R, T>(msg)
-                  .await
-                  .map_err(error::Error::BuilderCore)
 }
 
 // Optional Authentication - this middleware does not enforce authentication,
@@ -110,9 +94,10 @@ fn authenticate(token: &str, state: &AppState) -> error::Result<originsrv::Sessi
 
             // If we can't find a token in the cache, we need to round-trip to the
             // db to see if we have a valid session token.
-            let conn = state.db.get_conn().map_err(error::Error::DbError)?;
+            let mut conn = state.db.get_conn().map_err(error::Error::DbError)?;
 
-            match AccountToken::list(session.get_id(), &conn).map_err(error::Error::DieselError) {
+            match AccountToken::list(session.get_id(), &mut conn).map_err(error::Error::DieselError)
+            {
                 Ok(access_tokens) => {
                     assert!(access_tokens.len() <= 1); // Can only have max of 1 for now
                     match access_tokens.first() {
@@ -123,7 +108,7 @@ fn authenticate(token: &str, state: &AppState) -> error::Result<originsrv::Sessi
                                 return Err(error::Error::Authorization);
                             }
 
-                            let account = Account::get_by_id(session.get_id() as i64, &conn)
+                            let account = Account::get_by_id(session.get_id() as i64, &mut conn)
                                 .map_err(error::Error::DieselError)?;
                             trace!("Found account for token {} in database", token);
                             session.set_name(account.name);
@@ -156,7 +141,7 @@ pub fn session_create_oauth(oauth_token: &str,
                             -> error::Result<originsrv::Session> {
     let mut session = originsrv::Session::new();
     let mut session_token = originsrv::SessionToken::new();
-    let conn = state.db.get_conn().map_err(error::Error::DbError)?;
+    let mut conn = state.db.get_conn().map_err(error::Error::DbError)?;
 
     let email = match user.email {
         Some(ref email) => {
@@ -168,7 +153,7 @@ pub fn session_create_oauth(oauth_token: &str,
 
     match Account::find_or_create(&NewAccount { name: &user.username,
                                                 email },
-                                  &conn)
+                                  &mut conn)
     {
         Ok(account) => {
             session_token.set_account_id(account.id as u64);

@@ -22,7 +22,6 @@ use crate::{bldr_core::metrics::CounterMetric,
          QueryableByName,
          Queryable,
          Clone,
-         AsExpression,
          PartialEq,
          Identifiable)]
 #[table_name = "origin_package_settings"]
@@ -34,6 +33,7 @@ pub struct OriginPackageSettings {
     pub visibility: PackageVisibility,
     #[serde(with = "db_id_format")]
     pub owner_id:   i64,
+    pub hidden:     bool,
     pub created_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
 }
@@ -71,7 +71,7 @@ pub struct DeleteOriginPackageSettings<'a> {
 
 impl OriginPackageSettings {
     pub fn get(req: &GetOriginPackageSettings,
-               conn: &PgConnection)
+               conn: &mut PgConnection)
                -> QueryResult<OriginPackageSettings> {
         Counter::DBCall.increment();
         origin_package_settings::table.filter(origin_package_settings::origin.eq(&req.origin))
@@ -80,7 +80,7 @@ impl OriginPackageSettings {
     }
 
     pub fn create(req: &NewOriginPackageSettings,
-                  conn: &PgConnection)
+                  conn: &mut PgConnection)
                   -> QueryResult<OriginPackageSettings> {
         Counter::DBCall.increment();
         diesel::insert_into(origin_package_settings::table).values(req)
@@ -88,7 +88,7 @@ impl OriginPackageSettings {
     }
 
     pub fn update(req: &UpdateOriginPackageSettings,
-                  conn: &PgConnection)
+                  conn: &mut PgConnection)
                   -> QueryResult<OriginPackageSettings> {
         Counter::DBCall.increment();
         diesel::update(
@@ -100,7 +100,9 @@ impl OriginPackageSettings {
         .get_result(conn)
     }
 
-    pub fn delete(req: &DeleteOriginPackageSettings, conn: &PgConnection) -> QueryResult<usize> {
+    pub fn delete(req: &DeleteOriginPackageSettings,
+                  conn: &mut PgConnection)
+                  -> QueryResult<usize> {
         Counter::DBCall.increment();
         diesel::delete(
             origin_package_settings::table
@@ -110,7 +112,9 @@ impl OriginPackageSettings {
         .execute(conn)
     }
 
-    pub fn count_origin_package_settings(origin: &str, conn: &PgConnection) -> QueryResult<i64> {
+    pub fn count_origin_package_settings(origin: &str,
+                                         conn: &mut PgConnection)
+                                         -> QueryResult<i64> {
         Counter::DBCall.increment();
         origin_package_settings::table.select(count(origin_package_settings::id))
                                       .filter(origin_package_settings::origin.eq(&origin))
@@ -119,7 +123,7 @@ impl OriginPackageSettings {
 
     pub fn count_packages_for_origin_package(origin: &str,
                                              pkg: &str,
-                                             conn: &PgConnection)
+                                             conn: &mut PgConnection)
                                              -> QueryResult<i64> {
         Counter::DBCall.increment();
         origin_packages::table.select(count(origin_packages::id))

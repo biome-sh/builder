@@ -7,9 +7,6 @@ biomeConfig({
     // Cookie domain (optional; e.g., 'bldr.company.co')
     cookie_domain: "",
 
-    // The URL for the Builder demo app
-    demo_app_url: "https://www.habitat.sh/demo/build-system/steps/1/",
-
     // The URL for documentation
     docs_url: "https://www.habitat.sh/docs",
 
@@ -24,9 +21,6 @@ biomeConfig({
     enable_publisher_azure: false,
     enable_publisher_docker: false,
 
-    // Enable StatusPage.io integration
-    enable_statuspage: false,
-
     // The environment in which we're running. If "production", enable production mode
     environment: "production",
 
@@ -38,6 +32,9 @@ biomeConfig({
 
     // The Biome Builder GitHub app ID
     github_app_id: "5629",
+
+    // Are we running in a saas environment
+    is_saas: false,
 
     // OAuth properties
     oauth_authorize_url: "https://github.com/login/oauth/authorize",

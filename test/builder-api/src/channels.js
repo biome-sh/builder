@@ -344,8 +344,8 @@ describe('Channels API', function () {
         .end(function (err, res) {
           console.log(res.body)
           expect(res.body.range_start).to.equal(0);
-          expect(res.body.range_end).to.equal(6);
-          expect(res.body.total_count).to.equal(7);
+          expect(res.body.range_end).to.equal(40);
+          expect(res.body.total_count).to.equal(41);
           expect(res.body.data[0].operation).to.equal('Promote');
           expect(res.body.data[0].origin).to.equal('neurosis');
           expect(res.body.data[0].channel).to.equal('bar');
@@ -363,10 +363,13 @@ describe('Channels API', function () {
           expect(res.body.data[4].channel).to.equal('foo');
           expect(res.body.data[5].operation).to.equal('Demote');
           expect(res.body.data[5].origin).to.equal('neurosis');
-          expect(res.body.data[5].channel).to.equal('stable');
-          expect(res.body.data[6].operation).to.equal('Promote');
+          expect(res.body.data[5].channel).to.equal('base-2025');
+          expect(res.body.data[6].operation).to.equal('Demote');
           expect(res.body.data[6].origin).to.equal('neurosis');
           expect(res.body.data[6].channel).to.equal('stable');
+          expect(res.body.data[7].operation).to.equal('Promote');
+          expect(res.body.data[7].origin).to.equal('neurosis');
+          expect(res.body.data[7].channel).to.equal('base-2025');
           done(err);
         });
     });
@@ -442,19 +445,18 @@ describe('Channels API', function () {
         .expect(200)
         .end(function (err, res) {
           expect(res.body.range_start).to.equal(0);
-          expect(res.body.range_end).to.equal(2);
-          expect(res.body.total_count).to.equal(3);
-          expect(res.body.data.length).to.equal(3);
+          expect(res.body.range_end).to.equal(3);
+          expect(res.body.total_count).to.equal(4);
+          expect(res.body.data.length).to.equal(4);
           expect(res.body.data[0].origin).to.equal('neurosis');
           expect(res.body.data[0].name).to.equal('testapp');
           expect(res.body.data[0].version).to.equal('0.1.3');
-          expect(res.body.data[0].release).to.equal('20181116180420');
-          expect(res.body.data[1].platforms[0]).to.equal('x86_64-linux');
+          expect(res.body.data[0].release).to.equal('20190327162537');
           expect(res.body.data[1].origin).to.equal('neurosis');
           expect(res.body.data[1].name).to.equal('testapp');
           expect(res.body.data[1].version).to.equal('0.1.3');
-          expect(res.body.data[1].release).to.equal('20171206004121');
-          expect(res.body.data[1].platforms[0]).to.equal('x86_64-linux');
+          expect(res.body.data[1].release).to.equal('20181116180420');
+          expect(res.body.data[1].platforms[0]).to.equal('x86_64-linux-kernel2');
           done(err);
         });
     });
@@ -904,9 +906,9 @@ describe('Channels API', function () {
         .expect(200)
         .end(function (err, res) {
           expect(res.body.range_start).to.equal(0);
-          expect(res.body.range_end).to.equal(31);
-          expect(res.body.total_count).to.equal(32);
-          expect(res.body.data.length).to.equal(32);
+          expect(res.body.range_end).to.equal(32);
+          expect(res.body.total_count).to.equal(33);
+          expect(res.body.data.length).to.equal(33);
           done(err);
         });
     });

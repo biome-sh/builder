@@ -1,29 +1,30 @@
 log_level = "info"
 
 [api]
-features_enabled = "jobsrv"
 targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
-build_targets = ["x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
-build_on_upload = true
 saas_bldr_url = "https://bldr.habitat.sh"
-suppress_autobuild_origins = []
+license_server_url = "http://licensing-acceptance.chef.co"
 allowed_native_package_origins = []
+allowed_users_for_origin_create = []
+unrestricted_channels = []
+partially_unrestricted_channels = []
+restricted_if_present = []
 
 [http]
 listen = "0.0.0.0"
-port   = 9636
+port = 9636
 
 [oauth]
-provider       = "github"
-token_url      = "https://github.com/login/oauth/access_token"
-userinfo_url   = "https://api.github.com/user"
-redirect_url   = ""
-client_id      = ""
-client_secret  = ""
+provider = "github"
+token_url = "https://github.com/login/oauth/access_token"
+userinfo_url = "https://api.github.com/user"
+redirect_url = ""
+client_id = ""
+client_secret = ""
 
 [github]
-api_url        = "https://api.github.com"
-app_id         = 5565
+api_url = "https://api.github.com"
+app_id = 5565
 webhook_secret = ""
 
 [s3]
